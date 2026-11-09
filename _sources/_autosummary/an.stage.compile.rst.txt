@@ -52,7 +52,6 @@ an.stage.compile
       scene_builders
       space_definitions
       stage_replacements
-      step_times
       style_pack_for
       unknown_target_message
       z_index_keys

@@ -23,7 +23,9 @@ an.ir.camera
       dolly_growth
       follow_overlay
       frame_times
+      is_affine
       plane_dolly_scale
+      sample_camera
    
    .. rubric:: Exceptions
 

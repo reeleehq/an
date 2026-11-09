@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../../../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -751,6 +751,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">bisect</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
@@ -768,6 +769,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"TrackEvent"</span><span class="p">,</span>
     <span class="s2">"Vec3"</span><span class="p">,</span>
     <span class="s2">"lag_filter"</span><span class="p">,</span>
+    <span class="s2">"lag_resample"</span><span class="p">,</span>
     <span class="s2">"look_basis"</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -1005,30 +1007,97 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="lag_filter">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.frames.html#an.ir.frames.lag_filter">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">lag_filter</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">lag</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">lag_filter</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">lag</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``values`` seen through a first-order filter of time constant ``lag``</span>
 <span class="sd">    (s), sampled every ``dt``: it starts on the first value and closes</span>
 <span class="sd">    ``1 - exp(-dt/lag)`` of the gap each step (Cinemachine's damping: the time</span>
 <span class="sd">    it takes to catch up). ``lag &lt;= 0`` returns them as they are.</span>
 
+<span class="sd">    ``dt`` is one step for all, or one per step (``len(values) - 1`` of them)</span>
+<span class="sd">    for a grid that is not uniform — a stepped shot's frames and steps</span>
+<span class="sd">    interleaved (an#626). Each step is the exact response of the filter to</span>
+<span class="sd">    the input held at the step's END value over it, so a grid refined by</span>
+<span class="sd">    :func:`lag_resample` lands on the same values.</span>
+
 <span class="sd">    &gt;&gt;&gt; out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)</span>
 <span class="sd">    &gt;&gt;&gt; round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it</span>
 <span class="sd">    63.2</span>
+<span class="sd">    &gt;&gt;&gt; lag_filter([0.0, 100.0, 100.0], lag=0.5, dt=[0.1, 0.1]) == out[:3]</span>
+<span class="sd">    True</span>
 <span class="sd">    &gt;&gt;&gt; lag_filter([0.0, 1.0], lag=0.5, dt=0.0)</span>
 <span class="sd">    Traceback (most recent call last):</span>
 <span class="sd">      ...</span>
 <span class="sd">    ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">dt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">uniform</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt</span><span class="p">]</span> <span class="k">if</span> <span class="n">uniform</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"lag_filter: the sample step `dt` must be positive (got </span><span class="si">{</span><span class="n">d</span><span class="si">!r}</span><span class="s2">)."</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">uniform</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"lag_filter: the sample step `dt` must be positive (got </span><span class="si">{</span><span class="n">dt</span><span class="si">!r}</span><span class="s2">)."</span>
+            <span class="sa">f</span><span class="s2">"lag_filter: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps `dt` for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2"> values; a "</span>
+            <span class="s2">"per-step `dt` has one step between each two values."</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">lag</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">dt</span> <span class="o">/</span> <span class="n">lag</span><span class="p">)</span>
+    <span class="n">gains</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">d</span> <span class="o">/</span> <span class="n">lag</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">uniform</span><span class="p">:</span>  <span class="c1"># one gain for every step, as it always was</span>
+        <span class="n">gains</span> <span class="o">=</span> <span class="n">gains</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
-    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">gains</span><span class="p">):</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="lag_resample">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.frames.html#an.ir.frames.lag_resample">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lag_resample</span><span class="p">(</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">filtered</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">at</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">lag</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The lagging track :func:`lag_filter` made over ``times`` (its input</span>
+<span class="sd">    ``values``, its output ``filtered``), read at the instants ``at`` (an#626).</span>
+
+<span class="sd">    At a grid instant, the filtered value itself. Between ``times[k]`` and</span>
+<span class="sd">    ``times[k+1]``, the filter's own trajectory there: from ``filtered[k]``</span>
+<span class="sd">    toward ``values[k+1]`` (the input it holds over that step), closing</span>
+<span class="sd">    ``1 - exp(-(t - times[k])/lag)`` of the gap — which reaches</span>
+<span class="sd">    ``filtered[k+1]`` at the step's end, so refining the grid moves nothing</span>
+<span class="sd">    on it. Before the first instant, the first value; after the last, the</span>
+<span class="sd">    last (the filter's output is not defined beyond its input).</span>
+
+<span class="sd">    &gt;&gt;&gt; times, values = [0.0, 0.1, 0.2], [0.0, 100.0, 100.0]</span>
+<span class="sd">    &gt;&gt;&gt; lagged = lag_filter(values, lag=0.5, dt=0.1)</span>
+<span class="sd">    &gt;&gt;&gt; lag_resample(times, values, lagged, [0.0, 0.1, 0.2], lag=0.5) == lagged</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; round(lag_resample(times, values, lagged, [0.05], lag=0.5)[0], 3)</span>
+<span class="sd">    9.516</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">lag</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">times</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"lag_resample reads a lagging track: it needs a positive `lag` (got "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lag</span><span class="si">!r}</span><span class="s2">) and at least one instant (got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="si">}</span><span class="s2">)."</span>
+        <span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">at</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">filtered</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">lag</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtered</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">filtered</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 

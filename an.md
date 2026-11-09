@@ -1,4 +1,4 @@
-> built 2026-11-09 04:36 UTC from 274cf08 (main) · an 0.1.388. Details: build_info.json
+> built 2026-11-09 04:49 UTC from a9a4f3b (main) · an 0.1.389. Details: build_info.json
 
 # index.html.md
 
@@ -831,9 +831,19 @@ take them; the runtime refuses any other kind.
 The visual’s place among its node’s children when the node sorts them
 (an#403): a part drawn over the chain nested under it.
 
-### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
+### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None, frame_samples=None, sample_fps=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`frame_samples` (an#626) are the scene instants the render samples, per
+frame (`RenderContext.frame_samples`: a shutter’s sub-frame ones). A
+camera the compiler keys itself — a follow, a dolly — is keyed at each of
+them too ([`an.frame_clock.camera_grid()`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid)), so a sample lands
+on an exact key instead of between two frames’ keys. `None` (default)
+keys a frame each and leaves the document byte-identical to before the
+knob existed; so does any value for a shot with no such camera.
+`sample_fps` is the rate they were taken at, when `fps` (the compiled
+grid’s, integral) rounds it: they are counted at it.
 
 `default_easing` (an#166) is the scene’s `meta.default_easing`: the
 curve of every authored tween that names none (tween > this > the built-in
@@ -858,7 +868,9 @@ non-positive rate used to spin `step_times` forever (an#89 review).
 Exempt by construction, because they are separate
 emission sites rather than string-sniffed: the camera (`_add_camera_clips`
 — a stepped character under a translating camera slides in screen space,
-which is why the practice keeps cameras on ones), compiled blinks, `play`
+which is why the practice keeps cameras on ones; a FOLLOW is the
+exception, computed from the stepped poses and stepped with them, an#626),
+compiled blinks, `play`
 clips, and swap channels (already stepped by format). The value is
 stamped into `meta.step_hz` — only when set — so a serialized scene
 declares its timing policy without moving the contract hash of one that
@@ -8655,7 +8667,7 @@ because a timing-sensitive pool is one more thing to explain if the pixels
 ever do differ; `strict_assets=True` because a stand-in asset renders
 happily as a DIFFERENT picture (an#33).
 
-### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The core corpus (see the module docstring).
 
@@ -8874,7 +8886,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite', 'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'after_plane': Fixture(path='misc/bench/corpus/after_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a prop placed BETWEEN two planes under a pan (an#344): a far sky (depth 0.25), a disc with \`stage.after: set/sky\`, then a wall in two pieces with a window gap and a sill, all at depth 1.0, while the camera pans 60 px. The disc is drawn behind the walls and rides the sky's parallax through its band wrapper: between the goldens the walls move 40 px and the sky and disc 10 px. A regression in the draw order (the disc over the wall), in the wrapper's compensation (the disc sliding against the sky), or in the band containers' addressing moves a golden."), 'front_plane': Fixture(path='misc/bench/corpus/front_plane', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="an environment cut by \`characters_after\` with an ANIMATED foreground plane (an#343): \`stage\` draws \`sky\` and \`hill\` behind a world text label and \`rail\` in front of it, in its own container with \`scope: stage\`, so the rail is addressed \`stage/rail\` (never \`stage_\_front/rail\`) and its \`y\` tween rises from 60 to 0 over the label. What moves between the goldens is the rail crossing the label: a regression in the runtime's scoped indexing (the channel would name nothing and the load throws), in the cut, or in the draw order moves a golden."), 'path_boil': Fixture(path='misc/bench/corpus/path_boil', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.041666666666666664, 0.08333333333333333), golden_note="two boiling paths (an#443): the wobbled frame of \`path_wobble\` drawn three ways and a dashed, trimmed arrow drawn two ways, both stepping to their next drawing every 1/12 s. Nothing else moves, so the two goldens straddle a step: frame 1 is drawing 0 (the static wobble's bytes), frame 2 is drawing 1; a change to the variant seeds, the step clock or the runtime's draw set moves frame 2 only."), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'path_shape': Fixture(path='misc/bench/corpus/path_shape', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='closed and filled paths (an#161): a badge drawn whole (fill under a mitred border joined at its first corner, no caps there), and a region as two entities, a border-less fill whose node \`alpha\` fades 0 -> 1 under a closed border that draws itself on (\`trim_end\` 0 -> 1). Frame 0 shows only the badge; a regression in the fill, the closing join, the fill staying untrimmed or a \`width: 0\` path drawing a stroke moves a golden.'), 'path_taper': Fixture(path='misc/bench/corpus/path_taper', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="variable-width paths (an#161), drawn as filled outlines: a wobbled brush stroke swelling from nothing to 1.2x and back to a point, and an arrow widening 0.2x -> 1x along a mitred polyline that draws itself on with its head on the tip. The width is anchored to the WHOLE path, so the arrow's base does not thin as it grows; a regression in the profile, the miter, the anchoring or the fill-instead-of-stroke rule moves a golden."), 'path_wobble': Fixture(path='misc/bench/corpus/path_wobble', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note='two hand-drawn paths (an#161): a solid frame wobbling 3 px at a 60 px wavelength, and an arrow wobbling 4 px that draws itself on (\`trim_end\` 0 -> 1). The wobble is compile-time (seeded by the entity id, no trigonometry), so the frame is the same in both goldens and only the route grows; a change to the noise, the seed, the end envelope or the resampling moves both.'), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'rig_chain': Fixture(path='misc/bench/corpus/rig_chain', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a desk-lamp prop with \`nesting: bones\` (an#340): base -> upper arm -> forearm, and a shade NESTED on the forearm's bone (the sword in the hand). The upper arm (rest 30 deg) tweens 0.52 -> -0.3 rad, the forearm (rest -70 deg, relative to the upper arm) -1.22 -> -0.4, the shade 0 -> 0.6: each turns about its joint and carries what hangs from it. A regression that flattened the chain (forearm left behind by the upper arm), inherited a parent's attachment offset, or applied a rest pose twice moves a golden."), 'rig_interleave': Fixture(path='misc/bench/corpus/rig_interleave', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="the rig_chain desk lamp (\`nesting: bones\`, base -> upper arm -> forearm -> shade) with an UNRELATED panel ordered between the upper arm (1) and the forearm (3) (an#430): the panel covers the upper arm's top and the forearm crosses OVER the panel, which no sort of one container's items can give. Painted from the entity's global \`paint_order\`. The same three tweens as rig_chain move the arm between the goldens. A regression that painted the chain together (the panel over both arms, or under both) moves a golden."), 'rig_order': Fixture(path='misc/bench/corpus/rig_order', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a nested chain drawn BEHIND the part it hangs from (an#403): \`rig_chain\`'s desk lamp in \`nesting: bones\` with the whole arm (upper, forearm, shade: draw orders 1-3) behind its base (4). The base's container sorts its own drawing after the arm (\`sortableChildren\`, \`z_index\`), which the stage used to refuse. Between the goldens the arm swings as in \`rig_chain\`; where it passes over the base the base is in front. A regression in the runtime's sort, the compiler's \`z_index\` or the chain refusal moves a golden."), 'rig_origin': Fixture(path='misc/bench/corpus/rig_origin', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two copies of one three-bone signpost rig (base, post, sign) at the same \`stage.at\` height (an#338): \`footed\` declares its \`origin\` at the foot of its base, so its foot stands ON the placement line; \`centred\` declares none, so the middle of its bones' extent lands there and it hangs lower. \`footed\` tweens \`rotation\` 0 -> -0.4 rad, which turns it about the declared origin: between the goldens its sign swings left while its foot does not move, and \`centred\` does not move at all. A regression that ignored \`origin\` (both posts at one height), placed parts about the wrong point, or broke the shared rig builder moves a golden."), 'rig_rest': Fixture(path='misc/bench/corpus/rig_rest', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="a tripod prop whose three legs are ONE drawing on three bones with \`rotation_deg\` 22 / 0 / -22 (an#339): the splay is the bones' rest pose, not pixels. The whole tripod tweens \`rotation\` 0 -> 0.3 rad about its declared origin (the centre foot), and the splayed legs ride it: at frame 8 the rig is tilted 0.2 rad with the splay intact. A regression that dropped the rest pose (three parallel legs), applied it twice, or let the entity's rotation replace a leg's instead of composing with it moves a golden."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'text_counter': Fixture(path='misc/bench/corpus/text_counter', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.5), golden_note="a calendar counting 1 to 30 with ONE text block (an#342): a right-aligned \`counter: {format: '{d}', start: 1}\` under one linear \`tween day value -> 30\` over 1 s, lowered at compile to a replacement set of the strings the frames show. Frame 0 shows 1; frame 12's value is exactly 15.5, which nearest-half-even rounding shows as 16 (15 would mean ties away from even, 15/17 a sampling or set-time shift). A regression in the sampling grid, the half-frame set time, the rounding or the right-edge geometry moves a golden."), 'text_halo': Fixture(path='misc/bench/corpus/text_halo', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text with a HALO (an#701, tituli's \`Halo\`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (\`color\`, \`spread\`, \`blur\`, \`gain\`, \`opacity\` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_outline': Fixture(path='misc/bench/corpus/text_outline', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="OUTLINED text (an#313, OverSimplified's labels): white words with a 4 px near-black outline over a mid-blue plate and a pale stripe, the second word fading in from 0.125 s. Frame 0 shows the first word alone, outline and all, and NO outline where the second word will be (the outline lives in the word's own texture, so its alpha hides both); frame 8 shows both, legible over the blue and the stripe alike. A regression in the outline's width, its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."), 'text_swap': Fixture(path='misc/bench/corpus/text_swap', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note='a text block\\'s CONTENT changing within one shot (an#341): one right-aligned \`unit: block\` label whose \`texts\` set is swapped twice, "Day 1" -> "Day 12" at 0.125 s (the entity-level \`set day text d12\`) -> "Day 300" at 0.25 s (the \`day/block_0\` path). What moves between the goldens is the string, growing LEFTWARDS from a fixed right edge: a regression in the swap set, in the per-key geometry anchored on the \`align\` edge, or in the entity-level fan-out moves a golden.'), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 The cut-out scenes of the original corpus moved to `cutan` (`cutan.bench.CUTOUT_FIXTURES`, an#225); this
 is the core’s: `prop_swap` and the core corpus (`an.bench.core_corpus`).
@@ -17044,6 +17056,14 @@ the renderer consumes through `RenderContext.frame_samples`. One object feeds
 both the render and the ground truth, so the two cannot disagree about when a
 frame was taken.
 
+It also owns the GRIDS a shot is laid onto, the pure rules every layer shares
+(the IR’s camera, the stage’s compiler and solve): [`frame_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_times) (every
+frame, the end included), [`step_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.step_times) (a stepped shot’s pose grid,
+an#89), [`grid_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.grid_times) (one or the other, the solve’s grid) and
+[`camera_grid()`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid) (an#626), the instants a camera the runtime cannot
+evaluate itself — a follow, a dolly — is keyed at so that every instant the
+render samples, a shutter’s sub-frame ones included, lands on an exact key.
+
 The default clock is the old behaviour exactly — no exposure, no jitter, one
 sample at `i / fps`:
 
@@ -17080,22 +17100,42 @@ True
 |-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`MAX_JITTER_FRACTION`](_autosummary/an.frame_clock.html.md#an.frame_clock.MAX_JITTER_FRACTION)        | A frame's capture offset is clamped to this fraction of the slack between one exposure closing and the next opening, on each side.                  |
 | [`MAX_REPORT_NOISE_FRACTION`](_autosummary/an.frame_clock.html.md#an.frame_clock.MAX_REPORT_NOISE_FRACTION)  | Report noise is clamped to this fraction of the frame period, each side, so two neighbouring reported timestamps can never cross on a regular grid. |
+| [`STEP_GRID_EPS`](_autosummary/an.frame_clock.html.md#an.frame_clock.STEP_GRID_EPS)              | A step instant this close to the end of a span is not a step of it (`0.25 s × 12 Hz` is 3 steps, not 4, whatever the float product rounds to).      |
+| [`SAMPLE_MERGE_EPS`](_autosummary/an.frame_clock.html.md#an.frame_clock.SAMPLE_MERGE_EPS)           | a shutter sample that IS a frame up to float noise adds no key beside it (two keys a femtosecond apart would only divide by that femtosecond).      |
 
 ### Functions
 
-| [`frame_count`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_count)(duration, fps)   | Frames in a render of `duration` seconds — the renderer's own rule.   |
-|-------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| [`camera_grid`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid)(duration, \*, fps[, step_hz, ...])   | The ONE sampler for a non-affine camera — a follow, a dolly, anything the runtime cannot evaluate from a few eased keys (an#626).                                                                  |
+|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`frame_count`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_count)(duration, fps)                       | Frames in a render of `duration` seconds — the renderer's own rule.                                                                                                                                |
+| [`frame_times`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_times)(duration, \*, fps)                   | The time of every frame a `duration` render draws, the end included (`k / fps`, the renderer's own expression, capped at `duration`).                                                              |
+| [`grid_times`](_autosummary/an.frame_clock.html.md#an.frame_clock.grid_times)(duration, \*, fps[, step_hz])         | A shot's own grid: every frame ([`frame_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_times)), or its step grid ([`step_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.step_times)) under `step_hz`. |
+| [`step_times`](_autosummary/an.frame_clock.html.md#an.frame_clock.step_times)(start, duration, step_hz)             | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                |
 
 ### Classes
 
-| [`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame)(index, t_nominal, t_open, ...)   | One output frame: when its exposure opened and closed, and what it saw.   |
-|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock)([fps, exposure, samples, ...])      | A camera's timing, as data.                                               |
+| [`CameraGrid`](_autosummary/an.frame_clock.html.md#an.frame_clock.CameraGrid)(times, base, easing)              | Where a camera the runtime cannot evaluate itself is keyed (an#626).    |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`CapturedFrame`](_autosummary/an.frame_clock.html.md#an.frame_clock.CapturedFrame)(index, t_nominal, t_open, ...) | One output frame: when its exposure opened and closed, and what it saw. |
+| [`FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock)([fps, exposure, samples, ...])    | A camera's timing, as data.                                             |
 
 ### Exceptions
 
 | [`FrameClockError`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClockError)   | A frame clock that cannot describe a camera.   |
 |--------------------------------------------------------------------|------------------------------------------------|
+
+### *class* an.frame_clock.CameraGrid(times, base, easing)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Where a camera the runtime cannot evaluate itself is keyed (an#626).
+
+`times`: the key instants, sorted. `easing`: the keys’ easing —
+`"linear"` on ones, `"step"` on a stepped shot (the camera holds
+between keys as a stepped tween holds between poses). `base`: the
+grid the camera is COMPUTED on — every frame, and every step instant on a
+stepped shot — before the render’s sample instants are added (a follow’s
+lag runs over it); `times` is a superset of it.
 
 ### *class* an.frame_clock.CapturedFrame(index, t_nominal, t_open, t_close, samples, t_reported)
 
@@ -17205,6 +17245,63 @@ still not overlap: the clock never reorders frames, whatever `jitter_sd` is.
 Report noise is clamped to this fraction of the frame period, each side, so
 two neighbouring reported timestamps can never cross on a regular grid.
 
+### an.frame_clock.SAMPLE_MERGE_EPS *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-09*
+
+a shutter sample
+that IS a frame up to float noise adds no key beside it (two keys a
+femtosecond apart would only divide by that femtosecond).
+
+* **Type:**
+  Two camera key instants closer than this (s) are one key
+
+### an.frame_clock.STEP_GRID_EPS *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-09*
+
+A step instant this close to the end of a span is not a step of it
+(`0.25 s × 12 Hz` is 3 steps, not 4, whatever the float product rounds to).
+
+### an.frame_clock.camera_grid(duration, , fps, step_hz=None, frame_samples=None, sample_fps=None, merge_eps=1e-09)
+
+The ONE sampler for a non-affine camera — a follow, a dolly, anything
+the runtime cannot evaluate from a few eased keys (an#626).
+
+On ones (`step_hz` unset) the camera is keyed at every frame
+([`frame_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_times)), linearly. On a stepped shot it is keyed at every
+frame AND every step instant ([`step_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.step_times)), step-eased: it holds
+between keys as the stepped poses hold, so a step is a cut, not a
+one-frame ramp. The step grid alone would not do: a tween’s end lands off
+it, and the frames keep the camera exact where the target already moved.
+
+`frame_samples` (`RenderContext.frame_samples`, a
+[`FrameClock`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock)’s [`sample_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClock.sample_times)) adds every
+instant the render actually samples — a shutter’s sub-frame ones, a
+jittered capture’s — clipped to `[0, duration]`, so each lands on an
+exact key instead of between two. An instant within `merge_eps` of a
+key already there is that key. `None` adds nothing: the keys are
+exactly the frame grid they always were. They must describe THIS shot:
+one entry per frame ([`frame_count()`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_count)) at `sample_fps`, the rate the
+render samples at (a camera’s 29.97, where the compiled grid’s `fps` is
+rounded to 30; `fps` when unset), or a [`FrameClockError`](_autosummary/an.frame_clock.html.md#an.frame_clock.FrameClockError):
+another shot’s samples would key the camera at the wrong instants.
+
+```pycon
+>>> camera_grid(0.5, fps=4)
+CameraGrid(times=(0.0, 0.25, 0.5), base=(0.0, 0.25, 0.5), easing='linear')
+>>> camera_grid(0.5, fps=4, frame_samples=((0.0,), (0.3, 0.6))).times
+(0.0, 0.25, 0.3, 0.5)
+>>> g = camera_grid(0.5, fps=4, step_hz=3)
+>>> [round(t, 3) for t in g.times], g.easing, g.base == g.times
+([0.0, 0.25, 0.333, 0.5], 'step', True)
+>>> len(camera_grid(20.0, fps=30, frame_samples=[(k / 29.97,) for k in range(599)], sample_fps=29.97).times) > 600
+True
+>>> camera_grid(0.5, fps=4, frame_samples=((0.0,),))
+Traceback (most recent call last):
+  ...
+an.frame_clock.FrameClockError: frame_samples describes 1 frame(s) but a 0.5 s shot at 4 fps has 2: they are another shot's samples.
+```
+
+* **Return type:**
+  [`CameraGrid`](_autosummary/an.frame_clock.html.md#an.frame_clock.CameraGrid)
+
 ### an.frame_clock.frame_count(duration, fps)
 
 Frames in a render of `duration` seconds — the renderer’s own rule.
@@ -17216,6 +17313,65 @@ Frames in a render of `duration` seconds — the renderer’s own rule.
 
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+### an.frame_clock.frame_times(duration, , fps)
+
+The time of every frame a `duration` render draws, the end included
+(`k / fps`, the renderer’s own expression, capped at `duration`).
+
+THE frame grid rule (an#626). `an.ir.camera.frame_times` is this very
+function re-exported, and `an.stage.solve.frame_times` a thin wrapper
+over [`grid_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.grid_times); neither restates it.
+
+```pycon
+>>> frame_times(0.5, fps=4)
+[0.0, 0.25, 0.5]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.frame_clock.grid_times(duration, , fps, step_hz=None)
+
+A shot’s own grid: every frame ([`frame_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.frame_times)), or its step grid
+([`step_times()`](_autosummary/an.frame_clock.html.md#an.frame_clock.step_times)) under `step_hz`. What the solve runs at.
+
+```pycon
+>>> grid_times(0.1, fps=20)
+[0.0, 0.05, 0.1]
+>>> grid_times(0.25, fps=20, step_hz=10)
+[0.0, 0.1, 0.2, 0.25]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.frame_clock.step_times(start, duration, step_hz)
+
+Clip-local times at which a stepped tween updates its pose (an#89).
+
+The grid is SHOT-wide — multiples of `1/step_hz` on the shot’s clock,
+shared by every tween in the shot — not the tween’s own: “on twos” means
+every character changes pose on the same frames, so a tween starting at
+0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
+independently, so the grid restarts at each cut.) Local 0 (the tween’s
+start) and `duration` (where the end value lands) are always present, so
+a tween shorter than one step is a single step to its end value.
+
+`step_hz` must be positive: with a non-positive rate the walk below never
+reaches `duration` — an infinite loop, not an error — so it is refused.
+
+```pycon
+>>> step_times(0.0, 0.3, 10)
+[0.0, 0.1, 0.2, 0.3]
+>>> [round(t, 3) for t in step_times(0.05, 0.3, 10)]
+[0.0, 0.05, 0.15, 0.25, 0.3]
+>>> step_times(0.0, 0.02, 10)
+[0.0, 0.02]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.genres.html.md
@@ -19827,14 +19983,16 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 
 ### Functions
 
-| [`camera_keys`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                                                                                                                                       |
-|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`camera_shake_offsets`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).                                                                                                            |
-| [`dolly_frames`](_autosummary/an.ir.camera.html.md#an.ir.camera.dolly_frames)(keys, \*, duration, fps)         | `keys` as one linear key per frame when any of them dollies (an#478), else `keys` unchanged (and a single key, which is no move, as a single `zoom` key is not).                                    |
-| [`dolly_growth`](_autosummary/an.ir.camera.html.md#an.ir.camera.dolly_growth)(factor, dolly)                   | How much a plane of parallax `factor` grows when the camera has travelled `dolly` (an#478): a pinhole camera, the plane at distance `1 / factor` in units of the character plane's.                 |
-| [`follow_overlay`](_autosummary/an.ir.camera.html.md#an.ir.camera.follow_overlay)(keys, times)                   | `(zoom, dolly)` of a follow's key overlay at each of `times` (an#625), each field by the keys' own easings; `(1.0, 0.0)` with no overlay.                                                           |
-| [`frame_times`](_autosummary/an.ir.camera.html.md#an.ir.camera.frame_times)(\*, duration, fps)                | The time of every frame the render draws, the shot's end included.                                                                                                                                  |
-| [`plane_dolly_scale`](_autosummary/an.ir.camera.html.md#an.ir.camera.plane_dolly_scale)(factor, dolly, \*[, plane]) | The scale a plane of parallax `factor` takes ON TOP of the root's zoom when the camera has travelled `dolly` (an#478): its growth over the character plane's, `(1 − dolly) / (1 − factor · dolly)`. |
+| [`camera_keys`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                                                                                                                                                                                                           |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`camera_shake_offsets`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).                                                                                                                                                                                |
+| [`dolly_frames`](_autosummary/an.ir.camera.html.md#an.ir.camera.dolly_frames)(keys, \*, duration, fps[, ...])  | `keys` as one key per instant of the camera sampler when any of them dollies (an#478), else `keys` unchanged (and a single key, which is no move, as a single `zoom` key is not).                                                                                       |
+| [`dolly_growth`](_autosummary/an.ir.camera.html.md#an.ir.camera.dolly_growth)(factor, dolly)                   | How much a plane of parallax `factor` grows when the camera has travelled `dolly` (an#478): a pinhole camera, the plane at distance `1 / factor` in units of the character plane's.                                                                                     |
+| [`follow_overlay`](_autosummary/an.ir.camera.html.md#an.ir.camera.follow_overlay)(keys, times)                   | `(zoom, dolly)` of a follow's key overlay at each of `times` (an#625), each field by the keys' own easings; `(1.0, 0.0)` with no overlay.                                                                                                                               |
+| [`frame_times`](_autosummary/an.ir.camera.html.md#an.ir.camera.frame_times)(duration, \*, fps)                | The time of every frame a `duration` render draws, the end included (`k / fps`, the renderer's own expression, capped at `duration`).                                                                                                                                   |
+| [`is_affine`](_autosummary/an.ir.camera.html.md#an.ir.camera.is_affine)(keys)                               | Whether the frame `keys` show is checkable at the keys alone (an#626).                                                                                                                                                                                                  |
+| [`plane_dolly_scale`](_autosummary/an.ir.camera.html.md#an.ir.camera.plane_dolly_scale)(factor, dolly, \*[, plane]) | The scale a plane of parallax `factor` takes ON TOP of the root's zoom when the camera has travelled `dolly` (an#478): its growth over the character plane's, `(1 − dolly) / (1 − factor · dolly)`.                                                                     |
+| [`sample_camera`](_autosummary/an.ir.camera.html.md#an.ir.camera.sample_camera)(keys, grid)                     | `keys` evaluated at every instant of `grid` (an#626), one key each with the grid's easing: every field by the keys' own easings, the `zoom` multiplied by the character plane's dolly growth (exactly `1` without a dolly), so the root zooms as a pinhole camera does. |
 
 ### Exceptions
 
@@ -19931,24 +20089,28 @@ this, so a shake that validates cannot then raise (as with
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.ir.camera.dolly_frames(keys, , duration, fps)
+### an.ir.camera.dolly_frames(keys, , duration, fps, step_hz=None, frame_samples=None, sample_fps=None)
 
-`keys` as one linear key per frame when any of them dollies (an#478),
-else `keys` unchanged (and a single key, which is no move, as a single
-`zoom` key is not).
+`keys` as one key per instant of the camera sampler when any of them
+dollies (an#478), else `keys` unchanged (and a single key, which is no
+move, as a single `zoom` key is not).
 
 A dolly’s growth is not linear in its travel, so a key list that eases
-`dolly` cannot be eased in `zoom` too: each frame’s key is the camera
-evaluated there (every field by the keys’ own easings), its `zoom`
-multiplied by the character plane’s growth. Exact at every whole frame, as
-a follow is (an#445); a sample between two frames (a motion-blur shutter)
-sees the two frames’ keys interpolated linearly, and a `step` easing
-becomes a one-frame ramp.
+`dolly` cannot be eased in `zoom` too: each key is the camera
+evaluated there ([`sample_camera()`](_autosummary/an.ir.camera.html.md#an.ir.camera.sample_camera)), at every instant of
+[`an.frame_clock.camera_grid()`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid) — every frame, every step of a
+stepped shot (step-eased, so a step is a cut), and every instant the
+render samples (`frame_samples`, a shutter’s sub-frame ones, an#626) —
+so it is exact wherever the render looks.
 
 ```pycon
 >>> frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)
 >>> [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]
 [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]
+>>> samples = [[0.0, 0.1], [0.25], [0.5], [0.75]]  # one entry per frame
+>>> shutter = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4, frame_samples=samples)
+>>> [k.at for k in shutter][:3]
+[0.0, 0.1, 0.25]
 ```
 
 * **Return type:**
@@ -19983,17 +20145,49 @@ each field by the keys’ own easings; `(1.0, 0.0)` with no overlay.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.ir.camera.frame_times(, duration, fps)
+### an.ir.camera.frame_times(duration, , fps)
 
-The time of every frame the render draws, the shot’s end included.
+The time of every frame a `duration` render draws, the end included
+(`k / fps`, the renderer’s own expression, capped at `duration`).
+
+THE frame grid rule (an#626). `an.ir.camera.frame_times` is this very
+function re-exported, and `an.stage.solve.frame_times` a thin wrapper
+over `grid_times()`; neither restates it.
 
 ```pycon
->>> frame_times(duration=0.5, fps=4)
+>>> frame_times(0.5, fps=4)
 [0.0, 0.25, 0.5]
 ```
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.ir.camera.is_affine(keys)
+
+Whether the frame `keys` show is checkable at the keys alone (an#626).
+
+Between two keys x, y and zoom share one eased parameter, and a plane
+edge minus a frame edge is then a linear term plus `±canvas/(2·zoom)`,
+convex in it, so its worst is at a key. Two things break that: a DOLLY
+(a plane grows by `1/(1 − f·dolly)`, an#478) and a ROLL that changes
+between keys (the rolled frame’s extent goes by the cosine and sine of the
+angle). A constant roll is affine; so is a single key. A follow is never
+affine (its keys are where its target goes), and has no authored keys to
+ask about but its overlay.
+
+```pycon
+>>> is_affine([CameraKey(at=0.0), CameraKey(at=1.0, x=40.0, zoom=1.5)])
+True
+>>> is_affine([CameraKey(at=0.0), CameraKey(at=1.0, dolly=0.2)])
+False
+>>> is_affine([CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.3)])
+False
+>>> is_affine([CameraKey(at=0.0, rotation=0.3), CameraKey(at=1.0, rotation=0.3, x=9.0)])
+True
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.ir.camera.plane_dolly_scale(factor, dolly, , plane='')
 
@@ -20010,6 +20204,23 @@ camera at or past it) is a [`CameraError`](_autosummary/an.ir.camera.html.md#an.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.ir.camera.sample_camera(keys, grid)
+
+`keys` evaluated at every instant of `grid` (an#626), one key each
+with the grid’s easing: every field by the keys’ own easings, the
+`zoom` multiplied by the character plane’s dolly growth (exactly `1`
+without a dolly), so the root zooms as a pinhole camera does.
+
+```pycon
+>>> from an.frame_clock import camera_grid
+>>> keys = [CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.4)]
+>>> [(k.at, round(k.rotation, 2), k.easing) for k in sample_camera(keys, camera_grid(1.0, fps=2))]
+[(0.0, 0.0, 'linear'), (0.5, 0.2, 'linear'), (1.0, 0.4, 'linear')]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
 
 # _autosummary/an.ir.compose.html.md
@@ -20357,9 +20568,10 @@ and the easing function, nothing else. It is an extraction candidate: previz
 
 ### Functions
 
-| [`lag_filter`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_filter)(values, \*, lag, dt)   | `values` seen through a first-order filter of time constant `lag` (s), sampled every `dt`: it starts on the first value and closes `1 - exp(-dt/lag)` of the gap each step (Cinemachine's damping: the time it takes to catch up).   |
-|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`look_basis`](_autosummary/an.ir.frames.html.md#an.ir.frames.look_basis)(yaw, pitch, roll)      | `(forward, right, down)` for a look of `yaw` (turn right), `pitch` (look down) and `roll` (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.                                                      |
+| [`lag_filter`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_filter)(values, \*, lag, dt)                    | `values` seen through a first-order filter of time constant `lag` (s), sampled every `dt`: it starts on the first value and closes `1 - exp(-dt/lag)` of the gap each step (Cinemachine's damping: the time it takes to catch up).   |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`lag_resample`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_resample)(times, values, filtered, at, \*, lag) | The lagging track [`lag_filter()`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_filter) made over `times` (its input `values`, its output `filtered`), read at the instants `at` (an#626).                                                   |
+| [`look_basis`](_autosummary/an.ir.frames.html.md#an.ir.frames.look_basis)(yaw, pitch, roll)                       | `(forward, right, down)` for a look of `yaw` (turn right), `pitch` (look down) and `roll` (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.                                                      |
 
 ### Classes
 
@@ -20640,14 +20852,47 @@ One `set` (`start == end`) or `tween` of a channel, in shot time.
 `1 - exp(-dt/lag)` of the gap each step (Cinemachine’s damping: the time
 it takes to catch up). `lag <= 0` returns them as they are.
 
+`dt` is one step for all, or one per step (`len(values) - 1` of them)
+for a grid that is not uniform — a stepped shot’s frames and steps
+interleaved (an#626). Each step is the exact response of the filter to
+the input held at the step’s END value over it, so a grid refined by
+[`lag_resample()`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_resample) lands on the same values.
+
 ```pycon
 >>> out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)
 >>> round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it
 63.2
+>>> lag_filter([0.0, 100.0, 100.0], lag=0.5, dt=[0.1, 0.1]) == out[:3]
+True
 >>> lag_filter([0.0, 1.0], lag=0.5, dt=0.0)
 Traceback (most recent call last):
   ...
 ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.ir.frames.lag_resample(times, values, filtered, at, , lag)
+
+The lagging track [`lag_filter()`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_filter) made over `times` (its input
+`values`, its output `filtered`), read at the instants `at` (an#626).
+
+At a grid instant, the filtered value itself. Between `times[k]` and
+`times[k+1]`, the filter’s own trajectory there: from `filtered[k]`
+toward `values[k+1]` (the input it holds over that step), closing
+`1 - exp(-(t - times[k])/lag)` of the gap — which reaches
+`filtered[k+1]` at the step’s end, so refining the grid moves nothing
+on it. Before the first instant, the first value; after the last, the
+last (the filter’s output is not defined beyond its input).
+
+```pycon
+>>> times, values = [0.0, 0.1, 0.2], [0.0, 100.0, 100.0]
+>>> lagged = lag_filter(values, lag=0.5, dt=0.1)
+>>> lag_resample(times, values, lagged, [0.0, 0.1, 0.2], lag=0.5) == lagged
+True
+>>> round(lag_resample(times, values, lagged, [0.05], lag=0.5)[0], 3)
+9.516
 ```
 
 * **Return type:**
@@ -36880,7 +37125,7 @@ mall). It reads only.
 | [`after_problems`](_autosummary/an.stage.compile.html.md#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])     | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                                                                                                                                                                 |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`boil_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.boil_keys)(hz, drawings, duration)                  | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                                                                                                                                                             |
-| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                          | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                                                                                                                                                                 |
+| [`camera_follow_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_follow_keys)(state)                          | The keys of `state.shot`'s follow camera (an#445), one per instant of [`an.frame_clock.camera_grid()`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid) under the shot's step grid and the render's sample instants (an#626).                                                                                              |
 | [`camera_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.camera_keys)(shot, \*, width, height)               | [`an.ir.camera.camera_keys()`](_autosummary/an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                                                                                                                                                                    |
 | [`compile_args`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_args)(shot, \*, mall, fps, width, height)   | [`compile_shot()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)'s keywords for `shot` from settled values: the ONE place they are spelled out (an#713).                                                                                                                                                                                           |
 | [`compile_as_rendered`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_as_rendered)(shot, scene, mall, \*, fps)    | `shot` compiled as `an render` compiles it: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render (an#636, moved from [`an.verify.constraints`](_autosummary/an.verify.constraints.html.md#module-an.verify.constraints)).                                                                     |
@@ -36899,7 +37144,6 @@ mall). It reads only.
 | [`scene_builders`](_autosummary/an.stage.compile.html.md#an.stage.compile.scene_builders)()                                   | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                                                                                                                                                                  |
 | [`space_definitions`](_autosummary/an.stage.compile.html.md#an.stage.compile.space_definitions)(entity_spaces)                   | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).                                                                                                                                                      |
 | [`stage_replacements`](_autosummary/an.stage.compile.html.md#an.stage.compile.stage_replacements)()                               | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                                                                                                                                                                        |
-| [`step_times`](_autosummary/an.stage.compile.html.md#an.stage.compile.step_times)(start, duration, step_hz)               | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                                                                                                                                                               |
 | [`style_pack_for`](_autosummary/an.stage.compile.html.md#an.stage.compile.style_pack_for)(scene_meta, styles_store)           | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                                                                                                                                                             |
 | [`unknown_target_message`](_autosummary/an.stage.compile.html.md#an.stage.compile.unknown_target_message)(target, paths)              | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                                                                                                                                                               |
 | [`z_index_keys`](_autosummary/an.stage.compile.html.md#an.stage.compile.z_index_keys)(names, keys)                          | Each keyed child's `z_index` from each time it changes (an#634), in one container whose children are `names`: within each run of keyed children (`_keyed_runs()`), at every time a key changes, they take the run's places in key order ([`paint_orders()`](_autosummary/an.stage.compile.html.md#an.stage.compile.paint_orders)); every other child keeps its own place. |
@@ -36996,7 +37240,7 @@ Bases: [`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.com
 
 A genre registered a pass (or a builder) the stage already has, without `replace=True`.
 
-### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, textures=dict(), resolutions=list(), overlay_children=list(), fonts=dict(), scene_root=None, vocab=None, animations=dict(), tracks=list(), entity_swaps=list(), extra_actions=list(), no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=dict(), gaze_seeds=dict(), products=dict(), meta_extensions=dict())
+### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, frame_samples=None, sample_fps=None, textures=dict(), resolutions=list(), overlay_children=list(), fonts=dict(), scene_root=None, vocab=None, animations=dict(), tracks=list(), entity_swaps=list(), extra_actions=list(), no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=dict(), gaze_seeds=dict(), products=dict(), meta_extensions=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -37013,6 +37257,10 @@ hand, unchanged, so the document is byte-identical.
 Actions a pass contributes beside the authored ones, compiled with them
 by the `actions` pass (the cut-out `speech` pass’s pulses, an#248).
 
+#### frame_samples *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...], ...] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The render’s sample instants per frame (an#626), `None` for a frame each.
+
 #### no_lip_sync *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= frozenset({})*
 
 Cut-out passes’ products, read by later passes (an empty default is what
@@ -37027,6 +37275,10 @@ genre needs no new field here.
 
 * **Type:**
   The generic slots (an#247)
+
+#### sample_fps *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The rate `frame_samples` were taken at (a camera’s 29.97), else `fps`.
 
 ### *exception* an.stage.compile.CutoutCompileError
 
@@ -37187,7 +37439,15 @@ the line changes exactly on them, every render.
 
 ### an.stage.compile.camera_follow_keys(state)
 
-The keys of `state.shot`’s follow camera, one per frame (an#445).
+The keys of `state.shot`’s follow camera (an#445), one per instant
+of [`an.frame_clock.camera_grid()`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid) under the shot’s step grid
+and the render’s sample instants (an#626).
+
+A `lag` (an#504) is filtered over the camera’s own grid (every frame,
+and every step on a stepped shot), and a sample instant between two of
+its points takes the filter’s own trajectory there
+([`an.ir.frames.lag_resample()`](_autosummary/an.ir.frames.html.md#an.ir.frames.lag_resample)): nothing changes at the grid, and a
+shutter sample sees where the lagging camera really is.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
@@ -37204,7 +37464,7 @@ own boundary contract: every failure out of `compile_shot` is one type.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
-### an.stage.compile.compile_args(shot, , mall, fps, width, height, strict_assets=False, scene_step_hz=None, style_pack=None, default_easing=None)
+### an.stage.compile.compile_args(shot, , mall, fps, width, height, strict_assets=False, scene_step_hz=None, style_pack=None, default_easing=None, frame_samples=None)
 
 [`compile_shot()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_shot)’s keywords for `shot` from settled values: the
 ONE place they are spelled out (an#713). The render path calls it with its
@@ -37214,7 +37474,9 @@ other caller through [`rendered_compile_args()`](_autosummary/an.stage.compile.h
 `fps` may be fractional (a camera’s 29.97): the compiled document’s frame
 grid is integral, so it is rounded here, and capture and mux keep the exact
 rate. The step grid is the shot’s over the scene’s
-([`an.ir.schema.resolve_step_hz()`](_autosummary/an.ir.schema.html.md#an.ir.schema.resolve_step_hz)).
+([`an.ir.schema.resolve_step_hz()`](_autosummary/an.ir.schema.html.md#an.ir.schema.resolve_step_hz)). `frame_samples` are the
+instants the render samples (`RenderContext.frame_samples`), which a
+follow or a dolly is keyed at too (an#626); `None`, a frame each.
 
 ```pycon
 >>> args = compile_args(Shot(id="s"), mall={}, fps=29.97, width=8, height=6, scene_step_hz=12.0)
@@ -37250,9 +37512,19 @@ The stage’s passes and every registered one, in run order (stable by name).
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CompilePass`](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-### an.stage.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
+### an.stage.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None, frame_samples=None, sample_fps=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`frame_samples` (an#626) are the scene instants the render samples, per
+frame (`RenderContext.frame_samples`: a shutter’s sub-frame ones). A
+camera the compiler keys itself — a follow, a dolly — is keyed at each of
+them too ([`an.frame_clock.camera_grid()`](_autosummary/an.frame_clock.html.md#an.frame_clock.camera_grid)), so a sample lands
+on an exact key instead of between two frames’ keys. `None` (default)
+keys a frame each and leaves the document byte-identical to before the
+knob existed; so does any value for a shot with no such camera.
+`sample_fps` is the rate they were taken at, when `fps` (the compiled
+grid’s, integral) rounds it: they are counted at it.
 
 `default_easing` (an#166) is the scene’s `meta.default_easing`: the
 curve of every authored tween that names none (tween > this > the built-in
@@ -37277,7 +37549,9 @@ non-positive rate used to spin `step_times` forever (an#89 review).
 Exempt by construction, because they are separate
 emission sites rather than string-sniffed: the camera (`_add_camera_clips`
 — a stepped character under a translating camera slides in screen space,
-which is why the practice keeps cameras on ones), compiled blinks, `play`
+which is why the practice keeps cameras on ones; a FOLLOW is the
+exception, computed from the stepped poses and stepped with them, an#626),
+compiled blinks, `play`
 clips, and swap channels (already stepped by format). The value is
 stamped into `meta.step_hz` — only when set — so a serialized scene
 declares its timing policy without moving the contract hash of one that
@@ -37501,33 +37775,6 @@ compiled document’s `meta.extensions` when non-empty.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-### an.stage.compile.step_times(start, duration, step_hz)
-
-Clip-local times at which a stepped tween updates its pose (an#89).
-
-The grid is SHOT-wide — multiples of `1/step_hz` on the shot’s clock,
-shared by every tween in the shot — not the tween’s own: “on twos” means
-every character changes pose on the same frames, so a tween starting at
-0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
-independently, so the grid restarts at each cut.) Local 0 (the tween’s
-start) and `duration` (where the end value lands) are always present, so
-a tween shorter than one step is a single step to its end value.
-
-`step_hz` must be positive: with a non-positive rate the walk below never
-reaches `duration` — an infinite loop, not an error — so it is refused.
-
-```pycon
->>> step_times(0.0, 0.3, 10)
-[0.0, 0.1, 0.2, 0.3]
->>> [round(t, 3) for t in step_times(0.05, 0.3, 10)]
-[0.0, 0.05, 0.15, 0.25, 0.3]
->>> step_times(0.0, 0.02, 10)
-[0.0, 0.02]
-```
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.compile.style_pack_for(scene_meta, styles_store)
 
@@ -40227,6 +40474,8 @@ The renderer under the engine’s own name (the class is one: see
 stage engine compiles (`StageEngine.open`) and what the shot cache keys
 ([`an.stage.cache_key.compiled_document()`](_autosummary/an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)), so the two cannot drift
 (an#713). The rules themselves are [`an.stage.compile.compile_args()`](_autosummary/an.stage.compile.html.md#an.stage.compile.compile_args)’.
+The frame clock’s sample instants go in too: a follow or a dolly is keyed
+at them (an#626).
 
 ```pycon
 >>> from pathlib import Path
@@ -50133,20 +50382,18 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-09 04:36 UTC** from commit <a href="https://github.com/reeleehq/an/commit/274cf080530b6f5273cf8c839ec204f42813ba70"><code>274cf08</code></a> on branch <code>main</code>, for **an 0.1.388** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-09 04:49 UTC** from commit <a href="https://github.com/reeleehq/an/commit/a9a4f3bde2bc59949eab2f8eed4324e4e1f13869"><code>a9a4f3b</code></a> on branch <code>main</code>, for **an 0.1.389** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.388) is ahead of the latest release on PyPI (0.1.387): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/274cf080530b6f5273cf8c839ec204f42813ba70"><code>274cf080530b6f5273cf8c839ec204f42813ba70</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/a9a4f3bde2bc59949eab2f8eed4324e4e1f13869"><code>a9a4f3bde2bc59949eab2f8eed4324e4e1f13869</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.388</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.389</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -50155,9 +50402,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42561886098">42561886098</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42563007030">42563007030</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>5d0ced37ed720b1880a7ea0ba5a087b7e7328a59</code> (in the history of the built commit) |
+| Event commit | <code>1f924fce55d54dbb2452609d3944b76e1d2f080b</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -50182,13 +50429,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.387/">0.1.387</a>, older than the documented version (0.1.388).
+Latest release: <a href="https://pypi.org/project/an/0.1.389/">0.1.389</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 274cf080530b6f5273cf8c839ec204f42813ba70
+git checkout a9a4f3bde2bc59949eab2f8eed4324e4e1f13869
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

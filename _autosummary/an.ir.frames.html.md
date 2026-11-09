@@ -46,9 +46,10 @@ and the easing function, nothing else. It is an extraction candidate: previz
 
 ### Functions
 
-| [`lag_filter`](#an.ir.frames.lag_filter)(values, \*, lag, dt)   | `values` seen through a first-order filter of time constant `lag` (s), sampled every `dt`: it starts on the first value and closes `1 - exp(-dt/lag)` of the gap each step (Cinemachine's damping: the time it takes to catch up).   |
-|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`look_basis`](#an.ir.frames.look_basis)(yaw, pitch, roll)      | `(forward, right, down)` for a look of `yaw` (turn right), `pitch` (look down) and `roll` (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.                                                      |
+| [`lag_filter`](#an.ir.frames.lag_filter)(values, \*, lag, dt)                    | `values` seen through a first-order filter of time constant `lag` (s), sampled every `dt`: it starts on the first value and closes `1 - exp(-dt/lag)` of the gap each step (Cinemachine's damping: the time it takes to catch up).   |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`lag_resample`](#an.ir.frames.lag_resample)(times, values, filtered, at, \*, lag) | The lagging track [`lag_filter()`](#an.ir.frames.lag_filter) made over `times` (its input `values`, its output `filtered`), read at the instants `at` (an#626).                                                   |
+| [`look_basis`](#an.ir.frames.look_basis)(yaw, pitch, roll)                       | `(forward, right, down)` for a look of `yaw` (turn right), `pitch` (look down) and `roll` (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.                                                      |
 
 ### Classes
 
@@ -329,14 +330,47 @@ One `set` (`start == end`) or `tween` of a channel, in shot time.
 `1 - exp(-dt/lag)` of the gap each step (Cinemachine’s damping: the time
 it takes to catch up). `lag <= 0` returns them as they are.
 
+`dt` is one step for all, or one per step (`len(values) - 1` of them)
+for a grid that is not uniform — a stepped shot’s frames and steps
+interleaved (an#626). Each step is the exact response of the filter to
+the input held at the step’s END value over it, so a grid refined by
+[`lag_resample()`](#an.ir.frames.lag_resample) lands on the same values.
+
 ```pycon
 >>> out = lag_filter([0.0] + [100.0] * 30, lag=0.5, dt=0.1)
 >>> round(out[5], 1)                  # 0.5 s after the step: 1 - 1/e of it
 63.2
+>>> lag_filter([0.0, 100.0, 100.0], lag=0.5, dt=[0.1, 0.1]) == out[:3]
+True
 >>> lag_filter([0.0, 1.0], lag=0.5, dt=0.0)
 Traceback (most recent call last):
   ...
 ValueError: lag_filter: the sample step `dt` must be positive (got 0.0).
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.ir.frames.lag_resample(times, values, filtered, at, , lag)
+
+The lagging track [`lag_filter()`](#an.ir.frames.lag_filter) made over `times` (its input
+`values`, its output `filtered`), read at the instants `at` (an#626).
+
+At a grid instant, the filtered value itself. Between `times[k]` and
+`times[k+1]`, the filter’s own trajectory there: from `filtered[k]`
+toward `values[k+1]` (the input it holds over that step), closing
+`1 - exp(-(t - times[k])/lag)` of the gap — which reaches
+`filtered[k+1]` at the step’s end, so refining the grid moves nothing
+on it. Before the first instant, the first value; after the last, the
+last (the filter’s output is not defined beyond its input).
+
+```pycon
+>>> times, values = [0.0, 0.1, 0.2], [0.0, 100.0, 100.0]
+>>> lagged = lag_filter(values, lag=0.5, dt=0.1)
+>>> lag_resample(times, values, lagged, [0.0, 0.1, 0.2], lag=0.5) == lagged
+True
+>>> round(lag_resample(times, values, lagged, [0.05], lag=0.5)[0], 3)
+9.516
 ```
 
 * **Return type:**

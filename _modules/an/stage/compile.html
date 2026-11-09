@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../../../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -808,7 +808,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">action_kind</span><span class="p">,</span> <span class="n">action_kind_names</span><span class="p">,</span> <span class="n">entity_kind</span><span class="p">,</span> <span class="n">entity_space_resolver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompilePass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">lag_filter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">lag_filter</span><span class="p">,</span> <span class="n">lag_resample</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlatAction</span><span class="p">,</span> <span class="n">flatten</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CameraKey</span><span class="p">,</span>
@@ -846,7 +846,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">dolly_frames</span><span class="p">,</span>
     <span class="n">dolly_growth</span><span class="p">,</span>
     <span class="n">follow_overlay</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># the grid rules (an#626)</span>
+    <span class="n">camera_grid</span><span class="p">,</span>
     <span class="n">frame_times</span><span class="p">,</span>
+    <span class="n">step_times</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLANE_FILL_SPAN</span> <span class="k">as</span> <span class="n">_PLANE_FILL_SPAN</span>
@@ -925,6 +929,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">scene_step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">frame_samples</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">""":func:`compile_shot`'s keywords for ``shot`` from settled values: the</span>
 <span class="sd">    ONE place they are spelled out (an#713). The render path calls it with its</span>
@@ -934,7 +939,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``fps`` may be fractional (a camera's 29.97): the compiled document's frame</span>
 <span class="sd">    grid is integral, so it is rounded here, and capture and mux keep the exact</span>
 <span class="sd">    rate. The step grid is the shot's over the scene's</span>
-<span class="sd">    (:func:`an.ir.schema.resolve_step_hz`).</span>
+<span class="sd">    (:func:`an.ir.schema.resolve_step_hz`). ``frame_samples`` are the</span>
+<span class="sd">    instants the render samples (``RenderContext.frame_samples``), which a</span>
+<span class="sd">    follow or a dolly is keyed at too (an#626); ``None``, a frame each.</span>
 
 <span class="sd">    &gt;&gt;&gt; args = compile_args(Shot(id="s"), mall={}, fps=29.97, width=8, height=6, scene_step_hz=12.0)</span>
 <span class="sd">    &gt;&gt;&gt; args["fps"], args["step_hz"], (args["width"], args["height"])</span>
@@ -949,6 +956,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">scene_step_hz</span><span class="p">),</span>
         <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
         <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="n">frame_samples</span><span class="o">=</span><span class="n">frame_samples</span><span class="p">,</span>
+        <span class="n">sample_fps</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span> <span class="k">if</span> <span class="n">frame_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -1637,8 +1646,20 @@ window.runMermaid = runMermaid;</script>
     <span class="n">expression_provider</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">frame_samples</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sample_fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CutoutSceneJSON</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Compile a single cutout-style `Shot` to its JS-runtime JSON form.</span>
+
+<span class="sd">    ``frame_samples`` (an#626) are the scene instants the render samples, per</span>
+<span class="sd">    frame (``RenderContext.frame_samples``: a shutter's sub-frame ones). A</span>
+<span class="sd">    camera the compiler keys itself — a follow, a dolly — is keyed at each of</span>
+<span class="sd">    them too (:func:`an.frame_clock.camera_grid`), so a sample lands</span>
+<span class="sd">    on an exact key instead of between two frames' keys. ``None`` (default)</span>
+<span class="sd">    keys a frame each and leaves the document byte-identical to before the</span>
+<span class="sd">    knob existed; so does any value for a shot with no such camera.</span>
+<span class="sd">    ``sample_fps`` is the rate they were taken at, when ``fps`` (the compiled</span>
+<span class="sd">    grid's, integral) rounds it: they are counted at it.</span>
 
 <span class="sd">    ``default_easing`` (an#166) is the scene's ``meta.default_easing``: the</span>
 <span class="sd">    curve of every authored tween that names none (tween &gt; this &gt; the built-in</span>
@@ -1663,7 +1684,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Exempt by construction, because they are separate</span>
 <span class="sd">    emission sites rather than string-sniffed: the camera (`_add_camera_clips`</span>
 <span class="sd">    — a stepped character under a translating camera slides in screen space,</span>
-<span class="sd">    which is why the practice keeps cameras on ones), compiled blinks, `play`</span>
+<span class="sd">    which is why the practice keeps cameras on ones; a FOLLOW is the</span>
+<span class="sd">    exception, computed from the stepped poses and stepped with them, an#626),</span>
+<span class="sd">    compiled blinks, `play`</span>
 <span class="sd">    clips, and swap channels (already stepped by format). The value is</span>
 <span class="sd">    stamped into ``meta.step_hz`` — only when set — so a serialized scene</span>
 <span class="sd">    declares its timing policy without moving the contract hash of one that</span>
@@ -1712,6 +1735,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
         <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
         <span class="n">expression_provider</span><span class="o">=</span><span class="n">expression_provider</span><span class="p">,</span>
+        <span class="n">frame_samples</span><span class="o">=</span><span class="p">(</span>
+            <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">frame_samples</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frame_samples</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">sample_fps</span><span class="o">=</span><span class="n">sample_fps</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">replaced</span> <span class="o">=</span> <span class="n">stage_replacements</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">replaced</span><span class="p">:</span>
@@ -1745,6 +1774,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">expression_provider</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The render's sample instants per frame (an#626), ``None`` for a frame each.</span>
+    <span class="n">frame_samples</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The rate ``frame_samples`` were taken at (a camera's 29.97), else ``fps``.</span>
+    <span class="n">sample_fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">overlay_children</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
@@ -1933,8 +1966,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    frame by the runtime's executable spec (`evaluate_timeline`), and the</span>
 <span class="sd">    target's position composed up its chain (`screen_position`, with no camera</span>
 <span class="sd">    yet, so it is the scene position). The camera keeps the target where it</span>
-<span class="sd">    stood at the shot's start: one linear key per frame, which is exact at</span>
-<span class="sd">    every frame the render draws."""</span>
+<span class="sd">    stood at the shot's start: one key per instant of</span>
+<span class="sd">    :func:`an.frame_clock.camera_grid` — every frame (linear), every</span>
+<span class="sd">    step too on a stepped shot (step-eased), and every instant the render</span>
+<span class="sd">    samples (an#626) — so it is exact wherever the render looks."""</span>
     <span class="n">camera</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">camera</span>
     <span class="k">if</span> <span class="n">camera</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">camera</span><span class="o">.</span><span class="n">follow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -1944,24 +1979,55 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_camera_dolly_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A dollying camera (an#478): its keys, one per frame (:func:`dolly_frames`),</span>
-<span class="sd">    so the root's zoom is the character plane's pinhole growth at every frame</span>
-<span class="sd">    and the parallax pass grows each plane by its own. A camera with no</span>
-<span class="sd">    ``dolly`` is left exactly as it was."""</span>
+<span class="w">    </span><span class="sd">"""A dollying camera (an#478): its keys, one per instant of</span>
+<span class="sd">    :func:`an.frame_clock.camera_grid` (:func:`dolly_frames`), so the</span>
+<span class="sd">    root's zoom is the character plane's pinhole growth wherever the render</span>
+<span class="sd">    samples and the parallax pass grows each plane by its own. A camera with</span>
+<span class="sd">    no ``dolly`` is left exactly as it was."""</span>
     <span class="n">keys</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
     <span class="n">framed</span> <span class="o">=</span> <span class="n">dolly_frames</span><span class="p">(</span>
-        <span class="n">keys</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)),</span> <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span>
+        <span class="n">keys</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)),</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">_camera_step_hz</span><span class="p">(</span><span class="n">state</span><span class="p">),</span>
+        <span class="n">frame_samples</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">frame_samples</span><span class="p">,</span>
+        <span class="n">sample_fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">sample_fps</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">framed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
         <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">CAMERA_KEYS_PRODUCT</span><span class="p">]</span> <span class="o">=</span> <span class="n">framed</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_camera_step_hz</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The step grid the shot's compiled camera is sampled under (an#626).</span>
+
+<span class="sd">    A FOLLOW steps with a stepped shot: it is computed from the target's</span>
+<span class="sd">    stepped poses, and keyed on ones it would ramp across a frame while the</span>
+<span class="sd">    target holds. An AUTHORED camera (a move, keys, a dolly of them) stays on</span>
+<span class="sd">    ones, as `compile_shot` keeps every authored camera off the step grid (the</span>
+<span class="sd">    practice keeps cameras on ones: a stepped pan slides a stepped character</span>
+<span class="sd">    in screen space). A dolly over a follow's keys samples them on the</span>
+<span class="sd">    follow's own grid, so it re-reads them exactly.</span>
+<span class="sd">    """</span>
+    <span class="n">camera</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">camera</span>
+    <span class="n">follows</span> <span class="o">=</span> <span class="n">camera</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">camera</span><span class="o">.</span><span class="n">follow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">state</span><span class="o">.</span><span class="n">step_hz</span> <span class="k">if</span> <span class="n">follows</span> <span class="k">else</span> <span class="kc">None</span>
+
+
 <div class="viewcode-block" id="camera_follow_keys">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.camera_follow_keys">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">camera_follow_keys</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">CompileState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The keys of ``state.shot``'s follow camera, one per frame (an#445)."""</span>
+<span class="w">    </span><span class="sd">"""The keys of ``state.shot``'s follow camera (an#445), one per instant</span>
+<span class="sd">    of :func:`an.frame_clock.camera_grid` under the shot's step grid</span>
+<span class="sd">    and the render's sample instants (an#626).</span>
+
+<span class="sd">    A ``lag`` (an#504) is filtered over the camera's own grid (every frame,</span>
+<span class="sd">    and every step on a stepped shot), and a sample instant between two of</span>
+<span class="sd">    its points takes the filter's own trajectory there</span>
+<span class="sd">    (:func:`an.ir.frames.lag_resample`): nothing changes at the grid, and a</span>
+<span class="sd">    shutter sample sees where the lagging camera really is.</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">evaluate_timeline</span><span class="p">,</span>
         <span class="n">screen_position</span><span class="p">,</span>
@@ -1972,25 +2038,51 @@ window.runMermaid = runMermaid;</script>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">_assemble_document</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s2">"#000000"</span><span class="p">)</span>
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
-    <span class="c1"># One grid with the dolly pass's (`dolly_frames`): the keys stay exact.</span>
-    <span class="n">times</span> <span class="o">=</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+    <span class="c1"># One sampler with the dolly pass's (`dolly_frames`): the keys stay exact.</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">camera_grid</span><span class="p">(</span>
+        <span class="n">duration</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">_camera_step_hz</span><span class="p">(</span><span class="n">state</span><span class="p">),</span>
+        <span class="n">frame_samples</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">frame_samples</span><span class="p">,</span>
+        <span class="n">sample_fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">sample_fps</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
     <span class="n">centre</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span>
-        <span class="p">]</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the camera follows </span><span class="si">{</span><span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">, which "</span>
-            <span class="sa">f</span><span class="s2">"is not a node of this shot (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). Follow an entity id or one of its "</span>
-            <span class="s2">"nodes."</span>
-        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="k">if</span> <span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">:</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span>
-        <span class="n">xs</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
-        <span class="n">ys</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
-        <span class="n">positions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">target_at</span><span class="p">(</span><span class="n">instants</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">instants</span>
+            <span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the camera follows </span><span class="si">{</span><span class="n">follow</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">, "</span>
+                <span class="sa">f</span><span class="s2">"which is not a node of this shot (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). Follow an entity id or "</span>
+                <span class="s2">"one of its nodes."</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">:</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">target_at</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">base</span><span class="p">)</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">target_at</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+        <span class="c1"># One dt rule: whenever the base grid IS the frame grid (on ones, or</span>
+        <span class="c1"># steps that fall on frames, as on twos), the uniform frame step the</span>
+        <span class="c1"># follow always used, to the bit; else the grid's own steps (frames and</span>
+        <span class="c1"># steps interleave), which `b - a` would only match up to float noise.</span>
+        <span class="n">on_frames</span> <span class="o">=</span> <span class="n">base</span> <span class="o">==</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">fps</span> <span class="k">if</span> <span class="n">on_frames</span> <span class="k">else</span> <span class="p">[</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">base</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
+        <span class="n">tracks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">]</span>
+            <span class="n">lagged</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+            <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">lagged</span>
+                <span class="k">if</span> <span class="n">times</span> <span class="o">==</span> <span class="n">base</span>
+                <span class="k">else</span> <span class="n">lag_resample</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lagged</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">lag</span><span class="o">=</span><span class="n">follow</span><span class="o">.</span><span class="n">lag</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">tracks</span><span class="p">))</span>
     <span class="c1"># The target relative to the root's origin (the canvas centre), where the</span>
     <span class="c1"># zoom is about: on screen it is `centre + g · (d − cam)`, so holding it</span>
     <span class="c1"># where it stood as the shot opened (`g0 · d0`) while the root zooms by `g`</span>
@@ -2003,7 +2095,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">at</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
                 <span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
                 <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"y"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+                <span class="n">easing</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
         <span class="p">]</span>
@@ -2022,7 +2114,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">dy</span> <span class="o">-</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">g</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"y"</span> <span class="ow">in</span> <span class="n">follow</span><span class="o">.</span><span class="n">axes</span> <span class="k">else</span> <span class="n">still</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">held</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">g</span><span class="p">,</span>
             <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">,</span>
             <span class="n">dolly</span><span class="o">=</span><span class="n">dolly</span><span class="p">,</span>
-            <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+            <span class="n">easing</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">),</span> <span class="n">g</span><span class="p">,</span> <span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">dolly</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">gains</span><span class="p">,</span> <span class="n">overlay</span><span class="p">)</span>
     <span class="p">]</span></div>
@@ -4907,46 +4999,6 @@ window.runMermaid = runMermaid;</script>
             <span class="p">],</span>
         <span class="p">)</span>
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unsupported anim build for </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="step_times">
-<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.step_times">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">step_times</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Clip-local times at which a stepped tween updates its pose (an#89).</span>
-
-<span class="sd">    The grid is SHOT-wide — multiples of ``1/step_hz`` on the shot's clock,</span>
-<span class="sd">    shared by every tween in the shot — not the tween's own: "on twos" means</span>
-<span class="sd">    every character changes pose on the same frames, so a tween starting at</span>
-<span class="sd">    0.033 s updates at the next grid point, not 0.033 s later. (Shots compile</span>
-<span class="sd">    independently, so the grid restarts at each cut.) Local 0 (the tween's</span>
-<span class="sd">    start) and ``duration`` (where the end value lands) are always present, so</span>
-<span class="sd">    a tween shorter than one step is a single step to its end value.</span>
-
-<span class="sd">    ``step_hz`` must be positive: with a non-positive rate the walk below never</span>
-<span class="sd">    reaches ``duration`` — an infinite loop, not an error — so it is refused.</span>
-
-<span class="sd">    &gt;&gt;&gt; step_times(0.0, 0.3, 10)</span>
-<span class="sd">    [0.0, 0.1, 0.2, 0.3]</span>
-<span class="sd">    &gt;&gt;&gt; [round(t, 3) for t in step_times(0.05, 0.3, 10)]</span>
-<span class="sd">    [0.0, 0.05, 0.15, 0.25, 0.3]</span>
-<span class="sd">    &gt;&gt;&gt; step_times(0.0, 0.02, 10)</span>
-<span class="sd">    [0.0, 0.02]</span>
-<span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">step_hz</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"step_hz must be positive; got </span><span class="si">{</span><span class="n">step_hz</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-9</span>
-    <span class="n">j</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">start</span> <span class="o">*</span> <span class="n">step_hz</span> <span class="o">-</span> <span class="n">eps</span><span class="p">)</span>
-    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">j</span> <span class="o">/</span> <span class="n">step_hz</span> <span class="o">-</span> <span class="n">start</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">eps</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">eps</span><span class="p">:</span>
-            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">times</span></div>
-
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_stepped_keyframes</span><span class="p">(</span>

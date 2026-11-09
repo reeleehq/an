@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -681,8 +681,8 @@ container as <code class="docutils literal notranslate"><span class="pre">root</
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.camera_shake_offsets" title="an.ir.camera.camera_shake_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">camera_shake_offsets</span></code></a>(shot, *, width, height)</p></td>
 <td><p>The shot's camera shakes as <code class="docutils literal notranslate"><span class="pre">(time,</span> <span class="pre">dx,</span> <span class="pre">dy)</span></code> screen offsets — the ONE resolver (an#429).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.dolly_frames" title="an.ir.camera.dolly_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dolly_frames</span></code></a>(keys, *, duration, fps)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">keys</span></code> as one linear key per frame when any of them dollies (an#478), else <code class="docutils literal notranslate"><span class="pre">keys</span></code> unchanged (and a single key, which is no move, as a single <code class="docutils literal notranslate"><span class="pre">zoom</span></code> key is not).</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.dolly_frames" title="an.ir.camera.dolly_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dolly_frames</span></code></a>(keys, *, duration, fps[, ...])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">keys</span></code> as one key per instant of the camera sampler when any of them dollies (an#478), else <code class="docutils literal notranslate"><span class="pre">keys</span></code> unchanged (and a single key, which is no move, as a single <code class="docutils literal notranslate"><span class="pre">zoom</span></code> key is not).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.dolly_growth" title="an.ir.camera.dolly_growth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dolly_growth</span></code></a>(factor, dolly)</p></td>
 <td><p>How much a plane of parallax <code class="docutils literal notranslate"><span class="pre">factor</span></code> grows when the camera has travelled <code class="docutils literal notranslate"><span class="pre">dolly</span></code> (an#478): a pinhole camera, the plane at distance <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">factor</span></code> in units of the character plane's.</p></td>
@@ -690,11 +690,17 @@ container as <code class="docutils literal notranslate"><span class="pre">root</
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.follow_overlay" title="an.ir.camera.follow_overlay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">follow_overlay</span></code></a>(keys, times)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(zoom,</span> <span class="pre">dolly)</span></code> of a follow's key overlay at each of <code class="docutils literal notranslate"><span class="pre">times</span></code> (an#625), each field by the keys' own easings; <code class="docutils literal notranslate"><span class="pre">(1.0,</span> <span class="pre">0.0)</span></code> with no overlay.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.frame_times" title="an.ir.camera.frame_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_times</span></code></a>(*, duration, fps)</p></td>
-<td><p>The time of every frame the render draws, the shot's end included.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.frame_times" title="an.ir.camera.frame_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_times</span></code></a>(duration, *, fps)</p></td>
+<td><p>The time of every frame a <code class="docutils literal notranslate"><span class="pre">duration</span></code> render draws, the end included (<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">fps</span></code>, the renderer's own expression, capped at <code class="docutils literal notranslate"><span class="pre">duration</span></code>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.plane_dolly_scale" title="an.ir.camera.plane_dolly_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_dolly_scale</span></code></a>(factor, dolly, *[, plane])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.is_affine" title="an.ir.camera.is_affine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_affine</span></code></a>(keys)</p></td>
+<td><p>Whether the frame <code class="docutils literal notranslate"><span class="pre">keys</span></code> show is checkable at the keys alone (an#626).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.camera.plane_dolly_scale" title="an.ir.camera.plane_dolly_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_dolly_scale</span></code></a>(factor, dolly, *[, plane])</p></td>
 <td><p>The scale a plane of parallax <code class="docutils literal notranslate"><span class="pre">factor</span></code> takes ON TOP of the root's zoom when the camera has travelled <code class="docutils literal notranslate"><span class="pre">dolly</span></code> (an#478): its growth over the character plane's, <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">−</span> <span class="pre">dolly)</span> <span class="pre">/</span> <span class="pre">(1</span> <span class="pre">−</span> <span class="pre">factor</span> <span class="pre">·</span> <span class="pre">dolly)</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.camera.sample_camera" title="an.ir.camera.sample_camera"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_camera</span></code></a>(keys, grid)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">keys</span></code> evaluated at every instant of <code class="docutils literal notranslate"><span class="pre">grid</span></code> (an#626), one key each with the grid's easing: every field by the keys' own easings, the <code class="docutils literal notranslate"><span class="pre">zoom</span></code> multiplied by the character plane's dolly growth (exactly <code class="docutils literal notranslate"><span class="pre">1</span></code> without a dolly), so the root zooms as a pinhole camera does.</p></td>
 </tr>
 </tbody>
 </table>
@@ -813,20 +819,24 @@ this, so a shake that validates cannot then raise (as with
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.camera.dolly_frames">
-<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">dolly_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#dolly_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.dolly_frames" title="Link to this definition">#</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">keys</span></code> as one linear key per frame when any of them dollies (an#478),
-else <code class="docutils literal notranslate"><span class="pre">keys</span></code> unchanged (and a single key, which is no move, as a single
-<code class="docutils literal notranslate"><span class="pre">zoom</span></code> key is not).</p>
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">dolly_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#dolly_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.dolly_frames" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">keys</span></code> as one key per instant of the camera sampler when any of them
+dollies (an#478), else <code class="docutils literal notranslate"><span class="pre">keys</span></code> unchanged (and a single key, which is no
+move, as a single <code class="docutils literal notranslate"><span class="pre">zoom</span></code> key is not).</p>
 <p>A dolly’s growth is not linear in its travel, so a key list that eases
-<code class="docutils literal notranslate"><span class="pre">dolly</span></code> cannot be eased in <code class="docutils literal notranslate"><span class="pre">zoom</span></code> too: each frame’s key is the camera
-evaluated there (every field by the keys’ own easings), its <code class="docutils literal notranslate"><span class="pre">zoom</span></code>
-multiplied by the character plane’s growth. Exact at every whole frame, as
-a follow is (an#445); a sample between two frames (a motion-blur shutter)
-sees the two frames’ keys interpolated linearly, and a <code class="docutils literal notranslate"><span class="pre">step</span></code> easing
-becomes a one-frame ramp.</p>
+<code class="docutils literal notranslate"><span class="pre">dolly</span></code> cannot be eased in <code class="docutils literal notranslate"><span class="pre">zoom</span></code> too: each key is the camera
+evaluated there (<a class="reference internal" href="#an.ir.camera.sample_camera" title="an.ir.camera.sample_camera"><code class="xref py py-func docutils literal notranslate"><span class="pre">sample_camera()</span></code></a>), at every instant of
+<a class="reference internal" href="an.frame_clock.html#an.frame_clock.camera_grid" title="an.frame_clock.camera_grid"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.frame_clock.camera_grid()</span></code></a> — every frame, every step of a
+stepped shot (step-eased, so a step is a cut), and every instant the
+render samples (<code class="docutils literal notranslate"><span class="pre">frame_samples</span></code>, a shutter’s sub-frame ones, an#626) —
+so it is exact wherever the render looks.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">dolly_frames</span><span class="p">(</span><span class="n">CAMERA_MOVES</span><span class="p">[</span><span class="s2">"dolly_in"</span><span class="p">](</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">zoom</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">][::</span><span class="mi">2</span><span class="p">]</span>
 <span class="go">[(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">samples</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.75</span><span class="p">]]</span>  <span class="c1"># one entry per frame</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shutter</span> <span class="o">=</span> <span class="n">dolly_frames</span><span class="p">(</span><span class="n">CAMERA_MOVES</span><span class="p">[</span><span class="s2">"dolly_in"</span><span class="p">](</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">frame_samples</span><span class="o">=</span><span class="n">samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">at</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">shutter</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[0.0, 0.1, 0.25]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -873,15 +883,48 @@ each field by the keys’ own easings; <code class="docutils literal notranslate
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.camera.frame_times">
-<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">frame_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#frame_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.frame_times" title="Link to this definition">#</a></dt>
-<dd><p>The time of every frame the render draws, the shot’s end included.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">frame_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/frame_clock.html#frame_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.frame_times" title="Link to this definition">#</a></dt>
+<dd><p>The time of every frame a <code class="docutils literal notranslate"><span class="pre">duration</span></code> render draws, the end included
+(<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">fps</span></code>, the renderer’s own expression, capped at <code class="docutils literal notranslate"><span class="pre">duration</span></code>).</p>
+<p>THE frame grid rule (an#626). <code class="docutils literal notranslate"><span class="pre">an.ir.camera.frame_times</span></code> is this very
+function re-exported, and <code class="docutils literal notranslate"><span class="pre">an.stage.solve.frame_times</span></code> a thin wrapper
+over <code class="xref py py-func docutils literal notranslate"><span class="pre">grid_times()</span></code>; neither restates it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_times</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="go">[0.0, 0.25, 0.5]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.camera.is_affine">
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">is_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#is_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.is_affine" title="Link to this definition">#</a></dt>
+<dd><p>Whether the frame <code class="docutils literal notranslate"><span class="pre">keys</span></code> show is checkable at the keys alone (an#626).</p>
+<p>Between two keys x, y and zoom share one eased parameter, and a plane
+edge minus a frame edge is then a linear term plus <code class="docutils literal notranslate"><span class="pre">±canvas/(2·zoom)</span></code>,
+convex in it, so its worst is at a key. Two things break that: a DOLLY
+(a plane grows by <code class="docutils literal notranslate"><span class="pre">1/(1</span> <span class="pre">−</span> <span class="pre">f·dolly)</span></code>, an#478) and a ROLL that changes
+between keys (the rolled frame’s extent goes by the cosine and sine of the
+angle). A constant roll is affine; so is a single key. A follow is never
+affine (its keys are where its target goes), and has no authored keys to
+ask about but its overlay.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_affine</span><span class="p">([</span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_affine</span><span class="p">([</span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dolly</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)])</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_affine</span><span class="p">([</span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)])</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_affine</span><span class="p">([</span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.3</span><span class="p">),</span> <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">9.0</span><span class="p">)])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -901,6 +944,26 @@ camera at or past it) is a <a class="reference internal" href="#an.ir.camera.Cam
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.camera.sample_camera">
+<span class="sig-prename descclassname"><span class="pre">an.ir.camera.</span></span><span class="sig-name descname"><span class="pre">sample_camera</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/camera.html#sample_camera"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.camera.sample_camera" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">keys</span></code> evaluated at every instant of <code class="docutils literal notranslate"><span class="pre">grid</span></code> (an#626), one key each
+with the grid’s easing: every field by the keys’ own easings, the
+<code class="docutils literal notranslate"><span class="pre">zoom</span></code> multiplied by the character plane’s dolly growth (exactly <code class="docutils literal notranslate"><span class="pre">1</span></code>
+without a dolly), so the root zooms as a pinhole camera does.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_grid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">CameraKey</span><span class="p">(</span><span class="n">at</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">k</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">rotation</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">k</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">sample_camera</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">camera_grid</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">2</span><span class="p">))]</span>
+<span class="go">[(0.0, 0.0, 'linear'), (0.5, 0.2, 'linear'), (1.0, 0.4, 'linear')]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.CameraKey" title="an.ir.schema.CameraKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">CameraKey</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -965,7 +1028,9 @@ camera at or past it) is a <a class="reference internal" href="#an.ir.camera.Cam
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.dolly_growth"><code class="docutils literal notranslate"><span class="pre">dolly_growth()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.follow_overlay"><code class="docutils literal notranslate"><span class="pre">follow_overlay()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.frame_times"><code class="docutils literal notranslate"><span class="pre">frame_times()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.is_affine"><code class="docutils literal notranslate"><span class="pre">is_affine()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.plane_dolly_scale"><code class="docutils literal notranslate"><span class="pre">plane_dolly_scale()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.camera.sample_camera"><code class="docutils literal notranslate"><span class="pre">sample_camera()</span></code></a></li>
 </ul>
   </nav></div>
 

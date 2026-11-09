@@ -11,17 +11,24 @@ an.frame\_clock
       DEFAULT_EXPOSURE_SAMPLES
       MAX_JITTER_FRACTION
       MAX_REPORT_NOISE_FRACTION
+      STEP_GRID_EPS
+      SAMPLE_MERGE_EPS
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      camera_grid
       frame_count
+      frame_times
+      grid_times
+      step_times
    
    .. rubric:: Classes
 
    .. autosummary::
    
+      CameraGrid
       CapturedFrame
       FrameClock
    

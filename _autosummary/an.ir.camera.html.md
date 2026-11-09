@@ -28,14 +28,16 @@ container as `root`. `+x` moves the CAMERA right, which moves content left.
 
 ### Functions
 
-| [`camera_keys`](#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                                                                                                                                       |
-|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`camera_shake_offsets`](#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).                                                                                                            |
-| [`dolly_frames`](#an.ir.camera.dolly_frames)(keys, \*, duration, fps)         | `keys` as one linear key per frame when any of them dollies (an#478), else `keys` unchanged (and a single key, which is no move, as a single `zoom` key is not).                                    |
-| [`dolly_growth`](#an.ir.camera.dolly_growth)(factor, dolly)                   | How much a plane of parallax `factor` grows when the camera has travelled `dolly` (an#478): a pinhole camera, the plane at distance `1 / factor` in units of the character plane's.                 |
-| [`follow_overlay`](#an.ir.camera.follow_overlay)(keys, times)                   | `(zoom, dolly)` of a follow's key overlay at each of `times` (an#625), each field by the keys' own easings; `(1.0, 0.0)` with no overlay.                                                           |
-| [`frame_times`](#an.ir.camera.frame_times)(\*, duration, fps)                | The time of every frame the render draws, the shot's end included.                                                                                                                                  |
-| [`plane_dolly_scale`](#an.ir.camera.plane_dolly_scale)(factor, dolly, \*[, plane]) | The scale a plane of parallax `factor` takes ON TOP of the root's zoom when the camera has travelled `dolly` (an#478): its growth over the character plane's, `(1 − dolly) / (1 − factor · dolly)`. |
+| [`camera_keys`](#an.ir.camera.camera_keys)(shot, \*, width, height)          | The shot's camera as an explicit key list — the ONE resolver.                                                                                                                                                                                                           |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`camera_shake_offsets`](#an.ir.camera.camera_shake_offsets)(shot, \*, width, height) | The shot's camera shakes as `(time, dx, dy)` screen offsets — the ONE resolver (an#429).                                                                                                                                                                                |
+| [`dolly_frames`](#an.ir.camera.dolly_frames)(keys, \*, duration, fps[, ...])  | `keys` as one key per instant of the camera sampler when any of them dollies (an#478), else `keys` unchanged (and a single key, which is no move, as a single `zoom` key is not).                                                                                       |
+| [`dolly_growth`](#an.ir.camera.dolly_growth)(factor, dolly)                   | How much a plane of parallax `factor` grows when the camera has travelled `dolly` (an#478): a pinhole camera, the plane at distance `1 / factor` in units of the character plane's.                                                                                     |
+| [`follow_overlay`](#an.ir.camera.follow_overlay)(keys, times)                   | `(zoom, dolly)` of a follow's key overlay at each of `times` (an#625), each field by the keys' own easings; `(1.0, 0.0)` with no overlay.                                                                                                                               |
+| [`frame_times`](#an.ir.camera.frame_times)(duration, \*, fps)                | The time of every frame a `duration` render draws, the end included (`k / fps`, the renderer's own expression, capped at `duration`).                                                                                                                                   |
+| [`is_affine`](#an.ir.camera.is_affine)(keys)                               | Whether the frame `keys` show is checkable at the keys alone (an#626).                                                                                                                                                                                                  |
+| [`plane_dolly_scale`](#an.ir.camera.plane_dolly_scale)(factor, dolly, \*[, plane]) | The scale a plane of parallax `factor` takes ON TOP of the root's zoom when the camera has travelled `dolly` (an#478): its growth over the character plane's, `(1 − dolly) / (1 − factor · dolly)`.                                                                     |
+| [`sample_camera`](#an.ir.camera.sample_camera)(keys, grid)                     | `keys` evaluated at every instant of `grid` (an#626), one key each with the grid's easing: every field by the keys' own easings, the `zoom` multiplied by the character plane's dolly growth (exactly `1` without a dolly), so the root zooms as a pinhole camera does. |
 
 ### Exceptions
 
@@ -132,24 +134,28 @@ this, so a shake that validates cannot then raise (as with
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.ir.camera.dolly_frames(keys, , duration, fps)
+### an.ir.camera.dolly_frames(keys, , duration, fps, step_hz=None, frame_samples=None, sample_fps=None)
 
-`keys` as one linear key per frame when any of them dollies (an#478),
-else `keys` unchanged (and a single key, which is no move, as a single
-`zoom` key is not).
+`keys` as one key per instant of the camera sampler when any of them
+dollies (an#478), else `keys` unchanged (and a single key, which is no
+move, as a single `zoom` key is not).
 
 A dolly’s growth is not linear in its travel, so a key list that eases
-`dolly` cannot be eased in `zoom` too: each frame’s key is the camera
-evaluated there (every field by the keys’ own easings), its `zoom`
-multiplied by the character plane’s growth. Exact at every whole frame, as
-a follow is (an#445); a sample between two frames (a motion-blur shutter)
-sees the two frames’ keys interpolated linearly, and a `step` easing
-becomes a one-frame ramp.
+`dolly` cannot be eased in `zoom` too: each key is the camera
+evaluated there ([`sample_camera()`](#an.ir.camera.sample_camera)), at every instant of
+[`an.frame_clock.camera_grid()`](an.frame_clock.html.md#an.frame_clock.camera_grid) — every frame, every step of a
+stepped shot (step-eased, so a step is a cut), and every instant the
+render samples (`frame_samples`, a shutter’s sub-frame ones, an#626) —
+so it is exact wherever the render looks.
 
 ```pycon
 >>> frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)
 >>> [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]
 [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]
+>>> samples = [[0.0, 0.1], [0.25], [0.5], [0.75]]  # one entry per frame
+>>> shutter = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4, frame_samples=samples)
+>>> [k.at for k in shutter][:3]
+[0.0, 0.1, 0.25]
 ```
 
 * **Return type:**
@@ -184,17 +190,49 @@ each field by the keys’ own easings; `(1.0, 0.0)` with no overlay.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.ir.camera.frame_times(, duration, fps)
+### an.ir.camera.frame_times(duration, , fps)
 
-The time of every frame the render draws, the shot’s end included.
+The time of every frame a `duration` render draws, the end included
+(`k / fps`, the renderer’s own expression, capped at `duration`).
+
+THE frame grid rule (an#626). `an.ir.camera.frame_times` is this very
+function re-exported, and `an.stage.solve.frame_times` a thin wrapper
+over `grid_times()`; neither restates it.
 
 ```pycon
->>> frame_times(duration=0.5, fps=4)
+>>> frame_times(0.5, fps=4)
 [0.0, 0.25, 0.5]
 ```
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.ir.camera.is_affine(keys)
+
+Whether the frame `keys` show is checkable at the keys alone (an#626).
+
+Between two keys x, y and zoom share one eased parameter, and a plane
+edge minus a frame edge is then a linear term plus `±canvas/(2·zoom)`,
+convex in it, so its worst is at a key. Two things break that: a DOLLY
+(a plane grows by `1/(1 − f·dolly)`, an#478) and a ROLL that changes
+between keys (the rolled frame’s extent goes by the cosine and sine of the
+angle). A constant roll is affine; so is a single key. A follow is never
+affine (its keys are where its target goes), and has no authored keys to
+ask about but its overlay.
+
+```pycon
+>>> is_affine([CameraKey(at=0.0), CameraKey(at=1.0, x=40.0, zoom=1.5)])
+True
+>>> is_affine([CameraKey(at=0.0), CameraKey(at=1.0, dolly=0.2)])
+False
+>>> is_affine([CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.3)])
+False
+>>> is_affine([CameraKey(at=0.0, rotation=0.3), CameraKey(at=1.0, rotation=0.3, x=9.0)])
+True
+```
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 ### an.ir.camera.plane_dolly_scale(factor, dolly, , plane='')
 
@@ -211,3 +249,20 @@ camera at or past it) is a [`CameraError`](#an.ir.camera.CameraError).
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.ir.camera.sample_camera(keys, grid)
+
+`keys` evaluated at every instant of `grid` (an#626), one key each
+with the grid’s easing: every field by the keys’ own easings, the
+`zoom` multiplied by the character plane’s dolly growth (exactly `1`
+without a dolly), so the root zooms as a pinhole camera does.
+
+```pycon
+>>> from an.frame_clock import camera_grid
+>>> keys = [CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.4)]
+>>> [(k.at, round(k.rotation, 2), k.easing) for k in sample_camera(keys, camera_grid(1.0, fps=2))]
+[(0.0, 0.0, 'linear'), (0.5, 0.2, 'linear'), (1.0, 0.4, 'linear')]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]

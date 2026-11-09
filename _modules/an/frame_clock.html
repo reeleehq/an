@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -729,6 +729,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">both the render and the ground truth, so the two cannot disagree about when a</span>
 <span class="sd">frame was taken.</span>
 
+<span class="sd">It also owns the GRIDS a shot is laid onto, the pure rules every layer shares</span>
+<span class="sd">(the IR's camera, the stage's compiler and solve): :func:`frame_times` (every</span>
+<span class="sd">frame, the end included), :func:`step_times` (a stepped shot's pose grid,</span>
+<span class="sd">an#89), :func:`grid_times` (one or the other, the solve's grid) and</span>
+<span class="sd">:func:`camera_grid` (an#626), the instants a camera the runtime cannot</span>
+<span class="sd">evaluate itself — a follow, a dolly — is keyed at so that every instant the</span>
+<span class="sd">render samples, a shutter's sub-frame ones included, lands on an exact key.</span>
+
 <span class="sd">The default clock is the old behaviour exactly — no exposure, no jitter, one</span>
 <span class="sd">sample at ``i / fps``:</span>
 
@@ -756,18 +764,26 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">bisect</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"DEFAULT_EXPOSURE_SAMPLES"</span><span class="p">,</span>
     <span class="s2">"MAX_JITTER_FRACTION"</span><span class="p">,</span>
     <span class="s2">"MAX_REPORT_NOISE_FRACTION"</span><span class="p">,</span>
+    <span class="s2">"SAMPLE_MERGE_EPS"</span><span class="p">,</span>
+    <span class="s2">"STEP_GRID_EPS"</span><span class="p">,</span>
+    <span class="s2">"CameraGrid"</span><span class="p">,</span>
     <span class="s2">"CapturedFrame"</span><span class="p">,</span>
     <span class="s2">"FrameClock"</span><span class="p">,</span>
     <span class="s2">"FrameClockError"</span><span class="p">,</span>
+    <span class="s2">"camera_grid"</span><span class="p">,</span>
     <span class="s2">"frame_count"</span><span class="p">,</span>
+    <span class="s2">"frame_times"</span><span class="p">,</span>
+    <span class="s2">"grid_times"</span><span class="p">,</span>
+    <span class="s2">"step_times"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: Sub-samples integrated per frame when the shutter is open and the caller did</span>
@@ -786,7 +802,17 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: two neighbouring reported timestamps can never cross on a regular grid.</span>
 <span class="n">MAX_REPORT_NOISE_FRACTION</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.24</span>
 
+<span class="c1">#: A step instant this close to the end of a span is not a step of it</span>
+<span class="c1">#: (``0.25 s × 12 Hz`` is 3 steps, not 4, whatever the float product rounds to).</span>
+<span class="n">STEP_GRID_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+<span class="c1">#: Two camera key instants closer than this (s) are one key: a shutter sample</span>
+<span class="c1">#: that IS a frame up to float noise adds no key beside it (two keys a</span>
+<span class="c1">#: femtosecond apart would only divide by that femtosecond).</span>
+<span class="n">SAMPLE_MERGE_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
 <span class="n">Timestamps</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"nominal"</span><span class="p">,</span> <span class="s2">"actual"</span><span class="p">]</span>
+<span class="n">CameraEasing</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"linear"</span><span class="p">,</span> <span class="s2">"step"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="FrameClockError">
@@ -806,6 +832,196 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span><span class="p">)))</span></div>
 
+
+
+<div class="viewcode-block" id="frame_times">
+<a class="viewcode-back" href="../../_autosummary/an.ir.camera.html#an.frame_clock.frame_times">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The time of every frame a ``duration`` render draws, the end included</span>
+<span class="sd">    (``k / fps``, the renderer's own expression, capped at ``duration``).</span>
+
+<span class="sd">    THE frame grid rule (an#626). ``an.ir.camera.frame_times`` is this very</span>
+<span class="sd">    function re-exported, and ``an.stage.solve.frame_times`` a thin wrapper</span>
+<span class="sd">    over :func:`grid_times`; neither restates it.</span>
+
+<span class="sd">    &gt;&gt;&gt; frame_times(0.5, fps=4)</span>
+<span class="sd">    [0.0, 0.25, 0.5]</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">n</span> <span class="o">/</span> <span class="n">fps</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frame_count</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span></div>
+
+
+
+<div class="viewcode-block" id="step_times">
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.step_times">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">step_times</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Clip-local times at which a stepped tween updates its pose (an#89).</span>
+
+<span class="sd">    The grid is SHOT-wide — multiples of ``1/step_hz`` on the shot's clock,</span>
+<span class="sd">    shared by every tween in the shot — not the tween's own: "on twos" means</span>
+<span class="sd">    every character changes pose on the same frames, so a tween starting at</span>
+<span class="sd">    0.033 s updates at the next grid point, not 0.033 s later. (Shots compile</span>
+<span class="sd">    independently, so the grid restarts at each cut.) Local 0 (the tween's</span>
+<span class="sd">    start) and ``duration`` (where the end value lands) are always present, so</span>
+<span class="sd">    a tween shorter than one step is a single step to its end value.</span>
+
+<span class="sd">    ``step_hz`` must be positive: with a non-positive rate the walk below never</span>
+<span class="sd">    reaches ``duration`` — an infinite loop, not an error — so it is refused.</span>
+
+<span class="sd">    &gt;&gt;&gt; step_times(0.0, 0.3, 10)</span>
+<span class="sd">    [0.0, 0.1, 0.2, 0.3]</span>
+<span class="sd">    &gt;&gt;&gt; [round(t, 3) for t in step_times(0.05, 0.3, 10)]</span>
+<span class="sd">    [0.0, 0.05, 0.15, 0.25, 0.3]</span>
+<span class="sd">    &gt;&gt;&gt; step_times(0.0, 0.02, 10)</span>
+<span class="sd">    [0.0, 0.02]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">step_hz</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"step_hz must be positive; got </span><span class="si">{</span><span class="n">step_hz</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">STEP_GRID_EPS</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">start</span> <span class="o">*</span> <span class="n">step_hz</span> <span class="o">-</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">j</span> <span class="o">/</span> <span class="n">step_hz</span> <span class="o">-</span> <span class="n">start</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">eps</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">eps</span><span class="p">:</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">times</span></div>
+
+
+
+<div class="viewcode-block" id="grid_times">
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.grid_times">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grid_times</span><span class="p">(</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A shot's own grid: every frame (:func:`frame_times`), or its step grid</span>
+<span class="sd">    (:func:`step_times`) under ``step_hz``. What the solve runs at.</span>
+
+<span class="sd">    &gt;&gt;&gt; grid_times(0.1, fps=20)</span>
+<span class="sd">    [0.0, 0.05, 0.1]</span>
+<span class="sd">    &gt;&gt;&gt; grid_times(0.25, fps=20, step_hz=10)</span>
+<span class="sd">    [0.0, 0.1, 0.2, 0.25]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">step_hz</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">step_times</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CameraGrid">
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.CameraGrid">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CameraGrid</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a camera the runtime cannot evaluate itself is keyed (an#626).</span>
+
+<span class="sd">    ``times``: the key instants, sorted. ``easing``: the keys' easing —</span>
+<span class="sd">    ``"linear"`` on ones, ``"step"`` on a stepped shot (the camera holds</span>
+<span class="sd">    between keys as a stepped tween holds between poses). ``base``: the</span>
+<span class="sd">    grid the camera is COMPUTED on — every frame, and every step instant on a</span>
+<span class="sd">    stepped shot — before the render's sample instants are added (a follow's</span>
+<span class="sd">    lag runs over it); ``times`` is a superset of it.</span>
+<span class="sd">    """</span>
+
+    <span class="n">times</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">base</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">easing</span><span class="p">:</span> <span class="n">CameraEasing</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stepped</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">easing</span> <span class="o">==</span> <span class="s2">"step"</span></div>
+
+
+
+<div class="viewcode-block" id="camera_grid">
+<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.camera_grid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">camera_grid</span><span class="p">(</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">frame_samples</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sample_fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">merge_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SAMPLE_MERGE_EPS</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CameraGrid</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ONE sampler for a non-affine camera — a follow, a dolly, anything</span>
+<span class="sd">    the runtime cannot evaluate from a few eased keys (an#626).</span>
+
+<span class="sd">    On ones (``step_hz`` unset) the camera is keyed at every frame</span>
+<span class="sd">    (:func:`frame_times`), linearly. On a stepped shot it is keyed at every</span>
+<span class="sd">    frame AND every step instant (:func:`step_times`), step-eased: it holds</span>
+<span class="sd">    between keys as the stepped poses hold, so a step is a cut, not a</span>
+<span class="sd">    one-frame ramp. The step grid alone would not do: a tween's end lands off</span>
+<span class="sd">    it, and the frames keep the camera exact where the target already moved.</span>
+
+<span class="sd">    ``frame_samples`` (``RenderContext.frame_samples``, a</span>
+<span class="sd">    :class:`FrameClock`'s :meth:`~FrameClock.sample_times`) adds every</span>
+<span class="sd">    instant the render actually samples — a shutter's sub-frame ones, a</span>
+<span class="sd">    jittered capture's — clipped to ``[0, duration]``, so each lands on an</span>
+<span class="sd">    exact key instead of between two. An instant within ``merge_eps`` of a</span>
+<span class="sd">    key already there is that key. ``None`` adds nothing: the keys are</span>
+<span class="sd">    exactly the frame grid they always were. They must describe THIS shot:</span>
+<span class="sd">    one entry per frame (:func:`frame_count`) at ``sample_fps``, the rate the</span>
+<span class="sd">    render samples at (a camera's 29.97, where the compiled grid's ``fps`` is</span>
+<span class="sd">    rounded to 30; ``fps`` when unset), or a :class:`FrameClockError`:</span>
+<span class="sd">    another shot's samples would key the camera at the wrong instants.</span>
+
+<span class="sd">    &gt;&gt;&gt; camera_grid(0.5, fps=4)</span>
+<span class="sd">    CameraGrid(times=(0.0, 0.25, 0.5), base=(0.0, 0.25, 0.5), easing='linear')</span>
+<span class="sd">    &gt;&gt;&gt; camera_grid(0.5, fps=4, frame_samples=((0.0,), (0.3, 0.6))).times</span>
+<span class="sd">    (0.0, 0.25, 0.3, 0.5)</span>
+<span class="sd">    &gt;&gt;&gt; g = camera_grid(0.5, fps=4, step_hz=3)</span>
+<span class="sd">    &gt;&gt;&gt; [round(t, 3) for t in g.times], g.easing, g.base == g.times</span>
+<span class="sd">    ([0.0, 0.25, 0.333, 0.5], 'step', True)</span>
+<span class="sd">    &gt;&gt;&gt; len(camera_grid(20.0, fps=30, frame_samples=[(k / 29.97,) for k in range(599)], sample_fps=29.97).times) &gt; 600</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; camera_grid(0.5, fps=4, frame_samples=((0.0,),))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">      ...</span>
+<span class="sd">    an.frame_clock.FrameClockError: frame_samples describes 1 frame(s) but a 0.5 s shot at 4 fps has 2: they are another shot's samples.</span>
+<span class="sd">    """</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step_hz</span><span class="p">:</span>
+        <span class="n">_merge_into</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">step_times</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">),</span> <span class="n">eps</span><span class="o">=</span><span class="n">merge_eps</span><span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">frame_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="n">sample_fps</span> <span class="ow">or</span> <span class="n">fps</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">rate</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_samples</span><span class="p">)</span> <span class="o">!=</span> <span class="n">frames</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FrameClockError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"frame_samples describes </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">frame_samples</span><span class="p">)</span><span class="si">}</span><span class="s2"> frame(s) but a "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s shot at </span><span class="si">{</span><span class="n">rate</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> fps has </span><span class="si">{</span><span class="n">frames</span><span class="si">}</span><span class="s2">: they are "</span>
+                <span class="s2">"another shot's samples."</span>
+            <span class="p">)</span>
+        <span class="n">instants</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">frame_samples</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">]</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">instants</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">bad</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FrameClockError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"frame_samples holds non-finite instants </span><span class="si">{</span><span class="n">bad</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">: a render "</span>
+                <span class="s2">"samples a scene at real times only."</span>
+            <span class="p">)</span>
+        <span class="n">_merge_into</span><span class="p">(</span>
+            <span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">duration</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">instants</span><span class="p">],</span> <span class="n">eps</span><span class="o">=</span><span class="n">merge_eps</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">CameraGrid</span><span class="p">(</span>
+        <span class="n">times</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+        <span class="n">base</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">base</span><span class="p">),</span>
+        <span class="n">easing</span><span class="o">=</span><span class="s2">"step"</span> <span class="k">if</span> <span class="n">step_hz</span> <span class="k">else</span> <span class="s2">"linear"</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_merge_into</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">extra</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Insert each of ``extra`` into the sorted ``times`` unless one is within</span>
+<span class="sd">    ``eps`` of it already (the instants already there win)."""</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">extra</span><span class="p">)):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_left</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">near</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">eps</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="ow">and</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">eps</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">near</span><span class="p">:</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="CapturedFrame">

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -690,7 +690,10 @@ and the easing function, nothing else. It is an extraction candidate: previz
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.frames.lag_filter" title="an.ir.frames.lag_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lag_filter</span></code></a>(values, *, lag, dt)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">values</span></code> seen through a first-order filter of time constant <code class="docutils literal notranslate"><span class="pre">lag</span></code> (s), sampled every <code class="docutils literal notranslate"><span class="pre">dt</span></code>: it starts on the first value and closes <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">exp(-dt/lag)</span></code> of the gap each step (Cinemachine's damping: the time it takes to catch up).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.frames.look_basis" title="an.ir.frames.look_basis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">look_basis</span></code></a>(yaw, pitch, roll)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.frames.lag_resample" title="an.ir.frames.lag_resample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lag_resample</span></code></a>(times, values, filtered, at, *, lag)</p></td>
+<td><p>The lagging track <a class="reference internal" href="#an.ir.frames.lag_filter" title="an.ir.frames.lag_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">lag_filter()</span></code></a> made over <code class="docutils literal notranslate"><span class="pre">times</span></code> (its input <code class="docutils literal notranslate"><span class="pre">values</span></code>, its output <code class="docutils literal notranslate"><span class="pre">filtered</span></code>), read at the instants <code class="docutils literal notranslate"><span class="pre">at</span></code> (an#626).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.frames.look_basis" title="an.ir.frames.look_basis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">look_basis</span></code></a>(yaw, pitch, roll)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(forward,</span> <span class="pre">right,</span> <span class="pre">down)</span></code> for a look of <code class="docutils literal notranslate"><span class="pre">yaw</span></code> (turn right), <code class="docutils literal notranslate"><span class="pre">pitch</span></code> (look down) and <code class="docutils literal notranslate"><span class="pre">roll</span></code> (the PICTURE turns clockwise: what was on the right moves to the bottom), in degrees.</p></td>
 </tr>
 </tbody>
@@ -1065,13 +1068,47 @@ if unset) and holds its end.</p>
 (s), sampled every <code class="docutils literal notranslate"><span class="pre">dt</span></code>: it starts on the first value and closes
 <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">exp(-dt/lag)</span></code> of the gap each step (Cinemachine’s damping: the time
 it takes to catch up). <code class="docutils literal notranslate"><span class="pre">lag</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code> returns them as they are.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is one step for all, or one per step (<code class="docutils literal notranslate"><span class="pre">len(values)</span> <span class="pre">-</span> <span class="pre">1</span></code> of them)
+for a grid that is not uniform — a stepped shot’s frames and steps
+interleaved (an#626). Each step is the exact response of the filter to
+the input held at the step’s END value over it, so a grid refined by
+<a class="reference internal" href="#an.ir.frames.lag_resample" title="an.ir.frames.lag_resample"><code class="xref py py-func docutils literal notranslate"><span class="pre">lag_resample()</span></code></a> lands on the same values.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">30</span><span class="p">,</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># 0.5 s after the step: 1 - 1/e of it</span>
 <span class="go">63.2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lag_filter</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">])</span> <span class="o">==</span> <span class="n">out</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">lag_filter</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">  </span><span class="c">...</span>
 <span class="gr">ValueError</span>: <span class="n">lag_filter: the sample step `dt` must be positive (got 0.0).</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.frames.lag_resample">
+<span class="sig-prename descclassname"><span class="pre">an.ir.frames.</span></span><span class="sig-name descname"><span class="pre">lag_resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filtered</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/frames.html#lag_resample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.frames.lag_resample" title="Link to this definition">#</a></dt>
+<dd><p>The lagging track <a class="reference internal" href="#an.ir.frames.lag_filter" title="an.ir.frames.lag_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">lag_filter()</span></code></a> made over <code class="docutils literal notranslate"><span class="pre">times</span></code> (its input
+<code class="docutils literal notranslate"><span class="pre">values</span></code>, its output <code class="docutils literal notranslate"><span class="pre">filtered</span></code>), read at the instants <code class="docutils literal notranslate"><span class="pre">at</span></code> (an#626).</p>
+<p>At a grid instant, the filtered value itself. Between <code class="docutils literal notranslate"><span class="pre">times[k]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">times[k+1]</span></code>, the filter’s own trajectory there: from <code class="docutils literal notranslate"><span class="pre">filtered[k]</span></code>
+toward <code class="docutils literal notranslate"><span class="pre">values[k+1]</span></code> (the input it holds over that step), closing
+<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">exp(-(t</span> <span class="pre">-</span> <span class="pre">times[k])/lag)</span></code> of the gap — which reaches
+<code class="docutils literal notranslate"><span class="pre">filtered[k+1]</span></code> at the step’s end, so refining the grid moves nothing
+on it. Before the first instant, the first value; after the last, the
+last (the filter’s output is not defined beyond its input).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">times</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lagged</span> <span class="o">=</span> <span class="n">lag_filter</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lag_resample</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lagged</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="o">==</span> <span class="n">lagged</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">lag_resample</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lagged</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">],</span> <span class="n">lag</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">9.516</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1180,6 +1217,7 @@ right moves to the bottom), in degrees.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.TrackEvent"><code class="docutils literal notranslate"><span class="pre">TrackEvent</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.lag_filter"><code class="docutils literal notranslate"><span class="pre">lag_filter()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.lag_resample"><code class="docutils literal notranslate"><span class="pre">lag_resample()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.frames.look_basis"><code class="docutils literal notranslate"><span class="pre">look_basis()</span></code></a></li>
 </ul>
   </nav></div>

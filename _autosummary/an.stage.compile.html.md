@@ -65,7 +65,7 @@ mall). It reads only.
 | [`after_problems`](#an.stage.compile.after_problems)(shot, mall, \*[, planes_known])     | `[(entity index, why)]` for every `stage.after` the compiler would refuse (an#344): an anchor the shot does not have, the entity itself, a cycle.                                                                                                                                                                                                 |
 |-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`boil_keys`](#an.stage.compile.boil_keys)(hz, drawings, duration)                  | `(time, drawing)` of a boil: drawing `k mod drawings` from `k / hz`, every step of the shot (an#443).                                                                                                                                                                                                                                             |
-| [`camera_follow_keys`](#an.stage.compile.camera_follow_keys)(state)                          | The keys of `state.shot`'s follow camera, one per frame (an#445).                                                                                                                                                                                                                                                                                 |
+| [`camera_follow_keys`](#an.stage.compile.camera_follow_keys)(state)                          | The keys of `state.shot`'s follow camera (an#445), one per instant of [`an.frame_clock.camera_grid()`](an.frame_clock.html.md#an.frame_clock.camera_grid) under the shot's step grid and the render's sample instants (an#626).                                                                                              |
 | [`camera_keys`](#an.stage.compile.camera_keys)(shot, \*, width, height)               | [`an.ir.camera.camera_keys()`](an.ir.camera.html.md#an.ir.camera.camera_keys), with its refusal typed for this adapter.                                                                                                                                                                                                    |
 | [`compile_args`](#an.stage.compile.compile_args)(shot, \*, mall, fps, width, height)   | [`compile_shot()`](#an.stage.compile.compile_shot)'s keywords for `shot` from settled values: the ONE place they are spelled out (an#713).                                                                                                                                                                                           |
 | [`compile_as_rendered`](#an.stage.compile.compile_as_rendered)(shot, scene, mall, \*, fps)    | `shot` compiled as `an render` compiles it: `(document, None)`, `(None, the compile error)`, or `(None, None)` for a shot the stage does not render (an#636, moved from [`an.verify.constraints`](an.verify.constraints.html.md#module-an.verify.constraints)).                                                                     |
@@ -84,7 +84,6 @@ mall). It reads only.
 | [`scene_builders`](#an.stage.compile.scene_builders)()                                   | `{entity kind: builder}`: the stage's, and every registered one.                                                                                                                                                                                                                                                                                  |
 | [`space_definitions`](#an.stage.compile.space_definitions)(entity_spaces)                   | `{space name: definition}` for every space `entity_spaces` names -- what the compiled document embeds as `meta.spaces` so `runtime.js` evaluates each declared entity in its space (an#287).                                                                                                                                                      |
 | [`stage_replacements`](#an.stage.compile.stage_replacements)()                               | `{stage pass or builder: the genre replacing it}` -- recorded in the compiled document's `meta.extensions` when non-empty.                                                                                                                                                                                                                        |
-| [`step_times`](#an.stage.compile.step_times)(start, duration, step_hz)               | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                                                                                                                                                                               |
 | [`style_pack_for`](#an.stage.compile.style_pack_for)(scene_meta, styles_store)           | The `StylePack` a scene declares, or `None` (an#112).                                                                                                                                                                                                                                                                                             |
 | [`unknown_target_message`](#an.stage.compile.unknown_target_message)(target, paths)              | One sentence saying `target` is not a built node, with suggestions.                                                                                                                                                                                                                                                                               |
 | [`z_index_keys`](#an.stage.compile.z_index_keys)(names, keys)                          | Each keyed child's `z_index` from each time it changes (an#634), in one container whose children are `names`: within each run of keyed children (`_keyed_runs()`), at every time a key changes, they take the run's places in key order ([`paint_orders()`](#an.stage.compile.paint_orders)); every other child keeps its own place. |
@@ -181,7 +180,7 @@ Bases: [`CutoutCompileError`](#an.stage.compile.CutoutCompileError)
 
 A genre registered a pass (or a builder) the stage already has, without `replace=True`.
 
-### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, textures=dict(), resolutions=list(), overlay_children=list(), fonts=dict(), scene_root=None, vocab=None, animations=dict(), tracks=list(), entity_swaps=list(), extra_actions=list(), no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=dict(), gaze_seeds=dict(), products=dict(), meta_extensions=dict())
+### *class* an.stage.compile.CompileState(shot, mall, fps, width, height, strict_assets=False, step_hz=None, default_easing=None, style_pack=None, expression_provider=None, frame_samples=None, sample_fps=None, textures=dict(), resolutions=list(), overlay_children=list(), fonts=dict(), scene_root=None, vocab=None, animations=dict(), tracks=list(), entity_swaps=list(), extra_actions=list(), no_lip_sync=frozenset({}), poses=None, view_spans=None, blink_phases=dict(), gaze_seeds=dict(), products=dict(), meta_extensions=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -198,6 +197,10 @@ hand, unchanged, so the document is byte-identical.
 Actions a pass contributes beside the authored ones, compiled with them
 by the `actions` pass (the cut-out `speech` pass’s pulses, an#248).
 
+#### frame_samples *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...], ...] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The render’s sample instants per frame (an#626), `None` for a frame each.
+
 #### no_lip_sync *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)* *= frozenset({})*
 
 Cut-out passes’ products, read by later passes (an empty default is what
@@ -212,6 +215,10 @@ genre needs no new field here.
 
 * **Type:**
   The generic slots (an#247)
+
+#### sample_fps *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+The rate `frame_samples` were taken at (a camera’s 29.97), else `fps`.
 
 ### *exception* an.stage.compile.CutoutCompileError
 
@@ -372,7 +379,15 @@ the line changes exactly on them, every render.
 
 ### an.stage.compile.camera_follow_keys(state)
 
-The keys of `state.shot`’s follow camera, one per frame (an#445).
+The keys of `state.shot`’s follow camera (an#445), one per instant
+of [`an.frame_clock.camera_grid()`](an.frame_clock.html.md#an.frame_clock.camera_grid) under the shot’s step grid
+and the render’s sample instants (an#626).
+
+A `lag` (an#504) is filtered over the camera’s own grid (every frame,
+and every step on a stepped shot), and a sample instant between two of
+its points takes the filter’s own trajectory there
+([`an.ir.frames.lag_resample()`](an.ir.frames.html.md#an.ir.frames.lag_resample)): nothing changes at the grid, and a
+shutter sample sees where the lagging camera really is.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
@@ -389,7 +404,7 @@ own boundary contract: every failure out of `compile_shot` is one type.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
-### an.stage.compile.compile_args(shot, , mall, fps, width, height, strict_assets=False, scene_step_hz=None, style_pack=None, default_easing=None)
+### an.stage.compile.compile_args(shot, , mall, fps, width, height, strict_assets=False, scene_step_hz=None, style_pack=None, default_easing=None, frame_samples=None)
 
 [`compile_shot()`](#an.stage.compile.compile_shot)’s keywords for `shot` from settled values: the
 ONE place they are spelled out (an#713). The render path calls it with its
@@ -399,7 +414,9 @@ other caller through [`rendered_compile_args()`](#an.stage.compile.rendered_comp
 `fps` may be fractional (a camera’s 29.97): the compiled document’s frame
 grid is integral, so it is rounded here, and capture and mux keep the exact
 rate. The step grid is the shot’s over the scene’s
-([`an.ir.schema.resolve_step_hz()`](an.ir.schema.html.md#an.ir.schema.resolve_step_hz)).
+([`an.ir.schema.resolve_step_hz()`](an.ir.schema.html.md#an.ir.schema.resolve_step_hz)). `frame_samples` are the
+instants the render samples (`RenderContext.frame_samples`), which a
+follow or a dolly is keyed at too (an#626); `None`, a frame each.
 
 ```pycon
 >>> args = compile_args(Shot(id="s"), mall={}, fps=29.97, width=8, height=6, scene_step_hz=12.0)
@@ -435,9 +452,19 @@ The stage’s passes and every registered one, in run order (stable by name).
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`CompilePass`](an.genres.registry.html.md#an.genres.registry.CompilePass), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
-### an.stage.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
+### an.stage.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None, frame_samples=None, sample_fps=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`frame_samples` (an#626) are the scene instants the render samples, per
+frame (`RenderContext.frame_samples`: a shutter’s sub-frame ones). A
+camera the compiler keys itself — a follow, a dolly — is keyed at each of
+them too ([`an.frame_clock.camera_grid()`](an.frame_clock.html.md#an.frame_clock.camera_grid)), so a sample lands
+on an exact key instead of between two frames’ keys. `None` (default)
+keys a frame each and leaves the document byte-identical to before the
+knob existed; so does any value for a shot with no such camera.
+`sample_fps` is the rate they were taken at, when `fps` (the compiled
+grid’s, integral) rounds it: they are counted at it.
 
 `default_easing` (an#166) is the scene’s `meta.default_easing`: the
 curve of every authored tween that names none (tween > this > the built-in
@@ -462,7 +489,9 @@ non-positive rate used to spin `step_times` forever (an#89 review).
 Exempt by construction, because they are separate
 emission sites rather than string-sniffed: the camera (`_add_camera_clips`
 — a stepped character under a translating camera slides in screen space,
-which is why the practice keeps cameras on ones), compiled blinks, `play`
+which is why the practice keeps cameras on ones; a FOLLOW is the
+exception, computed from the stepped poses and stepped with them, an#626),
+compiled blinks, `play`
 clips, and swap channels (already stepped by format). The value is
 stamped into `meta.step_hz` — only when set — so a serialized scene
 declares its timing policy without moving the contract hash of one that
@@ -686,33 +715,6 @@ compiled document’s `meta.extensions` when non-empty.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
-
-### an.stage.compile.step_times(start, duration, step_hz)
-
-Clip-local times at which a stepped tween updates its pose (an#89).
-
-The grid is SHOT-wide — multiples of `1/step_hz` on the shot’s clock,
-shared by every tween in the shot — not the tween’s own: “on twos” means
-every character changes pose on the same frames, so a tween starting at
-0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
-independently, so the grid restarts at each cut.) Local 0 (the tween’s
-start) and `duration` (where the end value lands) are always present, so
-a tween shorter than one step is a single step to its end value.
-
-`step_hz` must be positive: with a non-positive rate the walk below never
-reaches `duration` — an infinite loop, not an error — so it is refused.
-
-```pycon
->>> step_times(0.0, 0.3, 10)
-[0.0, 0.1, 0.2, 0.3]
->>> [round(t, 3) for t in step_times(0.05, 0.3, 10)]
-[0.0, 0.05, 0.15, 0.25, 0.3]
->>> step_times(0.0, 0.02, 10)
-[0.0, 0.02]
-```
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.stage.compile.style_pack_for(scene_meta, styles_store)
 

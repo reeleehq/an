@@ -293,6 +293,8 @@ The renderer under the engine’s own name (the class is one: see
 stage engine compiles (`StageEngine.open`) and what the shot cache keys
 ([`an.stage.cache_key.compiled_document()`](an.stage.cache_key.html.md#an.stage.cache_key.compiled_document)), so the two cannot drift
 (an#713). The rules themselves are [`an.stage.compile.compile_args()`](an.stage.compile.html.md#an.stage.compile.compile_args)’.
+The frame clock’s sample instants go in too: a follow or a dolly is keyed
+at them (an#626).
 
 ```pycon
 >>> from pathlib import Path

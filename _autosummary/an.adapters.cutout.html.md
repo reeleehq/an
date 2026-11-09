@@ -364,9 +364,19 @@ take them; the runtime refuses any other kind.
 The visual’s place among its node’s children when the node sorts them
 (an#403): a part drawn over the chain nested under it.
 
-### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
+### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None, frame_samples=None, sample_fps=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`frame_samples` (an#626) are the scene instants the render samples, per
+frame (`RenderContext.frame_samples`: a shutter’s sub-frame ones). A
+camera the compiler keys itself — a follow, a dolly — is keyed at each of
+them too ([`an.frame_clock.camera_grid()`](an.frame_clock.html.md#an.frame_clock.camera_grid)), so a sample lands
+on an exact key instead of between two frames’ keys. `None` (default)
+keys a frame each and leaves the document byte-identical to before the
+knob existed; so does any value for a shot with no such camera.
+`sample_fps` is the rate they were taken at, when `fps` (the compiled
+grid’s, integral) rounds it: they are counted at it.
 
 `default_easing` (an#166) is the scene’s `meta.default_easing`: the
 curve of every authored tween that names none (tween > this > the built-in
@@ -391,7 +401,9 @@ non-positive rate used to spin `step_times` forever (an#89 review).
 Exempt by construction, because they are separate
 emission sites rather than string-sniffed: the camera (`_add_camera_clips`
 — a stepped character under a translating camera slides in screen space,
-which is why the practice keeps cameras on ones), compiled blinks, `play`
+which is why the practice keeps cameras on ones; a FOLLOW is the
+exception, computed from the stepped poses and stepped with them, an#626),
+compiled blinks, `play`
 clips, and swap channels (already stepped by format). The value is
 stamped into `meta.step_hz` — only when set — so a serialized scene
 declares its timing policy without moving the contract hash of one that

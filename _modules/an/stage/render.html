@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../../../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1004,6 +1004,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    stage engine compiles (``StageEngine.open``) and what the shot cache keys</span>
 <span class="sd">    (:func:`an.stage.cache_key.compiled_document`), so the two cannot drift</span>
 <span class="sd">    (an#713). The rules themselves are :func:`an.stage.compile.compile_args`'.</span>
+<span class="sd">    The frame clock's sample instants go in too: a follow or a dolly is keyed</span>
+<span class="sd">    at them (an#626).</span>
 
 <span class="sd">    &gt;&gt;&gt; from pathlib import Path</span>
 <span class="sd">    &gt;&gt;&gt; ctx = RenderContext(mall={}, work_dir=Path("."), fps=29.97, step_hz=15.0)</span>
@@ -1021,6 +1023,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">scene_step_hz</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span>
         <span class="n">style_pack</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">style_pack</span><span class="p">,</span>
         <span class="n">default_easing</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="n">frame_samples</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">frame_samples</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 

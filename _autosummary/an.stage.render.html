@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1021,7 +1021,9 @@ scene, so its read-back is the evaluator’s alone.</p>
 <dd><p><code class="xref py py-func docutils literal notranslate"><span class="pre">compile_shot()</span></code>’s keywords for <code class="docutils literal notranslate"><span class="pre">shot</span></code> under <code class="docutils literal notranslate"><span class="pre">ctx</span></code>: what the
 stage engine compiles (<code class="docutils literal notranslate"><span class="pre">StageEngine.open</span></code>) and what the shot cache keys
 (<a class="reference internal" href="an.stage.cache_key.html#an.stage.cache_key.compiled_document" title="an.stage.cache_key.compiled_document"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.cache_key.compiled_document()</span></code></a>), so the two cannot drift
-(an#713). The rules themselves are <a class="reference internal" href="an.stage.compile.html#an.stage.compile.compile_args" title="an.stage.compile.compile_args"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.compile.compile_args()</span></code></a>’.</p>
+(an#713). The rules themselves are <a class="reference internal" href="an.stage.compile.html#an.stage.compile.compile_args" title="an.stage.compile.compile_args"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.compile.compile_args()</span></code></a>’.
+The frame clock’s sample instants go in too: a follow or a dolly is keyed
+at them (an#626).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">RenderContext</span><span class="p">(</span><span class="n">mall</span><span class="o">=</span><span class="p">{},</span> <span class="n">work_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"."</span><span class="p">),</span> <span class="n">fps</span><span class="o">=</span><span class="mf">29.97</span><span class="p">,</span> <span class="n">step_hz</span><span class="o">=</span><span class="mf">15.0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="n">context_compile_args</span><span class="p">(</span><span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">),</span> <span class="n">ctx</span><span class="p">)</span>

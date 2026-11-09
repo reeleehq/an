@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0df8ab30"></script>
+    <script src="../../../_static/documentation_options.js?v=a9802f29"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.388" />
+  <meta name="docsearch:version" content="0.1.389" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -734,8 +734,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">CameraGrid</span><span class="p">,</span> <span class="n">camera_grid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_times</span>  <span class="c1"># noqa: F401  (an alias of the one frame grid rule, an#626)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Camera</span><span class="p">,</span> <span class="n">CameraKey</span><span class="p">,</span> <span class="n">Shot</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -751,7 +753,9 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"dolly_growth"</span><span class="p">,</span>
     <span class="s2">"follow_overlay"</span><span class="p">,</span>
     <span class="s2">"frame_times"</span><span class="p">,</span>
+    <span class="s2">"is_affine"</span><span class="p">,</span>
     <span class="s2">"plane_dolly_scale"</span><span class="p">,</span>
+    <span class="s2">"sample_camera"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: How far a pan travels, as a fraction of the canvas width (a tilt uses the</span>
@@ -1108,16 +1112,32 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<div class="viewcode-block" id="frame_times">
-<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.frame_times">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">frame_times</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The time of every frame the render draws, the shot's end included.</span>
+<div class="viewcode-block" id="is_affine">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.is_affine">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_affine</span><span class="p">(</span><span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the frame ``keys`` show is checkable at the keys alone (an#626).</span>
 
-<span class="sd">    &gt;&gt;&gt; frame_times(duration=0.5, fps=4)</span>
-<span class="sd">    [0.0, 0.25, 0.5]</span>
+<span class="sd">    Between two keys x, y and zoom share one eased parameter, and a plane</span>
+<span class="sd">    edge minus a frame edge is then a linear term plus ``±canvas/(2·zoom)``,</span>
+<span class="sd">    convex in it, so its worst is at a key. Two things break that: a DOLLY</span>
+<span class="sd">    (a plane grows by ``1/(1 − f·dolly)``, an#478) and a ROLL that changes</span>
+<span class="sd">    between keys (the rolled frame's extent goes by the cosine and sine of the</span>
+<span class="sd">    angle). A constant roll is affine; so is a single key. A follow is never</span>
+<span class="sd">    affine (its keys are where its target goes), and has no authored keys to</span>
+<span class="sd">    ask about but its overlay.</span>
+
+<span class="sd">    &gt;&gt;&gt; is_affine([CameraKey(at=0.0), CameraKey(at=1.0, x=40.0, zoom=1.5)])</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_affine([CameraKey(at=0.0), CameraKey(at=1.0, dolly=0.2)])</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; is_affine([CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.3)])</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; is_affine([CameraKey(at=0.0, rotation=0.3), CameraKey(at=1.0, rotation=0.3, x=9.0)])</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
-    <span class="n">frames</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span><span class="p">))</span>
-    <span class="k">return</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">n</span> <span class="o">/</span> <span class="n">fps</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span></div>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">({</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">rotation</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">})</span> <span class="o">&lt;=</span> <span class="mi">1</span></div>
 
 
 
@@ -1135,34 +1155,24 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
 
 
-<div class="viewcode-block" id="dolly_frames">
-<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.dolly_frames">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">dolly_frames</span><span class="p">(</span>
-    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``keys`` as one linear key per frame when any of them dollies (an#478),</span>
-<span class="sd">    else ``keys`` unchanged (and a single key, which is no move, as a single</span>
-<span class="sd">    ``zoom`` key is not).</span>
+<div class="viewcode-block" id="sample_camera">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.sample_camera">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_camera</span><span class="p">(</span><span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">],</span> <span class="n">grid</span><span class="p">:</span> <span class="n">CameraGrid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``keys`` evaluated at every instant of ``grid`` (an#626), one key each</span>
+<span class="sd">    with the grid's easing: every field by the keys' own easings, the</span>
+<span class="sd">    ``zoom`` multiplied by the character plane's dolly growth (exactly ``1``</span>
+<span class="sd">    without a dolly), so the root zooms as a pinhole camera does.</span>
 
-<span class="sd">    A dolly's growth is not linear in its travel, so a key list that eases</span>
-<span class="sd">    ``dolly`` cannot be eased in ``zoom`` too: each frame's key is the camera</span>
-<span class="sd">    evaluated there (every field by the keys' own easings), its ``zoom``</span>
-<span class="sd">    multiplied by the character plane's growth. Exact at every whole frame, as</span>
-<span class="sd">    a follow is (an#445); a sample between two frames (a motion-blur shutter)</span>
-<span class="sd">    sees the two frames' keys interpolated linearly, and a ``step`` easing</span>
-<span class="sd">    becomes a one-frame ramp.</span>
-
-<span class="sd">    &gt;&gt;&gt; frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)</span>
-<span class="sd">    &gt;&gt;&gt; [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]</span>
-<span class="sd">    [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]</span>
+<span class="sd">    &gt;&gt;&gt; from an.frame_clock import camera_grid</span>
+<span class="sd">    &gt;&gt;&gt; keys = [CameraKey(at=0.0), CameraKey(at=1.0, rotation=0.4)]</span>
+<span class="sd">    &gt;&gt;&gt; [(k.at, round(k.rotation, 2), k.easing) for k in sample_camera(keys, camera_grid(1.0, fps=2))]</span>
+<span class="sd">    [(0.0, 0.0, 'linear'), (0.5, 0.2, 'linear'), (1.0, 0.4, 'linear')]</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">keys</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_channel</span>
 
     <span class="n">fields</span> <span class="o">=</span> <span class="n">_key_channels</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"zoom"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"dolly"</span><span class="p">))</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">times</span><span class="p">:</span>
         <span class="n">at</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">evaluate_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">CameraKey</span><span class="p">(</span>
@@ -1172,10 +1182,54 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">zoom</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"zoom"</span><span class="p">]</span> <span class="o">*</span> <span class="n">dolly_growth</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">at</span><span class="p">[</span><span class="s2">"dolly"</span><span class="p">]),</span>
                 <span class="n">rotation</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"rotation"</span><span class="p">],</span>
                 <span class="n">dolly</span><span class="o">=</span><span class="n">at</span><span class="p">[</span><span class="s2">"dolly"</span><span class="p">],</span>
-                <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+                <span class="n">easing</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="dolly_frames">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.camera.html#an.ir.camera.dolly_frames">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dolly_frames</span><span class="p">(</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">frame_samples</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sample_fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CameraKey</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``keys`` as one key per instant of the camera sampler when any of them</span>
+<span class="sd">    dollies (an#478), else ``keys`` unchanged (and a single key, which is no</span>
+<span class="sd">    move, as a single ``zoom`` key is not).</span>
+
+<span class="sd">    A dolly's growth is not linear in its travel, so a key list that eases</span>
+<span class="sd">    ``dolly`` cannot be eased in ``zoom`` too: each key is the camera</span>
+<span class="sd">    evaluated there (:func:`sample_camera`), at every instant of</span>
+<span class="sd">    :func:`an.frame_clock.camera_grid` — every frame, every step of a</span>
+<span class="sd">    stepped shot (step-eased, so a step is a cut), and every instant the</span>
+<span class="sd">    render samples (``frame_samples``, a shutter's sub-frame ones, an#626) —</span>
+<span class="sd">    so it is exact wherever the render looks.</span>
+
+<span class="sd">    &gt;&gt;&gt; frames = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4)</span>
+<span class="sd">    &gt;&gt;&gt; [(k.at, round(k.zoom, 3), round(k.dolly, 3)) for k in frames][::2]</span>
+<span class="sd">    [(0.0, 1.0, 0.0), (0.5, 1.111, 0.1), (1.0, 1.25, 0.2)]</span>
+<span class="sd">    &gt;&gt;&gt; samples = [[0.0, 0.1], [0.25], [0.5], [0.75]]  # one entry per frame</span>
+<span class="sd">    &gt;&gt;&gt; shutter = dolly_frames(CAMERA_MOVES["dolly_in"](1.0), duration=1.0, fps=4, frame_samples=samples)</span>
+<span class="sd">    &gt;&gt;&gt; [k.at for k in shutter][:3]</span>
+<span class="sd">    [0.0, 0.1, 0.25]</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">dolly</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">keys</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">camera_grid</span><span class="p">(</span>
+        <span class="n">duration</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+        <span class="n">frame_samples</span><span class="o">=</span><span class="n">frame_samples</span><span class="p">,</span>
+        <span class="n">sample_fps</span><span class="o">=</span><span class="n">sample_fps</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">sample_camera</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span></div>
 
 </pre></div>
 
