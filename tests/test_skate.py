@@ -66,7 +66,7 @@ def _project(tmp_path: Path, *, entities: str, shot: str, actions: str = "[]"):
     (walker / "prop.json").write_text(json.dumps(WALKER), encoding="utf-8")
     for part in ("leg", "torso", "head", "arm"):
         src = props / "figure" / "parts" / f"{part}.svg"
-        (walker / "parts" / f"{part}.svg").write_text(src.read_text(), encoding="utf-8")
+        (walker / "parts" / f"{part}.svg").write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     cup = props / "cup"
     (cup / "parts").mkdir(parents=True, exist_ok=True)
     (cup / "prop.json").write_text(json.dumps(CUP), encoding="utf-8")
