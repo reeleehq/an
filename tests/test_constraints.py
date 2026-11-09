@@ -876,10 +876,10 @@ def test_missing_stores_are_not_a_shot_that_does_not_compile(tmp_path):
 # -- light: one light per scene, shading agrees (catalogue D1, an#519 rank 7) ---
 
 
-def _lit(tmp_path: Path, *, light=None, side=None, override=None, actions=()):
+def _lit(tmp_path: Path, *, light=None, side=None, override=None, actions=(), **shot):
     """The lamp shot under ``light``, its art declaring ``side`` (in the prop's
     document, ``metadata.shaded_side``) and the entity ``override`` (its own
-    ``shaded_side``)."""
+    ``shaded_side``); ``shot`` sets more of the shot (``camera``, ``duration``)."""
     import json
 
     from an.ir.schema import SceneLight
@@ -894,6 +894,7 @@ def _lit(tmp_path: Path, *, light=None, side=None, override=None, actions=()):
     first = project.scene.timeline[0]
     data = first.model_dump()
     data["actions"] = list(actions)
+    data.update(shot)
     if override is not None:
         for e in data["entities"]:
             if e["id"] == "lamp":
@@ -944,6 +945,39 @@ def test_an_entity_override_wins_and_the_side_is_read_as_drawn(tmp_path):
     assert _lit(tmp_path / "e", light=left, side="left", actions=[_set("rotation", math.pi)]) == []
 
 
+def test_a_flip_partway_through_the_shot_is_read_when_it_happens(tmp_path):
+    """an#719: a mirror at 0.25 s that turns the side toward the light warns,
+    and says when; art facing the light from the start says so without a time."""
+    left = {"direction": [-1, 0]}
+    flip = [{**_set("scale_x", -1.0), "at": 0.25}]
+    (msg,) = _lit(tmp_path / "a", light=left, side="right", actions=flip)
+    assert "'lamp'" in msg and "from 0.25 s" in msg
+    (msg,) = _lit(tmp_path / "b", light=left, side="left", actions=flip)
+    assert " from " not in msg.split("(light")[0]
+
+
+def test_a_turn_and_back_between_two_keys_is_seen(tmp_path):
+    """A whole turn ends where it began, but faces the other way halfway."""
+    from an.ir.compose import tween
+
+    spin = [tween("lamp", "rotation", 2.0 * math.pi, 0.5, from_=0.0, easing="linear")]
+    (msg,) = _lit(
+        tmp_path, light={"direction": [-1, 0]}, side="right",
+        actions=[a.model_dump(by_alias=True) for a in spin],
+    )
+    assert "from 0.25 s" in msg
+
+
+def test_the_side_is_read_before_the_camera_so_a_roll_turns_both(tmp_path):
+    """an#719: the light belongs to the set; a camera roll turns the set's
+    shading and its light alike, so it changes no verdict."""
+    left = {"direction": [-1, 0]}
+    held = {"rotation": math.pi}  # one key emits nothing: hold the roll over the shot
+    rolled = {"keys": [{"at": 0.0, **held}, {"at": 0.5, **held}]}
+    assert _lit(tmp_path / "a", light=left, side="right", camera=rolled) == []
+    assert _lit(tmp_path / "b", light=left, side="left", camera=rolled)
+
+
 def test_a_side_that_is_not_a_side_is_said_never_raised(tmp_path):
     for i, bad in enumerate(("sideways", ["left"], {"x": 1})):
         (msg,) = _lit(tmp_path / str(i), light={"key": "left"}, override=bad)
@@ -957,3 +991,41 @@ def test_a_light_must_be_a_finite_direction():
 
     with pytest.raises(ValidationError):
         SceneLight(direction=(float("nan"), 0.0))
+
+
+@pytest.mark.genre("cutout_animation")
+def test_a_cutan_character_carries_its_shaded_side_to_the_check(tmp_path, monkeypatch):
+    """an#719: a character's descriptor keeps ``metadata.shaded_side`` through
+    cutan's schema and the project's characters store, so the check reaches
+    characters as well as props."""
+    from cutan.characters.descriptor_io import load_descriptor, write_descriptor
+    from cutan.characters.factory import new_character
+
+    from an.ir.schema import AssetRef, Meta, SceneIR, SceneLight
+    from an.stores import build_project_mall
+
+    monkeypatch.setenv("AN_HOME", str(tmp_path / "an-home"))
+    characters = tmp_path / "p" / "assets" / "characters"
+    new_character(characters, name="amy", use_dicebear=False)  # writes characters/amy/
+    char_dir = characters / "amy"
+    desc = load_descriptor(char_dir)
+    desc.metadata["shaded_side"] = "left"
+    write_descriptor(char_dir, desc)
+    mall = build_project_mall(tmp_path / "p")
+    assert mall["characters"]["amy"]["metadata"]["shaded_side"] == "left"
+
+    def warnings_under(direction):
+        shot = Shot(
+            id="s",
+            renderer="cutout",
+            duration=0.5,
+            entities=[AssetRef(kind="character", id="amy", store="characters", ref="amy")],
+        )
+        meta = Meta(light=SceneLight(direction=direction))
+        scene = SceneIR(meta=meta, timeline=[shot])
+        report = validate_semantic(scene, available_characters=mall["characters"], only={"light"})
+        return [m for m in _msgs(report) if "shaded" in m]
+
+    (msg,) = warnings_under([-1, 0])  # lit from the left, shaded on the left
+    assert "'amy'" in msg
+    assert warnings_under([1, 0]) == []

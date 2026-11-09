@@ -256,8 +256,12 @@ def screen_position(
     *,
     pose: Pose | None = None,
     point: tuple[float, float] = (0.0, 0.0),
+    camera: bool = True,
 ) -> tuple[float, float]:
     """Where ``point`` in ``path``'s local space lands on the canvas.
+
+    ``camera=False`` leaves out the root's pose (the camera: its pan, zoom and
+    roll), giving where the point lies on the set before the camera sees it.
 
     The composition the runtime performs, walked from the node up to `root`
     and then offset by the canvas centre — which is where `runtime.js` places
@@ -281,6 +285,8 @@ def screen_position(
 
     >>> screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0})
     (175.0, 120.0)
+    >>> screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0}, camera=False)
+    (200.0, 120.0)
     """
     overlay = getattr(scene, "overlay", None)
     if overlay is not None and path.split("/", 1)[0] in {
@@ -308,7 +314,8 @@ def screen_position(
     # document root's declared transform as well would diverge from the engine
     # the moment anything wrote one (an#111 review, L1).
     root, root_path = chain[0]
-    at = transform_of(_ROOT_AT_REST, _pose_for(pose, root_path)).apply(at)
+    if camera:
+        at = transform_of(_ROOT_AT_REST, _pose_for(pose, root_path)).apply(at)
     return at[0] + scene.meta.width / 2.0, at[1] + scene.meta.height / 2.0
 
 

@@ -1935,6 +1935,11 @@ FLAT_SHADING: str = "flat"
 LIGHT_HALF_ANGLE_DEG: float = 45.0
 #: The length (px of the art's frame) of the probe that finds where a side faces on screen.
 _SIDE_PROBE: float = 10.0
+#: The channels whose change turns a side on screen: a mirror or a turn of the
+#: art or of anything above it (an#719). The camera's are not among them: the
+#: light belongs to the set, so a side is read before the camera, and a roll
+#: turns the set's shading and its light alike.
+ORIENTATION_PROPERTIES: frozenset[str] = frozenset({"scale_x", "scale_y", "rotation"})
 
 
 def shading_disagrees(
@@ -1977,9 +1982,11 @@ def _shaded_side(entity: Any, stores: Any) -> Any:
 def check_light(ctx: Any) -> None:
     """The core's ``light`` check (catalogue D1): every drawn member whose art
     says which side it is shaded on agrees with the scene's one light, read
-    where that side faces on screen as the shot opens (its own and every
-    parent's mirror and rotation). Declarations only; a shot the stage does
-    not draw, or that does not compile, is not judged."""
+    where that side faces on the set (its own and every parent's mirror and
+    rotation, before the camera) as the shot opens and at every change of its
+    orientation (an#719): one warning per member, at the first time it faces
+    the light. Declarations only; a shot the stage does not draw, or that does
+    not compile, is not judged."""
     light = ctx.scene.meta.light
     if light is None:
         return
@@ -2005,32 +2012,41 @@ def check_light(ctx: Any) -> None:
         judged.append((e, side))
     if not judged:
         return
-    facing = _sides_on_screen(ctx, judged)
+    facing = _sides_on_set(ctx, judged)
     if facing is None:
         return
     for e, side in judged:
-        on_screen = facing.get(e.id)
-        if on_screen is None:
+        found = next(
+            (
+                (t, implied)
+                for t, on_set in facing.get(e.id, ())
+                if (implied := shading_disagrees(on_set, light.vector))
+            ),
+            None,
+        )
+        if found is None:
             continue
-        implied = shading_disagrees(on_screen, light.vector)
-        if not implied:
-            continue
+        t, implied = found
+        when = f" from {t:.2f} s" if t > SAME_INSTANT_S else ""
         ctx.report.add(
             "warning",
             f"{ctx.path}/entities",
             f"{e.id!r} is shaded on its {side}, which faces the light as it is "
-            f"drawn (light from {light.key or list(light.vector)}; it shades the "
-            f"{' or '.join(implied)}): regenerate or flip the art, or say "
+            f"drawn{when} (light from {light.key or list(light.vector)}; it shades "
+            f"the {' or '.join(implied)}): regenerate or flip the art, or say "
             "`shaded_side: flat` for art drawn without a light.",
         )
 
 
-def _sides_on_screen(
+def _sides_on_set(
     ctx: Any, judged: list[tuple[Any, str]]
-) -> dict[str, tuple[float, float]] | None:
-    """``{entity id: where its shaded side faces on screen as the shot opens}``,
-    from the compiled shot, through every transform above the art; ``None``
-    when the shot does not compile."""
+) -> dict[str, list[tuple[float, tuple[float, float]]]] | None:
+    """``{entity id: [(t, where its shaded side faces on the set)]}``, from the
+    compiled shot through every transform above the art but the camera, at the
+    shot's start and at each time an orientation channel of the art or of a
+    node above it has a key (:func:`an.timing.timeline.key_times`), with the
+    midpoint between consecutive times (a turn and back between two keys);
+    ``None`` when the shot does not compile."""
     doc = compiled_shot(ctx)
     if doc is None:
         return None
@@ -2040,21 +2056,41 @@ def _sides_on_screen(
         screen_position,
         timeline_from_scene,
     )
+    from an.timing.timeline import key_times
 
-    pose = evaluate_timeline(timeline_from_scene(doc), 0.0)
-    out = {}
+    paths = {}
     for e, side in judged:
         try:
-            _node, path = _node_chain(doc.scene, e.id)[-1]
-            sx, sy = SHADED_SIDES[side]
-            x0, y0 = screen_position(doc, path, pose=pose)
-            x1, y1 = screen_position(
-                doc, path, pose=pose, point=(_SIDE_PROBE * sx, _SIDE_PROBE * sy)
-            )
+            chain = [p for _n, p in _node_chain(doc.scene, e.id)[1:]]
         except Exception:  # noqa: BLE001 - not drawn on the stage
             continue
-        if math.hypot(x1 - x0, y1 - y0) > 1e-9:
-            out[e.id] = (x1 - x0, y1 - y0)
+        if chain:
+            paths[e.id] = chain
+    above = {p for chain in paths.values() for p in chain}
+    timeline = timeline_from_scene(doc)
+    duration = float(doc.timeline.duration)
+    keys = key_times(
+        timeline, keys=lambda t, prop: t in above and prop in ORIENTATION_PROPERTIES
+    )
+    times = sorted({0.0, *(t for t in keys if 0.0 <= t <= duration)})
+    times = sorted({*times, *((a + b) / 2.0 for a, b in zip(times, times[1:]))})
+    out: dict[str, list[tuple[float, tuple[float, float]]]] = {}
+    for t in times:
+        pose = evaluate_timeline(timeline, t)
+        for e, side in judged:
+            if e.id not in paths:
+                continue
+            path, (sx, sy) = paths[e.id][-1], SHADED_SIDES[side]
+            x0, y0 = screen_position(doc, path, pose=pose, camera=False)
+            x1, y1 = screen_position(
+                doc,
+                path,
+                pose=pose,
+                point=(_SIDE_PROBE * sx, _SIDE_PROBE * sy),
+                camera=False,
+            )
+            if math.hypot(x1 - x0, y1 - y0) > 1e-9:
+                out.setdefault(e.id, []).append((t, (x1 - x0, y1 - y0)))
     return out
 
 

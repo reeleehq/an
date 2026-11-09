@@ -23,6 +23,8 @@ values: the timeline produces the raw pose.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import math
+from collections.abc import Callable
 from typing import Any, Mapping
 
 from an.timing.channel import Channel, Keyframe
@@ -45,6 +47,7 @@ __all__ = [
     "SWAP_WRITE_GROUP",
     "write_group",
     "evaluate_timeline",
+    "key_times",
     "clip_from_json",
     "timeline_from_compiled",
 ]
@@ -239,6 +242,52 @@ def evaluate_timeline(
 
 
 # --- reading the compiled document ---------------------------------------------
+
+
+def key_times(timeline: Timeline, *, keys: Callable[[str, str], bool]) -> list[float]:
+    """Every timeline time a channel ``keys(target, property)`` selects has a
+    keyframe at, through each placed clip's start, speed and loops (a
+    ping-pong cycle mirrored), with the start and end of every clip holding one.
+
+    Where a selected value can change course: a check that judges a pose need
+    not sample every frame, only these times and what lies between them (an#719).
+
+    >>> clip = Clip("turn", duration=1.0, channels=[
+    ...     Channel("a", "rotation", [Keyframe(0.0, 0.0), Keyframe(0.25, 1.0), Keyframe(1.0, 0.0)]),
+    ...     Channel("a", "x", [Keyframe(0.5, 0.0), Keyframe(1.0, 1.0)])], loop_mode=LoopMode.LOOP)
+    >>> tl = Timeline(duration=4.0, tracks=[Track("a", clips=[PlacedClip(clip, start_time=1.0, duration=2.0)])])
+    >>> key_times(tl, keys=lambda target, prop: prop == "rotation")
+    [1.0, 1.25, 2.0, 2.25, 3.0]
+    """
+    out: set[float] = set()
+    for track in timeline.tracks:
+        for placed in track.clips:
+            local = {
+                kf.time
+                for ch in placed.clip.channels
+                if keys(ch.target, ch.property)
+                for kf in ch.keyframes
+            }
+            if not local:
+                continue
+            start, end, cycle = placed.start_time, placed.end_time, placed.clip.duration
+            out.update((start, end))
+            mode = placed.clip.loop_mode
+            periods = (
+                1
+                if mode is LoopMode.ONCE
+                else math.ceil(placed.effective_duration * placed.speed / cycle)
+            )
+            for n in range(periods):
+                mirrored = mode is LoopMode.PING_PONG and n % 2
+                for k in local:
+                    at = (
+                        start
+                        + (n * cycle + (cycle - k if mirrored else k)) / placed.speed
+                    )
+                    if start <= at <= end:
+                        out.add(at)
+    return sorted(out)
 
 
 def _get(obj: Any, name: str, default: Any = None) -> Any:
