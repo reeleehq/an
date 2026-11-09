@@ -45,6 +45,7 @@ from an.ir.assets import (
     license_restriction,
     provider_terms_restriction,
     requires_attribution,
+    restriction_breaches,
 )
 from an.ir.sync import DEFAULT_SCENE_FILE
 from an.stores._common import is_os_junk
@@ -115,6 +116,12 @@ class CreditsReport:
     #: (an#357) — a statement about some bytes freer than the one that binds
     #: them. Informative: the binding statement is already among the entries.
     conflicts: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
+    #: The use the restrictions are read against (an#743): a ``lacing.Use``,
+    #: the video's annual revenue in USD and where it is used (an ISO 3166-1
+    #: alpha-2 code, or ``"WORLD"`` for online publishing). ``None`` is an
+    #: unstated use, and a restriction that asks about it is not met. Typed
+    #: ``Any`` so ``import an`` does not load lacing.
+    use: Any = None
 
     @property
     def owed(self) -> list[CreditEntry]:
@@ -135,8 +142,20 @@ class CreditsReport:
     @property
     def commercial(self) -> bool:
         """Whether a COMMERCIAL video may contain everything here (publishable,
-        and nothing non-commercial)."""
-        return self.publishable and not self.noncommercial
+        nothing non-commercial, and every restriction met by the stated use)."""
+        return self.publishable and not self.noncommercial and not self.restricted
+
+    @property
+    def restricted(self) -> list[tuple[CreditEntry, str]]:
+        """``(entry, why)`` for every restriction beyond an entry's licence that
+        the stated use breaks (an#743: a revenue cap, an excluded territory, a
+        kind nobody knows), read by :func:`~an.ir.assets.restriction_breaches`.
+        Flagged, never blocking, like :attr:`noncommercial`."""
+        return [
+            (e, why)
+            for e in self.entries
+            for why in restriction_breaches(e.source, self.use)
+        ]
 
     @property
     def ai_generated(self) -> list[tuple[CreditEntry, str]]:
@@ -185,6 +204,9 @@ class CreditsReport:
             "unverified": [e.asset for e in self.unverified],
             "private_study": [e.asset for e in self.private],
             "non_commercial": [e.asset for e in self.noncommercial],
+            "restricted": [
+                {"asset": e.asset, "why": why} for e, why in self.restricted
+            ],
             "ai_generated": [
                 {"asset": e.asset, "disclosure": label}
                 for e, label in self.ai_generated
@@ -246,6 +268,20 @@ class CreditsReport:
             )
             for e in self.noncommercial:
                 lines.append(f"  {e.asset}: license={e.source.license!r}{_detail(e)}")
+        if restricted := self.restricted:
+            lines.append("")
+            use = self.use
+            unstated = use is None or use.revenue_usd is None or use.territory is None
+            hint = (
+                " (state the use with --revenue-usd and --territory)"
+                if unstated
+                else ""
+            )
+            lines.append(
+                f"RESTRICTED — {len(restricted)} restriction(s) beyond the licence "
+                f"that this use does not meet{hint}:"
+            )
+            lines += [f"  {e.asset}: {why}" for e, why in restricted]
         if self.owed:
             lines.append("")
             lines.append("MUST BE DISPLAYED to ship this video:")
@@ -1259,6 +1295,10 @@ def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
     used, and a private-study plate sitting unused in the store must not make
     an unrelated render "not publishable". Kept: every entry under a
     ``store/ref`` some shot's entity names, and every sound a cue names.
+
+    It states no use, so restrictions (an#743) are read against an unstated
+    one and fail closed: the report's ``commercial`` is false for any asset
+    carrying a restriction. :func:`credits_for_project` takes the use.
     """
     used: set[str] = set()
     for shot in getattr(scene, "timeline", None) or []:
@@ -1319,14 +1359,19 @@ def _reconstruct_legacy_source(descriptor: Any) -> AssetSource | None:
 
 
 def credits_for_project(
-    project_dir: str | Path, *, scene_file: Any = DEFAULT_SCENE_FILE
+    project_dir: str | Path,
+    *,
+    scene_file: Any = DEFAULT_SCENE_FILE,
+    use: Any = None,
 ) -> CreditsReport:
     """Credits for the project at ``project_dir``: its assets, and the speech
     of its scene (``scene_file``: another scene of the project,
-    ``scene.studio.md``, an#554)."""
+    ``scene.studio.md``, an#554), with restrictions read against ``use`` (a
+    ``lacing.Use``; ``None`` is unstated: :attr:`CreditsReport.restricted`)."""
     from an.project import load
 
     project = load(Path(project_dir), scene_file=scene_file, sync=False)
     report = collect_credits(project.mall)
     report.entries.extend(speech_credits(project.mall, project.scene))
+    report.use = use
     return report
