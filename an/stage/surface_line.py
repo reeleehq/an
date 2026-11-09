@@ -5,16 +5,19 @@ normal ``(-dy, dx)`` points DOWN the screen, into the support. The floor is a
 level line (:func:`ground_line`); a body's top edge or a stage segment is the
 line through its two ends (:func:`line_through`). Measured against one:
 
-- :func:`above`: how far the lowest of some points (a part's corners or ink,
-  under its world matrix) is above the line, along its normal; negative when
-  sunk into it.
+- :func:`lowest_on`: the lowest of some points (a part's corners or ink,
+  under its world matrix) against the line, and how far above it that point
+  is, along its normal; negative when sunk into it. :func:`above` is the
+  distance alone.
 - :func:`lift`: a world matrix moved along the line's normal by such a
   distance, which is how an item is laid exactly on what carries it.
 
-The hold layer (:mod:`an.stage.hold`) lays items on the floor and on bodies'
-surfaces with these; they live here so that other measurements of standing
-(the support and skate checks of an#519) use the same lines, the same normal
-and the same sign.
+A body's own surface (``<body>@surface``, an#536) is the segment
+:func:`body_surface` reads off its rig (:data:`SURFACE_BONES`) or the top of
+its ink. The hold layer (:mod:`an.stage.hold`) lays items on the floor and on
+bodies' surfaces with these; they live here so that other measurements of
+standing (the support and skate checks of an#519, :mod:`an.stage.support`)
+use the same lines, the same segment, the same normal and the same sign.
 
 >>> floor = ground_line(100.0)
 >>> above((1, 0, 0, 1, 0, 0), [(0.0, 90.0)], floor)  # 10 px above the floor
@@ -26,16 +29,35 @@ and the same sign.
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
+from an.ir.schema import SURFACE_POINT
 from an.stage.solve import Affine, _apply, _compose
 
-__all__ = ["Line", "ground_line", "line_through", "above", "lift"]
+__all__ = [
+    "SURFACE_BONES",
+    "Line",
+    "Segment",
+    "ground_line",
+    "line_through",
+    "lowest_on",
+    "above",
+    "lift",
+    "body_surface",
+]
+
+#: The bones a body declares its supporting surface by (an#536), its two ends
+#: in the art's terms (left, right): what ``<body>@surface`` lays an item on.
+#: Undeclared, the surface is the top edge of the part's ink.
+SURFACE_BONES: tuple[str, str] = ("surface_l", "surface_r")
 
 
 #: A support line: a point on it and its unit direction, turned so that its
 #: normal ``(-dy, dx)`` points DOWN the screen (into the support).
 Line = tuple[tuple[float, float], tuple[float, float]]
+#: A bounded surface: its two ends.
+Segment = tuple[tuple[float, float], tuple[float, float]]
 
 
 def ground_line(ground: float) -> Line:
@@ -61,6 +83,28 @@ def line_through(a: tuple[float, float], b: tuple[float, float]) -> Line:
     return a, d
 
 
+def lowest_on(
+    m: Affine, points: Sequence[tuple[float, float]], line: Line
+) -> tuple[tuple[float, float], float]:
+    """The lowest of ``points`` under ``m`` against ``line`` (the farthest
+    along its normal, into it; the first of equals), and how far above the
+    line it is (negative: sunk into it).
+
+    >>> lowest_on((1, 0, 0, 1, 0, 0), [(0.0, 0.0), (2.0, 3.0)], ground_line(5.0))
+    ((2.0, 3.0), 2.0)
+    """
+    (ax, ay), (dx, dy) = line
+    nx, ny = -dy, dx
+    lowest, depth = None, -math.inf
+    for p in (_apply(m, c) for c in points):
+        d = nx * (p[0] - ax) + ny * (p[1] - ay)
+        if lowest is None or d > depth:
+            lowest, depth = p, d
+    if lowest is None:
+        raise ValueError("no points to measure against a surface")
+    return lowest, -depth
+
+
 def above(m: Affine, corners: Sequence[tuple[float, float]], line: Line) -> float:
     """How far the lowest of ``corners`` under ``m`` is above ``line``, along
     its normal (negative: sunk into it). On the ground, ``ground - lowest``.
@@ -69,11 +113,7 @@ def above(m: Affine, corners: Sequence[tuple[float, float]], line: Line) -> floa
     >>> above((1, 0, 0, 1, 0, 0), square, ground_line(5.0))
     3.0
     """
-    (ax, ay), (dx, dy) = line
-    nx, ny = -dy, dx
-    return -max(
-        nx * (p[0] - ax) + ny * (p[1] - ay) for p in (_apply(m, c) for c in corners)
-    )
+    return lowest_on(m, corners, line)[1]
 
 
 def lift(m: Affine, line: Line, distance: float) -> Affine:
@@ -84,3 +124,51 @@ def lift(m: Affine, line: Line, distance: float) -> Affine:
     """
     dx, dy = line[1]
     return _compose((1.0, 0.0, 0.0, 1.0, -dy * distance + 0.0, dx * distance + 0.0), m)
+
+
+def body_surface(
+    doc: Any,
+    nodes: Mapping[str, Any],
+    mall: Mapping[str, Any] | None,
+    *,
+    rig: Any,
+    entity: str,
+    node: str,
+    frame: str | None = None,
+    to_frame: Affine | None = None,
+) -> Segment | str:
+    """``<body>@surface``'s segment (an#536): its two ends in node ``frame``'s
+    own coordinates (default: ``node``'s), from the rig's :data:`SURFACE_BONES`
+    when it declares them, else the top edge of ``node``'s ink, mapped by
+    ``to_frame`` (``node``'s frame in ``frame``'s; none: they are one). Returns
+    why, instead, when the rig names it wrongly.
+
+    >>> from an.stage.serialize import NodeJSON, VisualJSON
+    >>> art = {"crate": NodeJSON(name="crate", visual=VisualJSON(width=10, height=4))}
+    >>> body_surface(None, art, None, rig=None, entity="crate", node="crate")
+    ((-5.0, -2.0), (5.0, -2.0))
+    """
+    from an.stage.hold import _anchors_in, ink_box
+
+    if rig is not None and SURFACE_POINT in rig.anchors:
+        return (
+            f"{entity!r} has a bone named {SURFACE_POINT!r}, a reserved point name "
+            f"(`<body>@{SURFACE_POINT}` is the body's top, an#536): rename the bone, "
+            f"and declare a surface by {list(SURFACE_BONES)}"
+        )
+    bones = (
+        _anchors_in(doc, rig, entity, nodes, frame or node) if rig is not None else {}
+    )
+    declared = [b for b in SURFACE_BONES if b in bones]
+    if len(declared) == len(SURFACE_BONES):
+        return (bones[SURFACE_BONES[0]], bones[SURFACE_BONES[1]])
+    if declared:
+        return (
+            f"{entity!r} declares {declared[0]!r} but not "
+            f"{[b for b in SURFACE_BONES if b not in declared][0]!r}: a surface is "
+            "two bones (its ends), or neither (the top of the part's ink)"
+        )
+    left, top, w, _h = ink_box(doc, nodes[node], mall)
+    if to_frame is None:
+        return ((left, top), (left + w, top))
+    return (_apply(to_frame, (left, top)), _apply(to_frame, (left + w, top)))

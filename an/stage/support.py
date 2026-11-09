@@ -18,8 +18,14 @@ under the ``support`` check (:mod:`an.verify.support`):
 - :func:`supports_at`: every declared support of a compiled shot, and every
   entity taken to stand on its floor, as :class:`SupportState` records per
   instant: each contact's signed distance to the surface along its normal
-  (:func:`an.stage.surface_line.above`'s sign: positive above, negative sunk),
-  with the references that do not resolve returned as ``(where, message)``.
+  (:func:`an.stage.surface_line.lowest_on`'s sign: positive above, negative
+  sunk), with the references that do not resolve returned as ``(where, message)``.
+
+A named point (``cup@base``, ``paul@foot_l``) is resolved by the solve's own
+resolver (:func:`an.stage.solve.locate_point`), so a ``pin`` and a ``support``
+naming one contact name one point (:func:`an.stage.solve.contact_point`); a
+``<body>@surface`` is the hold layer's segment
+(:func:`an.stage.surface_line.body_surface`).
 
 Tolerances are fractions of the entity's height with a pixel floor
 (:func:`support_tolerance`): a wide and a close-up agree, and a small prop is
@@ -37,14 +43,19 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from an.ir.schema import GROUND_SURFACE, SURFACE_POINT, Shot
-from an.stage.surface_line import Line, ground_line, line_through
+from an.stage.surface_line import (
+    Line,
+    body_surface,
+    ground_line,
+    line_through,
+    lowest_on,
+)
 
 __all__ = [
     "CONTACT_SOURCES",
     "CONTACTS_KEY",
     "SUPPORT_TOLERANCE",
     "SUPPORT_FLOOR_PX",
-    "FLOAT_BAND",
     "Contacts",
     "ContactState",
     "SupportState",
@@ -67,9 +78,6 @@ SUPPORT_TOLERANCE: float = 0.02
 #: (:data:`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`), below which it calls two
 #: points joined; a small prop is not held tighter than a joint.
 SUPPORT_FLOOR_PX: float = 2.0
-#: How far from its floor, as a fraction of its height, an entity nothing
-#: declares may be and still be taken to stand on it as the shot opens.
-FLOAT_BAND: float = 0.4
 #: How close (px, at rest in the entity's own frame) a part's painted bottom
 #: must come to the rig's ``origin`` for the origin to be where it stands
 #: (:data:`an.stage.hold.SUPPORT_TOLERANCE_PX`'s rule, an#601).
@@ -78,13 +86,19 @@ ORIGIN_TOUCH_PX: float = 1.0
 SAME_INSTANT_S: float = 1e-9
 
 
-def support_tolerance(height: float) -> float:
-    """How far a contact of an entity ``height`` px tall may be off its surface.
+def support_tolerance(
+    height: float,
+    *,
+    tolerance: float = SUPPORT_TOLERANCE,
+    floor: float = SUPPORT_FLOOR_PX,
+) -> float:
+    """How far a contact of an entity ``height`` px tall may be off its surface:
+    ``tolerance`` of its height, never under ``floor`` px.
 
-    >>> support_tolerance(500.0)
-    10.0
+    >>> support_tolerance(500.0), support_tolerance(500.0, tolerance=0.05, floor=30.0)
+    (10.0, 30.0)
     """
-    return max(SUPPORT_TOLERANCE * float(height), SUPPORT_FLOOR_PX)
+    return max(tolerance * float(height), floor)
 
 
 # -----------------------------------------------------------------------------
@@ -169,8 +183,9 @@ def _hook_contacts(entity: Any, desc: Any) -> tuple[dict[str, ContactPoint], str
 def contacts_on_parts(entity: Any, desc: Any, *, rig: Any) -> dict[str, ContactPoint]:
     """The contacts the chain names on a part of ``entity``'s rig (the hook's,
     else ``metadata.contacts``, a root-part fraction put on the first root):
-    what the solve's point resolver adds to a rig's landmarks, so a joint or a
-    verb may name ``paul@foot_l`` as it names ``paul@hand_l``.
+    what the point resolver (:func:`an.stage.solve.locate_point`) names after
+    a rig's landmarks, so a joint, a verb or a support may name ``paul@foot_l``
+    as it names ``paul@hand_l``.
 
     >>> from types import SimpleNamespace as NS
     >>> contacts_on_parts(NS(kind="prop"), {"metadata": {"contacts": {"base": [0.5, 1]}}}, rig=NS(roots=("body",)))
@@ -380,14 +395,18 @@ def supports_at(
     *,
     times: Sequence[float] | None = None,
     inferred: bool = True,
+    tolerance: float = SUPPORT_TOLERANCE,
+    floor: float = SUPPORT_FLOOR_PX,
 ) -> tuple[list[SupportState], list[tuple[str, str]]]:
     """Every declared support of ``shot`` in its compiled document ``doc`` at
     every instant of ``times`` (default: the solve's frame grid,
     :func:`an.stage.solve.frame_times`), joined or not; and, with
     ``inferred``, every entity taken to stand on the shot's floor
-    (``solve: {ground: y}``) as it opens, at that instant and its rest
-    instants. Returns the states and ``(where, message)`` for each reference
-    that does not resolve (no state is made for it)."""
+    (``solve: {ground: y}``) as it opens: its lowest contact within
+    :func:`support_tolerance` (``tolerance`` of its height, ``floor`` px at
+    least) of the floor then, judged at that instant and its rest instants.
+    Returns the states and ``(where, message)`` for each reference that does
+    not resolve (no state is made for it)."""
     from an.stage.solve import (
         _node_index,
         _world_matrices,
@@ -414,13 +433,17 @@ def supports_at(
     for dj in decl.supports:
         found = reader.declared(dj, problems)
         if found is not None:
-            found.events = sorted(events.get(dj.spec.id, ()), key=lambda e: e[0])
+            found.events = sorted(events.get(dj.qualified_id, ()), key=lambda e: e[0])
             supports.append(found)
     if inferred:
         declared_entities = {s.entity for s in supports} | {
             dj.a.partition("@")[0].split("/", 1)[0] for dj in decl.supports
         }
-        supports.extend(reader.stances(times, skip=declared_entities))
+        supports.extend(
+            reader.stances(
+                times, skip=declared_entities, tolerance=tolerance, floor=floor
+            )
+        )
     if not supports:
         return [], problems
 
@@ -456,20 +479,14 @@ def _joined(events: Sequence[tuple[float, bool]], t: float) -> bool:
 def _state(
     s: _Support, k: int, t: float, world: Mapping[str, Any], height: float
 ) -> SupportState:
-    from an.stage.solve import _apply
-
     line, ends = s.surface(world)
-    (ax, ay), (dx, dy) = line
-    nx, ny = -dy, dx
     contacts = []
     for c in s.contacts:
-        pts = [_apply(world[c.node], p) for p in c.points]
-        low = max(pts, key=lambda p: nx * (p[0] - ax) + ny * (p[1] - ay))
+        low, gap = lowest_on(world[c.node], c.points, line)
         if ends is not None and not _on_segment(low, *ends):
             continue  # off a bounded surface's ends: nothing to stand on
-        depth = nx * (low[0] - ax) + ny * (low[1] - ay)
         contacts.append(
-            ContactState(c.name, c.node, (low[0] + 0.0, low[1] + 0.0), -depth + 0.0)
+            ContactState(c.name, c.node, (low[0] + 0.0, low[1] + 0.0), gap + 0.0)
         )
     return SupportState(
         entity=s.entity,
@@ -519,6 +536,42 @@ class _Reader:
         self._contacts: dict[str, Contacts] = {}
         self._open_world: dict[str, Any] | None = None
         self._open_pose: Any = None
+        self._rest: dict[str, Any] = {}
+        self._contacts_on_parts: dict[str, Mapping[str, Any]] = {}
+
+    @property
+    def scope(self) -> Any:
+        """The solve's point resolver's view of this shot (:class:`an.stage.solve.PointScope`)."""
+        from an.stage.solve import PointScope
+
+        return PointScope(
+            nodes=self.nodes,
+            entities=self.entities,
+            rig=self.rig,
+            landmarks=self._landmarks,
+            contacts=self.contacts_on_parts,
+            rest=self.rest,
+        )
+
+    def rest(self, path: str) -> Any:
+        """A node's rest (declared) stage transform."""
+        from an.stage.solve import _world_matrices
+
+        if path not in self._rest:
+            self._rest[path] = _world_matrices(self.doc, [path], None, self.nodes)[path]
+        return self._rest[path]
+
+    def contacts_on_parts(self, eid: str) -> Mapping[str, Any]:
+        """``eid``'s hook's or ``metadata`` contacts, each on a part (:func:`contacts_on_parts`)."""
+        if eid not in self._contacts_on_parts:
+            rig = self.rig(eid)
+            desc = _descriptor_of(self.entities[eid], self.mall)
+            self._contacts_on_parts[eid] = (
+                contacts_on_parts(self.entities[eid], desc, rig=rig)
+                if rig is not None and desc is not None
+                else {}
+            )
+        return self._contacts_on_parts[eid]
 
     # -- per entity --------------------------------------------------------
 
@@ -591,7 +644,7 @@ class _Reader:
     ) -> list[_Contact] | str:
         """A ``(slot, point)`` of the chain as contacts, or why it cannot be."""
         from an.stage.hold import ink_points
-        from an.stage.solve import _local_box, _pivot, end_effector
+        from an.stage.solve import contact_point
 
         rig = self.rig(eid)
         if source == "origin":  # where the rig stands: the entity's own (0, 0)
@@ -615,25 +668,24 @@ class _Reader:
             node_path = roots[0]
         if node_path not in self.nodes:
             return f"{name!r} names part {slot!r}, which {eid!r} does not draw"
-        node = self.nodes[node_path]
-        box = _local_box(node)
-        if point is None:  # the drawn extent's far end from the pivot: no inset
-            local = end_effector(box, _pivot(node), inset=0.0)
-        else:
-            local = (box[0] + point[0] * box[2], box[1] + point[1] * box[3])
-        return [_Contact(name, node_path, (local,))]
+        return [
+            _Contact(name, node_path, (contact_point(self.nodes[node_path], point),))
+        ]
 
     def contacts_named(
         self, ref: str, *, where: str, problems: list
     ) -> tuple[list[_Contact], str, str] | None:
-        """``a`` of a support as contacts, their source, and the name it gave."""
-        from an.stage.hold import _anchors_in, _corners, ink_points
+        """``a`` of a support as contacts, their source, and the name it gave:
+        no ``@``, every contact of the body (or of the part named); ``@point``,
+        the point the solve's resolver names (:func:`an.stage.solve.locate_point`),
+        else one of the chain's own (``origin``, ``ink``, ``box``)."""
+        from an.stage.hold import _corners, ink_points
         from an.stage.solve import (
             WORLD_REF,
-            _bone_carrier,
             _local_box,
-            _numbers,
             _slot_path,
+            locate_point,
+            named_point,
         )
 
         head, _, at = ref.partition("@")
@@ -681,65 +733,47 @@ class _Reader:
             )
             return [_Contact(source, part, tuple(pts))], source, ""
 
-        def node_for(bone: str | None = None) -> str | None:
-            if part is not None:
-                return part
-            if rig is not None and bone is not None and len(rig.roots) > 1:
-                carrier = _bone_carrier(rig, bone)
-                if carrier is not None:
-                    return f"{eid}/{rig.bodies[carrier]}"
-            roots = _root_paths(eid, rig, self.nodes)
-            if len(roots) != 1:
-                problems.append(
-                    (
-                        where,
-                        f"{ref!r}: {eid!r} has {len(roots)} root parts; name the part (`{eid}/<part>@{at}`)",
-                    )
+        if self._names_nothing(eid, at):
+            if at in chain.points:  # the chain's own: `origin`, `ink`, `box`
+                got = self._resolve_point(
+                    eid, *chain.points[at], name=at, source=chain.source
                 )
-                return None
-            return roots[0]
-
-        xy = _numbers(at)
-        if xy is not None:
-            node_path = node_for()
-            if node_path is None:
-                return None
-            left, top, w, h = _local_box(self.nodes[node_path])
-            local = (left + xy[0] * w, top + xy[1] * h)
-            return [_Contact(at, node_path, (local,))], "point", at
-        if rig is not None and at in rig.anchors:
-            node_path = node_for(at)
-            if node_path is None:
-                return None
-            bones = _anchors_in(self.doc, rig, eid, self.nodes, node_path)
-            return [_Contact(at, node_path, (bones[at],))], "point", at
-        landmark = self._landmarks(eid).get(at)
-        if landmark is not None:
-            got = self._resolve_point(eid, landmark[0], landmark[1], name=at)
-            if isinstance(got, str):
-                problems.append((where, f"{ref!r}: {got}"))
-                return None
-            return got, "point", at
-        if at in chain.points:
-            got = self._resolve_point(
-                eid, *chain.points[at], name=at, source=chain.source
+                if isinstance(got, str):
+                    problems.append((where, f"{ref!r}: {got}"))
+                    return None
+                return got, chain.source, at
+            bones = sorted(rig.anchors) if rig is not None else []
+            problems.append(
+                (
+                    where,
+                    f"{ref!r}: {at!r} is no bone of {eid!r} (bones: {bones}), no named point "
+                    f"(landmarks: {sorted(self._landmarks(eid))}) and no contact (its contacts, "
+                    f"from its {chain.source}: {list(chain.names)}) nor a fraction `u,v`. "
+                    f"Declare `metadata: {{contacts: {{{at}: [u, v]}}}}` on its descriptor, or "
+                    "name no point to use all of its contacts",
+                )
             )
-            if isinstance(got, str):
-                problems.append((where, f"{ref!r}: {got}"))
-                return None
-            return got, chain.source, at
-        bones = sorted(rig.anchors) if rig is not None else []
-        problems.append(
-            (
-                where,
-                f"{ref!r}: {at!r} is no bone of {eid!r} (bones: {bones}), no named point "
-                f"(landmarks: {sorted(self._landmarks(eid))}) and no contact (its contacts, "
-                f"from its {chain.source}: {list(chain.names)}) nor a fraction `u,v`. "
-                f"Declare `metadata: {{contacts: {{{at}: [u, v]}}}}` on its descriptor, or "
-                "name no point to use all of its contacts",
-            )
+            return None
+        found = locate_point(ref, self.scope, side="a")
+        if isinstance(found, str):
+            problems.append((where, found))
+            return None
+        named = named_point(self.scope, eid, at)
+        source = (
+            chain.source if named is not None and named[0] == "contact" else "point"
         )
-        return None
+        return [_Contact(at, found.node, (found.on_node(self.rest),))], source, at
+
+    def _names_nothing(self, eid: str, at: str) -> bool:
+        """Whether ``eid@at`` is no fraction, bone, landmark or contact on a part."""
+        from an.stage.solve import _numbers, named_point
+
+        rig = self.rig(eid)
+        return (
+            _numbers(at) is None
+            and not (rig is not None and at in rig.anchors)
+            and named_point(self.scope, eid, at) is None
+        )
 
     def _chain(
         self, eid: str, chain: Contacts, *, where: str, ref: str, problems: list
@@ -780,7 +814,6 @@ class _Reader:
         problems: list,
     ) -> tuple[Any, tuple[str, ...]] | None:
         """``b`` as ``(world -> (line, ends or None), the node paths it reads)``."""
-        from an.stage.hold import SURFACE_BONES, _anchors_in, ink_box
         from an.stage.solve import WORLD_REF, _apply, _numbers, _slot_path
 
         if ref == GROUND_SURFACE:
@@ -823,25 +856,12 @@ class _Reader:
                 )
                 return None
             node_path = roots[0]
-        bones = (
-            _anchors_in(self.doc, rig, eid, self.nodes, node_path)
-            if rig is not None
-            else {}
+        seg = body_surface(
+            self.doc, self.nodes, self.mall, rig=rig, entity=eid, node=node_path
         )
-        declared = [b for b in SURFACE_BONES if b in bones]
-        if len(declared) == len(SURFACE_BONES):
-            seg = (bones[SURFACE_BONES[0]], bones[SURFACE_BONES[1]])
-        elif declared:
-            problems.append(
-                (
-                    where,
-                    f"{ref!r}: {eid!r} declares {declared[0]!r} but not the other of {list(SURFACE_BONES)}: a surface is two bones, or neither (the top of its ink)",
-                )
-            )
+        if isinstance(seg, str):
+            problems.append((where, f"{ref!r}: {seg}"))
             return None
-        else:
-            left, top, w, _h = ink_box(self.doc, self.nodes[node_path], self.mall)
-            seg = ((left, top), (left + w, top))
 
         def at_instant(world: Mapping[str, Any]) -> tuple[Line, Any]:
             m = world[node_path]
@@ -882,7 +902,7 @@ class _Reader:
         at_instant, paths = found
         return _Support(
             entity=eid,
-            joint=dj.spec.id,
+            joint=dj.qualified_id,
             where=dj.where,
             surface_ref=dj.b if dj.end is None else f"{dj.b} to {dj.end}",
             contacts=contacts,
@@ -892,11 +912,20 @@ class _Reader:
             surface_paths=paths,
         )
 
-    def stances(self, times: Sequence[float], *, skip: set[str]) -> list[_Support]:
+    def stances(
+        self,
+        times: Sequence[float],
+        *,
+        skip: set[str],
+        tolerance: float = SUPPORT_TOLERANCE,
+        floor: float = SUPPORT_FLOOR_PX,
+    ) -> list[_Support]:
         """The entities taken to stand on the shot's floor as it opens (§2.4 of
         the spec): a rig kind, not held by the hold layer, whose contacts are
-        not a box's corners, within :data:`FLOAT_BAND` of its height of the
-        floor; each judged as it opens and at its rest instants."""
+        not a box's corners, its lowest contact within :func:`support_tolerance`
+        of the floor at the opening instant (one staged on a crate stands on
+        the crate, not the floor); each judged as it opens and at its rest
+        instants."""
         from an.stage.hold import hold_declarations
         from an.stage.solve import _apply, _is_rig_kind
 
@@ -907,7 +936,7 @@ class _Reader:
             items = set(hold_declarations(self.shot).items)
         except Exception:  # noqa: BLE001 - the hold checks report broken holds
             items = set()
-        floor = ground_line(float(solve.ground))
+        floor_line = ground_line(float(solve.ground))
         out = []
         for e in self.shot.entities:
             if e.id in skip or e.id in items or e.id not in self.nodes:
@@ -925,7 +954,9 @@ class _Reader:
             lowest = max(
                 _apply(world[c.node], p)[1] for c in contacts for p in c.points
             )
-            if abs(float(solve.ground) - lowest) > FLOAT_BAND * self.height(e.id):
+            if abs(float(solve.ground) - lowest) > support_tolerance(
+                self.height(e.id), tolerance=tolerance, floor=floor
+            ):
                 continue
             out.append(
                 _Support(
@@ -935,7 +966,7 @@ class _Reader:
                     surface_ref=GROUND_SURFACE,
                     contacts=contacts,
                     source=chain.source,
-                    surface=lambda _world, floor=floor: (floor, None),
+                    surface=lambda _world, line=floor_line: (line, None),
                     instants=frozenset(self.rest_frames(e.id, times)),
                 )
             )

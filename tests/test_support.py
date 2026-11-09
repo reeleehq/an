@@ -47,7 +47,9 @@ def _svg(w: int, h: int) -> str:
     )
 
 
-def _prop(name: str, *, w: int, h: int, origin: bool, metadata=None) -> dict:
+def _prop(
+    name: str, *, w: int, h: int, origin: bool, metadata=None, anchor=(0.5, 1.0)
+) -> dict:
     desc = {
         "kind": "PropDescriptor",
         "schema_version": "0.2.0",
@@ -61,7 +63,7 @@ def _prop(name: str, *, w: int, h: int, origin: bool, metadata=None) -> dict:
             "default": {
                 "name": "default",
                 "slots": {
-                    "body": {"body": {"path": "parts/body.svg", "anchor": [0.5, 1.0]}}
+                    "body": {"body": {"path": "parts/body.svg", "anchor": list(anchor)}}
                 },
             }
         },
@@ -85,6 +87,18 @@ EXTRA_PROPS = {
         (CUP_UNITS, CUP_UNITS),
     ),
     "block": (_prop("block", w=80, h=80, origin=False), (80, 80)),
+    # a leg hung from its bone, its `foot` the far end of its drawing
+    "post": (
+        _prop(
+            "post",
+            w=20,
+            h=100,
+            origin=False,
+            metadata={"contacts": {"foot": {"slot": "body"}}},
+            anchor=(0.5, 0.0),
+        ),
+        (20, 100),
+    ),
 }
 
 
@@ -192,6 +206,34 @@ def test_supports_are_kept_apart_from_the_solve():
     assert not shot_declares_solve(shot)
 
 
+def test_unnamed_entity_supports_are_told_apart(tmp_path):
+    # both entities declare `{type: support, a: "@", b: ground}`: each is keyed
+    # by its own path, so an `unjoin` of one suspends that one alone
+    own = ", joints: [{type: support, a: '@', b: ground}]"
+    entities = _entity("stand", "stand", 160, GROUND, own) + _entity(
+        "cup", "cup", 0, GROUND, own
+    )
+    lift = """- {kind: tween, target: stand, property: y, from: 200, to: 160, duration: 0.5, start: 0.5}
+- {kind: tween, target: stand, property: y, from: 160, to: 200, duration: 0.5, start: 1.0}"""
+    verbs = "\n- {kind: unjoin, joint: stand, at: 0.5}\n- {kind: join, joint: stand, at: 1.5}"
+    project = _project(tmp_path, entities=entities, shot=_shot(), actions=lift + verbs)
+    shot = project.scene.timeline[0]
+    decl = declarations(shot, project.mall)
+    assert [dj.qualified_id for dj in decl.supports] == ["stand", "cup"]
+    assert [v.action.joint for v in decl.support_verbs] == ["stand", "stand"]
+    assert _lint(project) == []
+    # held on the cup's own instead, the stand's lift is its error
+    other = _project(
+        tmp_path / "b",
+        entities=entities,
+        shot=_shot(),
+        actions=lift + verbs.replace("joint: stand", "joint: cup"),
+    )
+    [(severity, where, message)] = _lint(other)
+    assert (severity, where) == ("error", "timeline/0/entities/0/joints/0")
+    assert "`stand` floats 40.0 px above" in message
+
+
 def test_a_support_only_shot_compiles_byte_identically_and_runs_no_solve(tmp_path):
     entities = _entity("stand", "stand", 160, GROUND) + _entity(
         "fig", "figure", -100, GROUND
@@ -249,6 +291,26 @@ def test_contacts_come_from_the_chain(tmp_path, monkeypatch):
     assert (got.source, got.points) == ("hook", {"foot": ("body", None)})
 
 
+def test_a_pin_and_a_support_name_one_point_for_a_contact(tmp_path):
+    # `post@foot` names no point on its part: the far end of the leg. The solve
+    # pins it and the support check measures it at the same place (not a hand's
+    # point, 4% up the leg).
+    target = (40.0, 150.0)
+    project = _project(
+        tmp_path,
+        entities=_entity("post", "post", 0, 60),
+        shot=_shot("[{type: support, a: post@foot, b: ground, name: rest}]"),
+        actions=f"- {{kind: pin, point: post@foot, to: 'world@{target[0]:g},{target[1]:g}'}}",
+    )
+    shot = project.scene.timeline[0]
+    states, problems = supports_at(_compile(project), shot, project.mall)
+    measured = [s.contacts[0] for s in states if s.joint == "rest"]
+    assert problems == [] and measured
+    assert {c.name for c in measured} == {"foot"}
+    for c in measured:
+        assert c.at == pytest.approx(target, abs=0.3)
+
+
 def test_the_solve_resolves_a_named_contact_like_a_landmark(tmp_path):
     def errors(point):
         project = _project(
@@ -283,17 +345,39 @@ def test_a_prop_on_the_ground_rests_sinks_or_floats(tmp_path, dy, kind):
     assert "from 0.00 s to 2.00 s" in message
 
 
-def test_an_entity_standing_near_the_floor_is_held_to_it_with_a_warning(tmp_path):
+def test_an_entity_standing_on_the_floor_is_held_to_it_with_a_warning(tmp_path):
+    # the stand opens on the floor (taken to stand on it), then a `set` lifts it
+    # 5 px for good: judged at its rest instants, it is said once
     entities = (
         _entity("fig", "figure", -100, GROUND)
-        + _entity("stand", "stand", 160, GROUND - 5)
-        + _entity("far", "stand", 260, GROUND - 120)  # beyond the float band: flying
+        + _entity("stand", "stand", 160, GROUND)
+        + _entity(
+            "far", "stand", 260, GROUND - 120
+        )  # off the floor as it opens: flying
     )
-    findings = _lint(_project(tmp_path, entities=entities, shot=_shot()))
+    actions = "- {kind: set, target: stand, property: y, value: 195, at: 1.0}"
+    findings = _lint(
+        _project(tmp_path, entities=entities, shot=_shot(), actions=actions)
+    )
     [(severity, where, message)] = findings
     assert (severity, where) == ("warning", "timeline/0/entities/1")
     assert message.startswith("`stand` stands on `ground` (y 200) as the shot opens")
-    assert "5.0 px above" in message
+    assert "5.0 px above" in message and "from 1.00 s to 2.00 s" in message
+
+
+def test_a_figure_staged_on_a_crate_does_not_stand_on_the_floor(tmp_path):
+    # its feet are on the crate's top, far above the floor as the shot opens:
+    # nothing infers it stands on the floor, so nothing says it floats there
+    surface_y = GROUND - CRATE_SURFACE * K
+    entities = _entity("crate", "crate", 160, GROUND) + _entity(
+        "fig", "figure", 160, surface_y
+    )
+    project = _project(tmp_path, entities=entities, shot=_shot())
+    assert _lint(project) == []
+    states, problems = supports_at(
+        _compile(project), project.scene.timeline[0], project.mall
+    )
+    assert problems == [] and {s.entity for s in states} <= {"crate"}
 
 
 def test_an_inferred_stance_is_not_judged_while_it_moves(tmp_path):

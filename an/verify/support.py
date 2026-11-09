@@ -38,15 +38,12 @@ __all__ = [
     "SUPPORT_CHECK_ORDER",
     "SUPPORT_TOLERANCE",
     "SUPPORT_FLOOR_PX",
-    "FLOAT_BAND",
     "support_findings",
 ]
 
 #: The tolerances, defined beside the measurement (:mod:`an.stage.support`)
 #: and read from here lazily: a core check never loads the stage at import.
-_STAGE_NAMES: frozenset[str] = frozenset(
-    {"SUPPORT_TOLERANCE", "SUPPORT_FLOOR_PX", "FLOAT_BAND"}
-)
+_STAGE_NAMES: frozenset[str] = frozenset({"SUPPORT_TOLERANCE", "SUPPORT_FLOOR_PX"})
 
 
 def __getattr__(name: str) -> Any:
@@ -91,11 +88,20 @@ def _surface_text(ref: str, state: Any) -> str:
 
 
 def support_findings(
-    states: list[Any], *, times: list[float], shot: Any
+    states: list[Any],
+    *,
+    times: list[float],
+    shot: Any,
+    tolerance: float | None = None,
+    floor: float | None = None,
 ) -> list[tuple[str, str, str]]:
     """``(severity, where, message)`` for each span of frames a support does not
     hold in ``states`` (:func:`an.stage.support.supports_at`'s), the worst
     distance of the span named; ``times`` is the grid the states' frames index.
+    A contact is off its surface beyond
+    :func:`an.stage.support.support_tolerance`: ``tolerance`` of the entity's
+    height (default :data:`SUPPORT_TOLERANCE`), ``floor`` px at least (default
+    :data:`SUPPORT_FLOOR_PX`).
 
     >>> from an.stage.support import ContactState, SupportState
     >>> from types import SimpleNamespace as NS
@@ -107,7 +113,14 @@ def support_findings(
     [('error', 'joints/0')]
     """
     from an.stage.solve import _spans
-    from an.stage.support import support_tolerance
+    from an.stage.support import (
+        SUPPORT_FLOOR_PX,
+        SUPPORT_TOLERANCE,
+        support_tolerance,
+    )
+
+    tolerance = SUPPORT_TOLERANCE if tolerance is None else tolerance
+    floor = SUPPORT_FLOOR_PX if floor is None else floor
 
     entities = {e.id: e for e in shot.entities}
     groups: dict[tuple[str, str | None, str], list[Any]] = {}
@@ -124,7 +137,7 @@ def support_findings(
         ]
         if not judged:
             continue
-        tol = support_tolerance(judged[0].height)
+        tol = support_tolerance(judged[0].height, tolerance=tolerance, floor=floor)
         by_frame = {s.frame: s for s in judged}
         for kind, broken in (
             ("penetration", [s.frame for s in judged if s.lowest < -tol]),

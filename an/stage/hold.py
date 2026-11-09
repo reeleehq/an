@@ -96,7 +96,15 @@ from an.stage.solve import (
     _pivot,
     _wrap,
 )
-from an.stage.surface_line import Line, above, ground_line, lift, line_through
+from an.stage.surface_line import (
+    SURFACE_BONES,
+    Line,
+    above,
+    body_surface,
+    ground_line,
+    lift,
+    line_through,
+)
 
 __all__ = [
     "HOLD_VERSION",
@@ -148,10 +156,6 @@ HOLD_PLAN_PASSES: int = 2
 LEAN_ROUNDS: int = 8
 #: Samples of a lean's range searched when no angle brings the goal in reach.
 LEAN_SAMPLES: int = 721
-#: The bones a body declares its supporting surface by (an#536), its two ends
-#: in the art's terms (left, right): what ``<body>@surface`` lays an item on.
-#: Undeclared, the surface is the top edge of the part's ink.
-SURFACE_BONES: tuple[str, str] = ("surface_l", "surface_r")
 #: The alpha (0-255) above which a pixel is ink, not margin.
 INK_ALPHA: int = 16
 _EPS: float = 1e-9
@@ -848,9 +852,10 @@ def _surface_holder(
     problems: list,
 ) -> Holder | None:
     """``<body>@surface[@f]`` (an#536): the body's supporting segment in its
-    own coordinates, from its :data:`SURFACE_BONES` when its rig declares
-    them, else the top edge of the part's ink. :func:`_schedule` binds the
-    shot's part once (``functools.partial``)."""
+    own coordinates (:func:`an.stage.surface_line.body_surface`: its
+    :data:`SURFACE_BONES` when its rig declares them, else the top edge of
+    the part's ink). :func:`_schedule` binds the shot's part once
+    (``functools.partial``)."""
     from an.stage.solve import _rig_of
 
     head = _holder_ref(ref)
@@ -876,38 +881,19 @@ def _surface_holder(
     eid = _entity(head)
     entity = next((e for e in shot.entities if e.id == eid), None)
     rig = _rig_of(entity, mall, puppet.nodes, vocab) if entity is not None else None
-    if rig is not None and SURFACE in rig.anchors:
-        problems.append(
-            (
-                where,
-                f"{ref!r}: {eid!r} has a bone named {SURFACE!r}, a reserved point name "
-                f"(`<body>@{SURFACE}` is the body's top, an#536): rename the bone, and "
-                f"declare a surface by {list(SURFACE_BONES)}",
-            )
-        )
-        return None
-    bones = (
-        _anchors_in(doc, rig, eid, puppet.nodes, found.body) if rig is not None else {}
+    segment = body_surface(
+        doc,
+        puppet.nodes,
+        mall,
+        rig=rig,
+        entity=eid,
+        node=found.node,
+        frame=found.body,
+        to_frame=found.frame,
     )
-    declared = [b for b in SURFACE_BONES if b in bones]
-    if len(declared) == len(SURFACE_BONES):
-        segment = (bones[SURFACE_BONES[0]], bones[SURFACE_BONES[1]])
-    elif declared:
-        problems.append(
-            (
-                where,
-                f"{ref!r}: {eid!r} declares {declared[0]!r} but not "
-                f"{[b for b in SURFACE_BONES if b not in declared][0]!r}: a surface is "
-                "two bones (its ends), or neither (the top of the part's ink)",
-            )
-        )
+    if isinstance(segment, str):
+        problems.append((where, f"{ref!r}: {segment}"))
         return None
-    else:
-        left, top, w, _h = ink_box(doc, puppet.nodes[found.node], mall)
-        segment = (
-            _apply(found.frame, (left, top)),
-            _apply(found.frame, (left + w, top)),
-        )
     return Holder(
         "surface",
         ref=ref,
