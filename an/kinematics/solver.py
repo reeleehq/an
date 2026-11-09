@@ -184,8 +184,10 @@ DFLT_SEGMENT_MARGIN: float = 0.5
 #: solve leads lost grips back too (an#668); 7: it pulls each lead by the led
 #: chain's own mass (an#672); 8: a held loop the geometry shows can hold is
 #: judged apart: kept converging, never given up for its rate or for a conflict
-#: elsewhere, only for a jump the cap leaves (an#706).
-SOLVER_VERSION: str = "8"
+#: elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,
+#: the hinge ranges are projected again after each pass, so a pull never drags
+#: a joint past its range (an#707).
+SOLVER_VERSION: str = "9"
 #: The most passes a frame whose first retry made progress is given, as a
 #: multiple of ``iterations``: its retry is repeated with ``retry`` times the
 #: passes while each round still makes progress (an#568). On 300 random
