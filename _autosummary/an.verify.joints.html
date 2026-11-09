@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=d21a8298"></script>
+    <script src="../_static/documentation_options.js?v=76620681"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.384" />
+  <meta name="docsearch:version" content="0.1.385" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -699,7 +699,10 @@ solver’s own tolerance (<a class="reference internal" href="an.kinematics.solv
 <dt class="sig sig-object py" id="an.verify.joints.REJOIN_TOLERANCE_PX">
 <span class="sig-prename descclassname"><span class="pre">an.verify.joints.</span></span><span class="sig-name descname"><span class="pre">REJOIN_TOLERANCE_PX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.0</span></span><a class="headerlink" href="#an.verify.joints.REJOIN_TOLERANCE_PX" title="Link to this definition">#</a></dt>
 <dd><p>A rejoin closing a gap wider than this in one frame is a visible snap (owner
-decision 9 on an#497: a lint at 2 px, a blend below it).</p>
+decision 9 on an#497: a lint at 2 px, a blend below it). The lint’s name for
+the threshold; the solver names the blend’s width
+<a class="reference internal" href="an.kinematics.solver.html#an.kinematics.solver.DFLT_REJOIN_BLEND_PX" title="an.kinematics.solver.DFLT_REJOIN_BLEND_PX"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.kinematics.solver.DFLT_REJOIN_BLEND_PX</span></code></a> (an#636). One name per
+layer, held equal by a test, so neither layer reads the other’s constant.</p>
 </dd></dl>
 
 </section>

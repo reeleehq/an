@@ -18,6 +18,8 @@ an.kinematics.solver
       DFLT_REGRIP_SPEED
       DFLT_REGRIP_SNAP
       DFLT_REGRIP_STRENGTH
+      DFLT_REJOIN_BLEND_PX
+      DFLT_REJOIN_BLEND_FRAMES
       DFLT_HELD_GAP
       DFLT_HELD_JUMP
       DFLT_MAX_DROP_TRIALS
@@ -34,10 +36,12 @@ an.kinematics.solver
 
    .. autosummary::
    
+      blends
       digest
       inputs_digest
       quantize
       regrip_strength_by_mass
+      rejoin_blend
       resolve_rests
       solve
       solve_frames
@@ -49,6 +53,7 @@ an.kinematics.solver
    
       FramesResult
       Regrip
+      RejoinBlends
       SolveResult
    
    .. rubric:: Exceptions

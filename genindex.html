@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=d21a8298"></script>
+    <script src="_static/documentation_options.js?v=76620681"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.384" />
+  <meta name="docsearch:version" content="0.1.385" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -2812,6 +2812,8 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="_autosummary/an.bench.metrics.html#an.bench.metrics.BLEND_TOLERANCE">BLEND_TOLERANCE (in module an.bench.metrics)</a>
 </li>
+      <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.blends">blends() (in module an.kinematics.solver)</a>
+</li>
       <li><a href="_autosummary/an.bench.golden.html#an.bench.golden.BLESS_MANIFEST_TEMPLATE">BLESS_MANIFEST_TEMPLATE (in module an.bench.golden)</a>
 </li>
       <li><a href="_autosummary/an.bench.html#an.bench.bless_scene">bless_scene() (in module an.bench)</a>
@@ -3946,10 +3948,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="_autosummary/an.stage.render.html#an.stage.render.DETERMINISTIC_CHROMIUM_ARGS">DETERMINISTIC_CHROMIUM_ARGS (in module an.stage.render)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.media.mp4.html#an.media.mp4.DETERMINISTIC_X264_ARGS">DETERMINISTIC_X264_ARGS (in module an.media.mp4)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.DFLT_ANGLE_TOLERANCE">DFLT_ANGLE_TOLERANCE (in module an.kinematics.solver)</a>
 </li>
       <li><a href="_autosummary/an.stage.fidelity.html#an.stage.fidelity.DFLT_ASPECT_TOLERANCE">DFLT_ASPECT_TOLERANCE (in module an.stage.fidelity)</a>
@@ -4007,6 +4009,10 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.DFLT_REGRIP_SPEED">DFLT_REGRIP_SPEED (in module an.kinematics.solver)</a>
 </li>
       <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.DFLT_REGRIP_STRENGTH">DFLT_REGRIP_STRENGTH (in module an.kinematics.solver)</a>
+</li>
+      <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.DFLT_REJOIN_BLEND_FRAMES">DFLT_REJOIN_BLEND_FRAMES (in module an.kinematics.solver)</a>
+</li>
+      <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.DFLT_REJOIN_BLEND_PX">DFLT_REJOIN_BLEND_PX (in module an.kinematics.solver)</a>
 </li>
       <li><a href="_autosummary/an.ir.holds.html#an.ir.holds.DFLT_RETRACT">DFLT_RETRACT (in module an.ir.holds)</a>
 </li>
@@ -4760,6 +4766,8 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="_autosummary/an.engines.html#an.engines.TimeDriven.frame">(an.engines.TimeDriven method)</a>
+</li>
+        <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.RejoinBlends.frame">(an.kinematics.solver.RejoinBlends method)</a>
 </li>
         <li><a href="_autosummary/an.probe.html#an.probe.frame">(in module an.probe)</a>
 </li>
@@ -8181,7 +8189,11 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/an.library.api.html#an.library.api.reindex">(in module an.library.api)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.rejoin_blend">rejoin_blend() (in module an.kinematics.solver)</a>
+</li>
       <li><a href="_autosummary/an.verify.joints.html#an.verify.joints.REJOIN_TOLERANCE_PX">REJOIN_TOLERANCE_PX (in module an.verify.joints)</a>
+</li>
+      <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.RejoinBlends">RejoinBlends (class in an.kinematics.solver)</a>
 </li>
       <li><a href="_autosummary/an.timing.contract.html#an.timing.contract.REL_TOL">REL_TOL (in module an.timing.contract)</a>
 </li>
@@ -9870,6 +9882,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="_autosummary/an.bench.png.html#an.bench.png.to_rgb">to_rgb() (in module an.bench.png)</a>
 </li>
       <li><a href="_autosummary/an.audio.transcripts.html#an.audio.transcripts.tokens_of">tokens_of() (in module an.audio.transcripts)</a>
+</li>
+      <li><a href="_autosummary/an.kinematics.solver.html#an.kinematics.solver.RejoinBlends.tolerance">tolerance (an.kinematics.solver.RejoinBlends attribute)</a>
 </li>
       <li><a href="_autosummary/an.mcp.html#an.mcp.TOOL_REFS">TOOL_REFS (in module an.mcp)</a>
 </li>

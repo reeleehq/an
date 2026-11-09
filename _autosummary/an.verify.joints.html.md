@@ -47,4 +47,7 @@ solver’s own tolerance ([`an.kinematics.solver.DFLT_TOLERANCE`](an.kinematics.
 ### an.verify.joints.REJOIN_TOLERANCE_PX *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
 
 A rejoin closing a gap wider than this in one frame is a visible snap (owner
-decision 9 on an#497: a lint at 2 px, a blend below it).
+decision 9 on an#497: a lint at 2 px, a blend below it). The lint’s name for
+the threshold; the solver names the blend’s width
+[`an.kinematics.solver.DFLT_REJOIN_BLEND_PX`](an.kinematics.solver.html.md#an.kinematics.solver.DFLT_REJOIN_BLEND_PX) (an#636). One name per
+layer, held equal by a test, so neither layer reads the other’s constant.

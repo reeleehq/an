@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d21a8298"></script>
+    <script src="../../../_static/documentation_options.js?v=76620681"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.384" />
+  <meta name="docsearch:version" content="0.1.385" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -862,6 +862,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: bodies weigh more scales it (the stage: by the led chain's mass, :func:`regrip_strength_by_mass`).</span>
 <span class="c1">#: Too stiff, it drags a chain past a range it cannot keep (an#568's elbow).</span>
 <span class="n">DFLT_REGRIP_STRENGTH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e6</span>
+<span class="c1">#: A joint rejoined at most this far apart (px, after the solve's tolerance) is</span>
+<span class="c1">#: closed over :data:`DFLT_REJOIN_BLEND_FRAMES` frames rather than snapped</span>
+<span class="c1">#: shut in one (an#636: owner decision 9 on an#497, "lint at 2 px, blend</span>
+<span class="c1">#: below"; ``an.verify.joints.REJOIN_TOLERANCE_PX`` flags a wider one).</span>
+<span class="n">DFLT_REJOIN_BLEND_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="c1">#: Over how many frames such a rejoin closes (the last one holds the joint).</span>
+<span class="n">DFLT_REJOIN_BLEND_FRAMES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="c1">#: A loop counts as HELD as the frame starts (an#706) when each of its joints</span>
 <span class="c1">#: is at most this far apart (scene units) in the input poses, before the</span>
 <span class="c1">#: frame's targets move anything: a grip carried this frame was held on the</span>
@@ -900,8 +907,9 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: judged apart: kept converging, never given up for its rate or for a conflict</span>
 <span class="c1">#: elsewhere, only for a jump the cap leaves (an#706); 9: while anything pulls,</span>
 <span class="c1">#: a frame's passes are followed by as many over the joints alone, so a pull</span>
-<span class="c1">#: never drags a joint past its range or apart (an#707).</span>
-<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"9"</span>
+<span class="c1">#: never drags a joint past its range or apart (an#707); 10: a pin the caller</span>
+<span class="c1">#: rejoins under 2 apart closes over a few frames instead of in one (an#636).</span>
+<span class="n">SOLVER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"10"</span>
 <span class="c1">#: The most passes a frame whose first retry made progress is given, as a</span>
 <span class="c1">#: multiple of ``iterations``: its retry is repeated with ``retry`` times the</span>
 <span class="c1">#: passes while each round still makes progress (an#568). On 300 random</span>
@@ -1009,9 +1017,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    and ``limit_violations`` are per frame; ``snaps`` lists every joint that</span>
 <span class="sd">    is enforced again after a frame it was not (the caller rejoined it, or a</span>
 <span class="sd">    conflict had dropped it) as ``(frame, joint index, distance)``, the gap</span>
-<span class="sd">    it closes in one frame (the caller decides whether to blend or to refuse</span>
-<span class="sd">    it; in dynamic mode a large gap yanks the bodies it joins); ``final`` is the last frame's bodies, ready to continue the</span>
-<span class="sd">    run; ``dropped`` the joints each frame gave up in a conflict."""</span>
+<span class="sd">    it closes (in one frame, unless the caller's rejoin is blended:</span>
+<span class="sd">    :class:`RejoinBlends`; in dynamic mode a large gap yanks the bodies it</span>
+<span class="sd">    joins); ``final`` is the last frame's bodies, ready to continue the run;</span>
+<span class="sd">    ``dropped`` the joints each frame gave up in a conflict."""</span>
 
     <span class="n">bodies</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">poses</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -2489,14 +2498,18 @@ window.runMermaid = runMermaid;</script>
     <span class="n">gravity</span><span class="p">:</span> <span class="n">Gravity</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">regrip_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">DFLT_REGRIP_SPEED</span><span class="p">,</span>
     <span class="n">regrip_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">DFLT_REGRIP_STRENGTH</span><span class="p">,</span>
+    <span class="n">rejoin_blend_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_REJOIN_BLEND_FRAMES</span><span class="p">,</span>
+    <span class="n">rejoin_blend_px</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REJOIN_BLEND_PX</span><span class="p">,</span>
     <span class="o">**</span><span class="n">options</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FramesResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``frames`` solves in a row, each starting from the last: the caller's</span>
 <span class="sd">    time dimension. ``targets_at(k)`` (or ``targets_at[k]``) gives frame</span>
 <span class="sd">    ``k``'s targets; ``joints_at(k)`` its joints (the same list with</span>
 <span class="sd">    ``joined`` flags flipped is how a joint is unjoined and rejoined). Hinge</span>
-<span class="sd">    and weld rests are fixed from the starting poses. ``options`` go to</span>
-<span class="sd">    :func:`solve`.</span>
+<span class="sd">    and weld rests are fixed from the starting poses. A pin rejoined within</span>
+<span class="sd">    ``rejoin_blend_px`` (scene units) closes over ``rejoin_blend_frames``</span>
+<span class="sd">    frames, or the frames left before the last (:class:`RejoinBlends`; 1</span>
+<span class="sd">    snaps it shut). ``options`` go to :func:`solve`.</span>
 
 <span class="sd">    A part unjoined falls, and is caught where it is when rejoined:</span>
 
@@ -2524,6 +2537,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">tolerance</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tolerance"</span><span class="p">,</span> <span class="n">DFLT_TOLERANCE</span><span class="p">)</span>
     <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">regrip_speed</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span> <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
     <span class="n">regrip</span> <span class="o">=</span> <span class="n">Regrip</span><span class="p">()</span>
+    <span class="n">blending</span> <span class="o">=</span> <span class="n">RejoinBlends</span><span class="p">(</span>
+        <span class="n">frames</span><span class="o">=</span><span class="n">rejoin_blend_frames</span><span class="p">,</span>
+        <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span>
+        <span class="n">within</span><span class="o">=</span><span class="n">rejoin_blend_px</span><span class="p">,</span>
+        <span class="n">last</span><span class="o">=</span><span class="n">frames</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">asked_before</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span><span class="o">.</span><span class="n">joined</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">base</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
         <span class="n">frame_joints</span> <span class="o">=</span> <span class="n">base</span>
         <span class="k">if</span> <span class="n">joints_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2538,6 +2558,10 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">joint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frame_joints</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">joint</span><span class="o">.</span><span class="n">joined</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">enforced_before</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
         <span class="p">]</span>
+        <span class="c1"># The caller's rejoins blend, not a grip a conflict or the lead gave up.</span>
+        <span class="n">authored</span> <span class="o">=</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">reengaged</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">asked_before</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span>
+        <span class="n">asked_before</span> <span class="o">=</span> <span class="p">[</span><span class="n">joint</span><span class="o">.</span><span class="n">joined</span> <span class="k">for</span> <span class="n">joint</span> <span class="ow">in</span> <span class="n">frame_joints</span><span class="p">]</span>
+        <span class="n">frame_joints</span> <span class="o">=</span> <span class="n">blending</span><span class="o">.</span><span class="n">frame</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">frame_joints</span><span class="p">,</span> <span class="n">authored</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">targets_at</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="nb">callable</span><span class="p">(</span><span class="n">targets_at</span><span class="p">):</span>
@@ -2611,6 +2635,132 @@ window.runMermaid = runMermaid;</script>
     <span class="n">walking</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">regained</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
     <span class="n">dropped</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="blends">
+<a class="viewcode-back" href="../../../_autosummary/an.kinematics.solver.html#an.kinematics.blends">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">blends</span><span class="p">(</span><span class="n">joint</span><span class="p">:</span> <span class="n">Joint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a rejoin of ``joint`` can be blended shut (an#636): a pin, or a</span>
+<span class="sd">    hinge with no range (a ranged hinge, a weld, a distance snap shut).</span>
+
+<span class="sd">    &gt;&gt;&gt; blends(Pin(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5)))</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span> <span class="n">Pin</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span> <span class="n">Hinge</span><span class="p">)</span> <span class="ow">and</span> <span class="n">joint</span><span class="o">.</span><span class="n">limits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="rejoin_blend">
+<a class="viewcode-back" href="../../../_autosummary/an.kinematics.solver.html#an.kinematics.rejoin_blend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rejoin_blend</span><span class="p">(</span>
+    <span class="n">joint</span><span class="p">:</span> <span class="n">Joint</span><span class="p">,</span>
+    <span class="n">gap</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">since</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_REJOIN_BLEND_FRAMES</span><span class="p">,</span>
+    <span class="n">within</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REJOIN_BLEND_PX</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Joint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``joint`` as it holds ``since`` frames after it was rejoined ``gap``</span>
+<span class="sd">    apart (0: the frame it rejoins). A joint that :func:`blends`, rejoined at</span>
+<span class="sd">    most ``within`` apart, holds its two points at most a shrinking distance</span>
+<span class="sd">    apart, ``gap`` less a ``1 / frames`` share each frame, and is the joint</span>
+<span class="sd">    itself from the last of ``frames`` on (an#636). Anything else, and a wider</span>
+<span class="sd">    gap (the lint's to flag), is the joint itself: it snaps shut.</span>
+
+<span class="sd">    &gt;&gt;&gt; pin = Pin(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5))</span>
+<span class="sd">    &gt;&gt;&gt; [round(getattr(rejoin_blend(pin, 1.6, k), "length", 0.0), 2) for k in range(5)]</span>
+<span class="sd">    [1.2, 0.8, 0.4, 0.0, 0.0]</span>
+<span class="sd">    &gt;&gt;&gt; rejoin_blend(pin, 1.6, 3) is pin, rejoin_blend(pin, 5.0, 0) is pin</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">blends</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">joint</span><span class="o">.</span><span class="n">joined</span> <span class="ow">or</span> <span class="n">gap</span> <span class="o">&gt;</span> <span class="n">within</span> <span class="ow">or</span> <span class="n">since</span> <span class="o">&gt;=</span> <span class="n">frames</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">joint</span>
+    <span class="k">return</span> <span class="n">Distance</span><span class="p">(</span>
+        <span class="n">joint</span><span class="o">.</span><span class="n">a</span><span class="p">,</span>
+        <span class="n">joint</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
+        <span class="n">length</span><span class="o">=</span><span class="n">gap</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">since</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">frames</span><span class="p">),</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">"at_most"</span><span class="p">,</span>
+        <span class="n">compliance</span><span class="o">=</span><span class="n">joint</span><span class="o">.</span><span class="n">compliance</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RejoinBlends">
+<a class="viewcode-back" href="../../../_autosummary/an.kinematics.solver.html#an.kinematics.RejoinBlends">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RejoinBlends</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The rejoins a run of frames is closing (an#636): ``{joint: (frame it</span>
+<span class="sd">    rejoined, its gap, frames it closes over)}``, each given to</span>
+<span class="sd">    :func:`rejoin_blend` until it holds. ``within`` is the blend's width</span>
+<span class="sd">    (scene units; a wider rejoin snaps). A rejoin too near the run's ``last``</span>
+<span class="sd">    frame (its index; ``None``: unbounded) to close over ``frames`` closes</span>
+<span class="sd">    over the frames left, holding on the last one; on the last frame itself it</span>
+<span class="sd">    snaps. ``started`` records, per rejoin ``(frame, joint)``, how many frames</span>
+<span class="sd">    it closes over (0: it snapped).</span>
+
+<span class="sd">    &gt;&gt;&gt; pin = Pin(Point("a", 0.5, 0.5), Point("b", 0.5, 0.5))</span>
+<span class="sd">    &gt;&gt;&gt; blends = RejoinBlends()</span>
+<span class="sd">    &gt;&gt;&gt; [type(j).__name__ for j in blends.frame(0, [pin], [(0, 1.6)])]</span>
+<span class="sd">    ['Distance']</span>
+<span class="sd">    &gt;&gt;&gt; [type(blends.frame(k, [pin], [])[0]).__name__ for k in (1, 2, 3)]</span>
+<span class="sd">    ['Distance', 'Distance', 'Pin']</span>
+<span class="sd">    &gt;&gt;&gt; late = RejoinBlends(last=9)</span>
+<span class="sd">    &gt;&gt;&gt; [type(late.frame(k, [pin], [(0, 1.6)] if k == 8 else [])[0]).__name__ for k in (8, 9)]</span>
+<span class="sd">    ['Distance', 'Pin']</span>
+<span class="sd">    &gt;&gt;&gt; _ = late.frame(9, [pin], [(0, 1.6)])</span>
+<span class="sd">    &gt;&gt;&gt; late.started</span>
+<span class="sd">    {(8, 0): 2, (9, 0): 0}</span>
+<span class="sd">    """</span>
+
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_REJOIN_BLEND_FRAMES</span>
+    <span class="c1">#: A gap at most this wide is closed by the frame itself: nothing to blend.</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TOLERANCE</span>
+    <span class="n">within</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_REJOIN_BLEND_PX</span>
+    <span class="n">last</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nb">open</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">started</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RejoinBlends.frame">
+<a class="viewcode-back" href="../../../_autosummary/an.kinematics.solver.html#an.kinematics.RejoinBlends.frame">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">frame</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">joints</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Joint</span><span class="p">],</span>
+        <span class="n">reengaged</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Joint</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Frame ``k``'s ``joints``, each rejoin being closed blended; a rejoin</span>
+<span class="sd">        of ``reengaged`` (``(joint, gap)``) opens one."""</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">-</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">reengaged</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">left</span><span class="p">)</span>
+            <span class="n">closing</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">&lt;</span> <span class="n">gap</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">within</span> <span class="ow">and</span> <span class="n">blends</span><span class="p">(</span><span class="n">joints</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">n</span> <span class="k">if</span> <span class="n">closing</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">closing</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">rejoin_blend</span><span class="p">(</span>
+                <span class="n">jt</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">k</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">frames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">within</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">within</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span>
+            <span class="k">else</span> <span class="n">jt</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">jt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">joints</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">j</span><span class="p">:</span> <span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">joints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">joined</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">-</span> <span class="n">k0</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+</div>
 
 
 

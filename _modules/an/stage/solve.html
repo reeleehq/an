@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d21a8298"></script>
+    <script src="../../../_static/documentation_options.js?v=76620681"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.384" />
+  <meta name="docsearch:version" content="0.1.385" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -820,16 +820,43 @@ window.runMermaid = runMermaid;</script>
 <span class="n">SAME_VALUE</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">}</span>
 <span class="c1">#: The same, for a held item's scale (a factor).</span>
 <span class="n">SAME_SCALE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
-<span class="c1">#: How far each solved channel's emitted keys may stray from the solve at any</span>
-<span class="c1">#: frame, in px (an#636); a rotation's is this at the puppet's whole reach</span>
-<span class="c1">#: (every body's box end to end). The errors add along a chain: a point moves</span>
-<span class="c1">#: at most this × (√2 for the root's x and y + one per rotating body above</span>
-<span class="c1">#: it) × its scale, a few thousandths of a px, far under the joints' own</span>
-<span class="c1">#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25). At this</span>
-<span class="c1">#: tolerance only stretches that are already straight (still, or moving</span>
-<span class="c1">#: evenly) lose their keys; curved motion keeps them (compacting it within the</span>
-<span class="c1">#: joint budget is the rest of an#636).</span>
-<span class="n">SOLVED_KEY_TOLERANCE_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="c1">#: How far any point of a solved body may stray from the solve at any frame</span>
+<span class="c1">#: once its keys are compacted (px, an#636): a fifth of the joints' own</span>
+<span class="c1">#: tolerance (:data:`an.verify.joints.JOINT_TOLERANCE_PX`, 0.25), so a joint's</span>
+<span class="c1">#: two ends together move at most 0.1 px and a joint the solve holds still</span>
+<span class="c1">#: holds. Each channel's keys are compacted at the share of it its place in a</span>
+<span class="c1">#: chain allows (:func:`solved_key_tolerances`), the error measured at every</span>
+<span class="c1">#: frame (:func:`compact_keys`), so curved motion is compacted too.</span>
+<span class="n">SOLVED_POSE_TOLERANCE_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">solved_key_tolerances</span><span class="p">(</span>
+    <span class="n">puppet</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">budget</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SOLVED_POSE_TOLERANCE_PX</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``{channel: tolerance}`` for compacting ``puppet``'s solved keys so no</span>
+<span class="sd">    point of any body strays more than ``budget`` px from the solve (an#636).</span>
+
+<span class="sd">    The errors add along a chain: a point moves at most ``tolerance`` × (√2 for</span>
+<span class="sd">    the root's x and y, plus one per rotating body down to it) × its scale, a</span>
+<span class="sd">    rotation's tolerance being the positional one over the puppet's whole</span>
+<span class="sd">    reach (every body's box end to end, its lever at most). So each channel</span>
+<span class="sd">    gets ``budget`` over the longest chain's count, at the largest scale:</span>
+<span class="sd">    ``scale``, the largest any body or its parent is drawn at over the shot</span>
+<span class="sd">    (an authored scale animates it), else the rest pose's.</span>
+<span class="sd">    """</span>
+    <span class="n">bodies</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">chain</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">cursor</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">parent_body</span>
+        <span class="k">while</span> <span class="n">cursor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bodies</span><span class="p">):</span>
+            <span class="n">n</span><span class="p">,</span> <span class="n">cursor</span> <span class="o">=</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">parent_body</span>
+        <span class="k">return</span> <span class="n">n</span>
+
+    <span class="n">longest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">chain</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bodies</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">sx</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">sy</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bodies</span><span class="p">])</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">b</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bodies</span><span class="p">))</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">budget</span> <span class="o">/</span> <span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">longest</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">position</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="n">position</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">:</span> <span class="n">position</span> <span class="o">/</span> <span class="n">reach</span><span class="p">}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">compact_keys</span><span class="p">(</span>
@@ -1258,6 +1285,19 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_geometry_at</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Affine</span><span class="p">,</span> <span class="n">local_scale_x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Geometry</span><span class="p">:</span>
     <span class="n">_theta</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">mirrored</span> <span class="o">=</span> <span class="n">_decompose</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">mirrored</span><span class="p">,</span> <span class="n">local_scale_x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_drawn_scale</span><span class="p">(</span><span class="n">geometry</span><span class="p">:</span> <span class="n">Geometry</span><span class="p">,</span> <span class="n">local_sx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">local_sy</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The largest scale a body's channels are drawn at in a frame: its own</span>
+<span class="sd">    world scale, and its parent's (its x and y are the parent's units), which</span>
+<span class="sd">    is the world scale over its own local one.</span>
+
+<span class="sd">    &gt;&gt;&gt; _drawn_scale((1.5, 1.5, False, False), 0.5, 0.5)</span>
+<span class="sd">    3.0</span>
+<span class="sd">    """</span>
+    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">own</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">own</span> <span class="ow">in</span> <span class="p">((</span><span class="n">sx</span><span class="p">,</span> <span class="n">local_sx</span><span class="p">),</span> <span class="p">(</span><span class="n">sy</span><span class="p">,</span> <span class="n">local_sy</span><span class="p">))</span> <span class="k">if</span> <span class="n">own</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">([</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="o">*</span><span class="n">parent</span><span class="p">])</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_flip_point</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">flips</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -2198,6 +2238,12 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: per frame: the grips being led back (lost out of reach, walked back a</span>
     <span class="c1">#: step a frame, an#645); the report marks a dropped span that was (an#672)</span>
     <span class="n">led</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: per rejoin ``(frame, joint)`` of ``snaps``: how many frames it is</span>
+    <span class="c1">#: closed over (0: snapped shut in one; an#636, :class:`RejoinBlends`)</span>
+    <span class="n">blends</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: The largest scale any body, or the node it hangs from, is drawn at over</span>
+    <span class="c1">#: the run (an#636): what a solved channel's error is multiplied by.</span>
+    <span class="n">max_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
 
 
@@ -2257,6 +2303,7 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.kinematics.solver</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">DFLT_REGRIP_SPEED</span><span class="p">,</span>
         <span class="n">Regrip</span><span class="p">,</span>
+        <span class="n">RejoinBlends</span><span class="p">,</span>
         <span class="n">regrip_strength_by_mass</span><span class="p">,</span>
         <span class="n">solve_regripping</span><span class="p">,</span>
     <span class="p">)</span>
@@ -2286,6 +2333,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">joined_before</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">frames_inputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">regrip</span> <span class="o">=</span> <span class="n">Regrip</span><span class="p">()</span>
+    <span class="n">blending</span> <span class="o">=</span> <span class="n">RejoinBlends</span><span class="p">(</span><span class="n">last</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">run</span><span class="o">.</span><span class="n">blends</span> <span class="o">=</span> <span class="n">blending</span><span class="o">.</span><span class="n">started</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
         <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
         <span class="n">world</span> <span class="o">=</span> <span class="n">_world_matrices</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">order</span><span class="p">,</span> <span class="o">*</span><span class="n">extra_paths</span><span class="p">],</span> <span class="n">pose</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
@@ -2305,6 +2354,9 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="n">local_now</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">rotation</span><span class="p">)</span>
             <span class="n">geometry</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">_geometry_at</span><span class="p">(</span><span class="n">world</span><span class="p">[</span><span class="n">path</span><span class="p">],</span> <span class="n">tr</span><span class="o">.</span><span class="n">scale_x</span><span class="p">)</span>
+            <span class="n">run</span><span class="o">.</span><span class="n">max_scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="n">run</span><span class="o">.</span><span class="n">max_scale</span><span class="p">,</span> <span class="n">_drawn_scale</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="n">path</span><span class="p">],</span> <span class="n">tr</span><span class="o">.</span><span class="n">scale_x</span><span class="p">,</span> <span class="n">tr</span><span class="o">.</span><span class="n">scale_y</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="n">run</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_now</span><span class="p">)</span>
         <span class="n">run</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
         <span class="n">flips</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">mirrored</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">order</span><span class="p">}</span>
@@ -2428,9 +2480,14 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># A joint the AUTHOR joins again (a `join`, a verb's span opening),</span>
             <span class="c1"># not one a conflict gave up for a frame: that one is refused, and</span>
             <span class="c1"># unreachable_pin or joint_violation says so.</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">was</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">joined_before</span><span class="p">,</span> <span class="n">joined_now</span><span class="p">)):</span>
-                <span class="k">if</span> <span class="n">now</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">was</span><span class="p">:</span>
-                    <span class="n">run</span><span class="o">.</span><span class="n">snaps</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">_gap</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">joints</span><span class="p">[</span><span class="n">j</span><span class="p">])))</span>
+            <span class="n">rejoined</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">_gap</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">joints</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">was</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">joined_before</span><span class="p">,</span> <span class="n">joined_now</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">now</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">was</span>
+            <span class="p">]</span>
+            <span class="n">run</span><span class="o">.</span><span class="n">snaps</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">gap</span> <span class="ow">in</span> <span class="n">rejoined</span><span class="p">]</span>
+            <span class="c1"># One within a blend's width closes over a few frames (an#636).</span>
+            <span class="n">joints</span> <span class="o">=</span> <span class="n">blending</span><span class="o">.</span><span class="n">frame</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">rejoined</span><span class="p">)</span>
         <span class="n">options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">targets</span><span class="o">=</span><span class="n">targets</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">gravity</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">gravity</span><span class="p">,</span>
@@ -2719,14 +2776,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">clips</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">emitted</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">index</span> <span class="o">=</span> <span class="p">{</span><span class="n">prop</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">SOLVED_CHANNELS</span><span class="p">)}</span>
-    <span class="n">reach</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-        <span class="mf">1.0</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">b</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="p">)</span>
-    <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">"x"</span><span class="p">:</span> <span class="n">SOLVED_KEY_TOLERANCE_PX</span><span class="p">,</span>
-        <span class="s2">"y"</span><span class="p">:</span> <span class="n">SOLVED_KEY_TOLERANCE_PX</span><span class="p">,</span>
-        <span class="s2">"rotation"</span><span class="p">:</span> <span class="n">SOLVED_KEY_TOLERANCE_PX</span> <span class="o">/</span> <span class="n">reach</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">solved_key_tolerances</span><span class="p">(</span><span class="n">puppet</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">max_scale</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">keyframes</span><span class="p">(</span><span class="n">vs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="n">kept</span> <span class="o">=</span> <span class="n">compact_keys</span><span class="p">(</span>
@@ -2919,7 +2969,13 @@ window.runMermaid = runMermaid;</script>
         <span class="p">},</span>
         <span class="s2">"dropped"</span><span class="p">:</span> <span class="n">dropped</span><span class="p">,</span>
         <span class="s2">"snaps"</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">{</span><span class="s2">"joint"</span><span class="p">:</span> <span class="n">j</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span> <span class="s2">"gap"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">g</span><span class="p">)}</span>
+            <span class="p">{</span>
+                <span class="s2">"joint"</span><span class="p">:</span> <span class="n">j</span><span class="p">,</span>
+                <span class="s2">"at"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
+                <span class="s2">"gap"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">g</span><span class="p">),</span>
+                <span class="s2">"frame"</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                <span class="s2">"blend"</span><span class="p">:</span> <span class="n">run</span><span class="o">.</span><span class="n">blends</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">}</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">snaps</span>
             <span class="k">if</span> <span class="n">puppet</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">source</span> <span class="o">!=</span> <span class="n">REACH_SOURCE</span>  <span class="c1"># a reach starts where the hand is</span>
         <span class="p">],</span>
