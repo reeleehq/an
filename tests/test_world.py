@@ -1262,6 +1262,7 @@ def test_the_core_override_keys_are_the_owners_constants():
     from an.base import (
         BESIDE_HOST_OVERRIDE,
         CORE_OVERRIDE_KEYS,
+        GROUND_OVERRIDE,
         PAINT_KEYS_OVERRIDE,
         PLANE_FACTORS_OVERRIDE,
         SWAY_OVERRIDE,
@@ -1278,6 +1279,7 @@ def test_the_core_override_keys_are_the_owners_constants():
         PAINT_KEYS_OVERRIDE,
         BESIDE_HOST_OVERRIDE,
         SWAY_OVERRIDE,
+        GROUND_OVERRIDE,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 

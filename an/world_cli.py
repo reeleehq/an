@@ -69,7 +69,13 @@ def show(
             )
             scale = f" scale {e['scale']:.3g}" if e["scale"] is not None else ""
             after = f" after {e['after']}" if e["after"] else ""
-            lines.append(f"  {e['kind']:<12}{e['id']:<24}{at}{scale}{after}")
+            floor = (
+                f" floor y {e['floor']:.4g}"
+                + (f" ({e['floor_keys']} keys)" if e.get("floor_keys") else "")
+                if e.get("floor") is not None
+                else ""
+            )
+            lines.append(f"  {e['kind']:<12}{e['id']:<24}{at}{scale}{after}{floor}")
         lines.append(f"  actions: {row['actions']}")
         for n in row["notes"]:
             lines.append(f"  [{n['severity']}] {n['entity']}: {n['message']}")

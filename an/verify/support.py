@@ -11,7 +11,8 @@ function :func:`an.stage.support.supports_at`. ``support`` (order 252):
   joined, is an **error** span; a reference it cannot resolve is an error too
   (the solve never sees a support, so ``unknown_body`` cannot say it);
 - an entity nothing declares, taken to stand on the shot's floor
-  (``solve: {ground: y}``) as it opens, is held to it at its rest instants
+  (``solve: {ground: y}``, else the world's under it, ``World.ground``) as it
+  opens, is held to it at its rest instants
   (between two keys where nothing of it moves), as a **warning**;
 - ``b: ground`` on a shot with no floor is measured against where the entity
   stands as the shot opens, said once as ``info``.
@@ -40,9 +41,14 @@ the floor, a warning, and only under a style pack that declares ``gravity``
 (a cartoon style that glides is right by declaration). A body's own stance
 point (``origin``, the ink of its roots, a prop's ``base``, a bone on a root
 part) never skates: a pushed crate or a gliding figure slides on it by right.
-In a shot a world frames, a member whose frame moves relative to the
-viewpoint's is not judged on ``ground`` (the stage floor does not stay under
-it; ``World.ground``, an#519 PR 4, measures it): said once as ``info``.
+In a shot a world frames, ``ground`` is the world's floor under each member
+when the world declares one (``World.ground``, an#519 PR 4) and the shot no
+``solve.ground``: the floor line at the member's depth as the camera projects
+it, and the slide measured from the member's opening ground point held in the
+frame it stands in, so a member carried by a moving frame does not skate. A
+member whose frame moves relative to the viewpoint's and that has no world
+floor is not judged on ``ground`` (a stage floor does not stay under it):
+said once as ``info``.
 
 >>> SUPPORT.name, SUPPORT.order, SUPPORT.term is None
 ('support', 252.0, True)
@@ -118,6 +124,17 @@ def _declares_support(shot: Any, stores: Any) -> bool:
 
 
 def _has_floor(shot: Any) -> bool:
+    """Whether the shot has a floor: its own (``solve.ground``), or the world's
+    under one of its entities (``overrides.ground`` on a shot lowered from a
+    world, an#519)."""
+    from an.ir.world import world_ground_mark
+
+    if shot.solve is not None and shot.solve.ground is not None:
+        return True
+    return any(world_ground_mark(shot, e) is not None for e in shot.entities)
+
+
+def _has_level_floor(shot: Any) -> bool:
     return shot.solve is not None and shot.solve.ground is not None
 
 
@@ -133,7 +150,10 @@ def _flying(entity: Any, t: float, duration: float) -> bool:
 
 def _surface_text(ref: str, state: Any) -> str:
     if ref == "ground":
-        return f"`ground` (y {state.surface[0][1]:g})"
+        y = state.surface[0][1]
+        if state.world_floor:
+            return f"`ground` (the world's floor under it, y {y:.1f})"
+        return f"`ground` (y {y:g})"
     return f"`{ref}`"
 
 
@@ -235,15 +255,26 @@ def _message(kind: str, s: Any, *, a: float, b: float, tol: float) -> str:
     )
     if kind == "penetration":
         contact = s.deepest.name if s.deepest is not None else "contact"
+        fix = (
+            f"Raise `{s.entity}` (its world `at` y onto `world.ground`, or the tween "
+            f"on `{s.entity}:at_y`), or lower the world's floor (`world: {{ground: …}}`)"
+            if s.world_floor
+            else f"Raise `{s.entity}` (its `stage.at` y or the tween on `{s.entity}:y`), "
+            "or lower the floor (`solve: {ground: …}`)"
+        )
         return (
             f"`{s.entity}`'s `{contact}` is {gap:.1f} px into {surface} {when} {within}. "
-            f"Raise `{s.entity}` (its `stage.at` y or the tween on `{s.entity}:y`), or "
-            f"lower the floor (`solve: {{ground: …}}`).{box}"
+            f"{fix}.{box}"
         )
+    put = (
+        f"its world `at` y onto `world.ground`, or the tween on `{s.entity}:at_y`"
+        if s.world_floor
+        else f"`overrides: {{held_by: {s.surface_ref}}}` lays it there"
+    )
     return (
         f"`{s.entity}` floats {gap:.1f} px above {surface} {when} {within}: nothing it "
-        f"stands on reaches it. Put it down (`overrides: {{held_by: {s.surface_ref}}}` "
-        f"lays it there), or `unjoin` the support `{s.joint}` while it is off it.{box}"
+        f"stands on reaches it. Put it down ({put}), or `unjoin` the support "
+        f"`{s.joint}` while it is off it.{box}"
     )
 
 
@@ -275,9 +306,13 @@ def check_support(ctx: Any) -> None:
         return
     for where, message in problems:
         ctx.report.add("error", f"{ctx.path}/{where}", message)
-    if not _has_floor(shot):
+    if not _has_level_floor(shot):
         on_ground = sorted(
-            {s.entity for s in states if not s.inferred and s.surface_ref == "ground"}
+            {
+                s.entity
+                for s in states
+                if not s.inferred and s.surface_ref == "ground" and not s.world_floor
+            }
         )
         if on_ground:
             ctx.report.add(
@@ -521,6 +556,7 @@ def check_skate(ctx: Any) -> None:
         (s.where, s.entity)
         for s in states
         if s.surface_ref == GROUND_SURFACE
+        and not s.world_floor
         and s.entity in moving
         and any(c.limb for c in s.contacts)
     }
@@ -529,9 +565,9 @@ def check_skate(ctx: Any) -> None:
             "info",
             f"{ctx.path}/{where}",
             f"`{eid}`'s feet are not checked for skate on `ground`: the world carries "
-            "it in a frame that moves relative to the viewpoint, so the stage's floor "
-            "does not stay under it (`World.ground`, an#519 PR 4, will measure it "
-            "in its own frame).",
+            "it in a frame that moves relative to the viewpoint, so a stage floor "
+            "does not stay under it. Declare the world's floor (`world: {ground: y}`, "
+            "and no `solve.ground` on the shot) to measure it in its own frame.",
         )
     states = [s for s in states if (s.where, s.entity) not in gated]
     for severity, where, message in skate_findings(

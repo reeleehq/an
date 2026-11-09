@@ -1263,11 +1263,16 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
     the carrier, and the floor does not drop with its arm. A gesture reads it,
     as it reads a surface, as it is at contact (``g.kc``, an#565): "below the
     hand" is where the hand starts (``g.k0``), on the support where it is when
-    the item touches it."""
+    the item touches it. In a world that declares a ``ground`` (an#519), the
+    entity's floor is the world's under it at frame ``k``
+    (``overrides.ground``), before its stance."""
     if ctx.ground is not None:
         return ctx.ground
     if entity is None:
         return None
+    world_floor = _world_floor_y(ctx, entity, k)
+    if world_floor is not None:
+        return world_floor
     floor = ctx.floor_run if ctx.floor_run is not None else run
     if entity in ctx.stands:  # where it stands, as the gesture-free solve has it
         return _apply(floor.evaluated[k][entity], (0.0, 0.0))[1]
@@ -1285,6 +1290,22 @@ def _ground_at(ctx: _Ctx, run: Run, k: int, entity: str | None) -> float | None:
         y = _lowest(m, ink_points(ctx.doc, puppet.nodes[p], ctx.mall))
         lowest = y if lowest is None else max(lowest, y)
     return lowest
+
+
+def _world_floor_y(ctx: _Ctx, entity: str, k: int) -> float | None:
+    """The stage ``y`` of the world's floor under ``entity`` at frame ``k``
+    (``overrides.ground``, :func:`an.ir.world.world_ground_at`: written by the
+    world's lowering when it declares ``ground``, an#519, and read only on a
+    shot lowered from a world: :func:`an.ir.world.world_ground_mark`), or
+    ``None``."""
+    from an.ir.world import world_ground_at, world_ground_mark
+
+    found = next((e for e in ctx.shot.entities if e.id == entity), None)
+    spec = world_ground_mark(ctx.shot, found)
+    if spec is None:
+        return None
+    floor = world_ground_at(spec, ctx.times[k])
+    return floor.at[1] if floor is not None else None
 
 
 def _standing_entities(ctx: _Ctx, base: Run, *, vocab: Any = None) -> frozenset[str]:

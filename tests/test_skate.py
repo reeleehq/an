@@ -426,9 +426,10 @@ def test_ground_under_a_moving_world_frame_is_not_judged(tmp_path, monkeypatch):
     assert frame_moving_members(_framed(project, camera_frame="world"), 0) == set()
     # the camera rides the dolly: the walker standing still in the world slides
     # across the stage's floor, which is not its floor: said once, not judged
+    # (a world with `ground` measures it on its own floor: tests/test_world_ground.py)
     [(severity, where, message)] = _lint(project, scene_ir=tracking)
     assert (severity, where) == ("info", "timeline/0/joints/0")
-    assert "an#519 PR 4" in message
+    assert "`world: {ground: y}`" in message
     # the gate is what stands between it and a skate error
     monkeypatch.setattr(world_module, "frame_moving_members", lambda *a, **k: set())
     assert [f[0] for f in _lint(project, scene_ir=tracking)] == ["error"]
