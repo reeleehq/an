@@ -2196,6 +2196,34 @@ def test_an_attachment_keeps_its_built_side_of_its_host(tmp_path, listed_before)
     assert len(_beside(doc, "hat", "right", side=side)) > 1  # `left` did pass the pair
 
 
+@pytest.mark.parametrize("listed_before", [True, False])
+def test_an_attachment_of_an_after_rider_is_painted_on_its_side(tmp_path, listed_before):
+    """an#692: ``right`` is placed after ``left`` (it rides ``left``'s keys),
+    and ``hat``, attached to ``right``, is painted on its built side of
+    ``right`` at every frame while ``left`` walks: listed before ``right``
+    just behind it (it used to land after the pair), listed after it just in
+    front."""
+    from an.ir.compose import tween
+    from an.stage.compile import compile_shot
+
+    walk = tween("left", "at_z", to=5.0, duration=3.0, from_=1.0, easing="linear")
+    scene = _two_lamps_scene(
+        timeline=[Shot(id="s1", duration=3.0, viewpoint="two", actions=[walk])]
+    )
+    left, right = scene.world.members
+    right = right.model_copy(update={"after": "left"})
+    hat = _lamp("hat", attached=Attachment(to="right"))
+    scene.world.members = [left, hat, right] if listed_before else [left, right, hat]
+    shot = lower_world(scene, extents=EXTENTS).scene.timeline[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        doc = compile_shot(shot, _project(tmp_path).mall)
+    side = RIDER_BEHIND if listed_before else RIDER_IN_FRONT
+    _beside(doc, "hat", "right", side=side)
+    expected = ["left", "hat", "right"] if listed_before else ["left", "right", "hat"]
+    assert [n for n in _painted(doc, 1.5) if n in expected] == expected
+
+
 def test_two_attachments_on_one_side_keep_their_built_order(tmp_path):
     """an#678 review: ``zeta`` then ``alpha``, both attached to the walking
     ``right`` and listed after it, are painted ``right, zeta, alpha`` at every

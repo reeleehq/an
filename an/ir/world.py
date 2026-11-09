@@ -1762,6 +1762,38 @@ def _attachment_riders(
     return out
 
 
+def _placed_beside_after_riders(
+    ordered: list[tuple[Any, AssetRef, int | None]],
+    riders: Mapping[str, _Rider],
+    *,
+    entity_ids: Collection[str],
+) -> list[tuple[Any, AssetRef, int | None]]:
+    """``ordered`` with each attachment whose host the author placed ``after``
+    another entity placed there too, on its side of the host (an#692): the
+    compiler draws an ``after`` entity right after its anchor, wherever it was
+    listed, so an attachment left at its own place would be drawn apart from
+    its host. Behind the host it is placed after the host's anchor, listed
+    before the host (riders of one anchor keep the entities' order); in front,
+    after the host itself. One that names its own ``after`` keeps it.
+    """
+    built = {e.id: e for _, e, _ in ordered}
+
+    def anchor_of(eid: str) -> str | None:
+        stage = built[eid].stage
+        return stage.after if stage is not None and stage.after in entity_ids else None
+
+    out = []
+    for key, e, j in ordered:
+        r = riders.get(e.id)
+        anchor = anchor_of(r.host) if r is not None and r.host in built else None
+        if anchor is not None and (e.stage is None or e.stage.after is None):
+            after = anchor if r.side == RIDER_BEHIND else r.host
+            stage = (e.stage or StagePlacement()).model_copy(update={"after": after})
+            e = e.model_copy(update={"stage": stage})
+        out.append((key, e, j))
+    return out
+
+
 def _with_paint_keys(
     ordered: list[tuple[tuple[float, float, float], AssetRef, int | None]],
     pass_keys: Mapping[str, Sequence[tuple[float, tuple[float, float, float]]]],
@@ -1785,8 +1817,10 @@ def _with_paint_keys(
     :func:`_attachment_riders`) rides its host the same way, on the side of
     it the built order gave it (:data:`an.base.RIDER_BEHIND` when built before
     it), and is built right beside it: painted with its host at every frame,
-    however the host or anything around it moves (an#678). Not yet when the
-    host itself rides another entity's keys (an#692)."""
+    however the host or anything around it moves (an#678), also when the host
+    itself rides another entity's keys: every rider is sorted by its opening
+    rider key, so an attachment of an ``after`` rider sits on its side of it
+    (an#692)."""
     if not any(len(ks) > 1 for ks in pass_keys.values()):
         return ordered
     after = {
@@ -1803,6 +1837,7 @@ def _with_paint_keys(
         for key, e, _ in ordered
         if e.id not in hosts
     }
+    riders = set(hosts)
     riding = True
     while riding:  # a chain of `after`s rides from its first keyed entity
         riding = False
@@ -1815,7 +1850,7 @@ def _with_paint_keys(
                 riding = True
     built = [
         (
-            tuple(keys[e.id][0][1]) if e.id in attached and e.id in keys else key,
+            tuple(keys[e.id][0][1]) if e.id in riders and e.id in keys else key,
             e.model_copy(
                 update={
                     "overrides": {
@@ -1830,7 +1865,9 @@ def _with_paint_keys(
         )
         for key, e, j in ordered
     ]
-    built.sort(key=lambda item: paint_key_rank(item[0]))  # an attachment by its host
+    # A rider (an attachment, an `after` member) by its host's opening key, so
+    # a rider's own attachments land on their side of it (an#692).
+    built.sort(key=lambda item: paint_key_rank(item[0]))
     return built
 
 
@@ -3107,6 +3144,7 @@ def _lower_shot(
         members=members.keys(),
         attached=riders,
     )
+    ordered = _placed_beside_after_riders(ordered, riders, entity_ids=entity_ids)
     if sightings:
         _depth_order_notes(
             [e for _, e, _ in ordered],

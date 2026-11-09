@@ -1,0 +1,1 @@
+- **Attachments of `after` riders** (an#692): a member attached to a host that is placed `after` another entity is painted on its own side of the host at every frame: every rider is sorted by its opening rider key, and the attachment is placed `after` the host's anchor (behind) or the host (in front), since the compiler draws an `after` entity right after its anchor.
