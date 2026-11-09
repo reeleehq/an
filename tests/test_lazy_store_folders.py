@@ -16,9 +16,8 @@ def _with_parents(paths) -> set[str]:
     }
 
 
-#: The folders lacing's two stores (``ArtifactStore.from_directory``) still make
-#: on construction. When reeleehq/lacing#155 lands, the first test fails: delete
-#: this and expect an empty folder.
+#: The folders lacing's two stores (``ArtifactStore.from_directory``) lay out
+#: under ``ensure=True`` (``create=``, reeleehq/lacing#155), and only then.
 _LACING_FOLDERS = _with_parents(
     f"artifacts/{store}/{sub}"
     for store in ("shot_cache", "transcripts")
@@ -57,13 +56,13 @@ def _made(root: Path) -> set[str]:
 
 def test_a_mall_over_an_empty_folder_creates_nothing_and_reads_empty(tmp_path):
     mall = build_project_mall(tmp_path)
-    assert _made(tmp_path) == _LACING_FOLDERS  # lacing#155: then, nothing at all
+    assert _made(tmp_path) == set()
     for name, store in mall.items():
         assert list(store) == [], name
         assert len(store) == 0, name
     for name in ("props", "voices", "audio", "characters"):
         assert mall[name].interrupted_writes() == [], name
-    assert _made(tmp_path) == _LACING_FOLDERS
+    assert _made(tmp_path) == set()
 
 
 def test_reads_through_a_missing_key_create_nothing(tmp_path):
@@ -84,11 +83,24 @@ def test_reads_through_a_missing_key_create_nothing(tmp_path):
     assert _made(tmp_path) == before | {"scene.md"}
 
 
+def test_the_shot_cache_reads_its_usage_before_its_folders_exist(tmp_path):
+    from an.build.shot_cache import store_usage
+
+    assert store_usage(build_project_mall(tmp_path)["shot_cache"]) == (0, 0)
+    assert _made(tmp_path) == set()
+
+
 def test_the_first_write_makes_the_folder(tmp_path):
+    from an.stores.transcripts import linked_transcript, record_transcript
+
     mall = build_project_mall(tmp_path)
+    record_transcript(
+        mall["transcripts"], "take1", "1\n00:00:00,000 --> 00:00:01,000\nHi.\n"
+    )
     mall["voices"]["jerry"] = {"provider": "offline"}
     mall["props"]["lamp"] = {"name": "lamp"}
     mall["shots"]["s1"] = b"film"
+    mall["shot_cache"].put_blob_stream(iter([b"frame"]))
     mall["decisions"].append(kind="test", body={})
     mall["sounds"].write_audio("boom", b"RIFF....")
     with mall["styles"].locked("noir"):
@@ -99,8 +111,16 @@ def test_the_first_write_makes_the_folder(tmp_path):
         "assets/sounds/boom",
         "assets/styles",
         "artifacts/shots",
+        "artifacts/shot_cache/blobs",
+        "artifacts/transcripts/catalog",
+        "artifacts/transcripts/blobs",
         ".an",
     } <= _made(tmp_path)
+    reread = build_project_mall(tmp_path)["transcripts"]
+    assert (
+        linked_transcript("artifact:transcripts/take1", {"transcripts": reread}).fmt
+        == "srt"
+    )
     assert "assets/characters" not in _made(tmp_path)
 
 

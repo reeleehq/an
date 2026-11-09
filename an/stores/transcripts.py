@@ -82,11 +82,15 @@ class LinkedTranscript:
     ref: str
 
 
-def transcripts_store(root: str | Path) -> Any:
-    """A filesystem transcripts store under ``root`` (lacing's layout)."""
+def transcripts_store(root: str | Path, *, ensure: bool = False) -> Any:
+    """A filesystem transcripts store under ``root`` (lacing's layout).
+
+    Its folders are made on the first write, a missing one reading as empty
+    (an#696); ``ensure=True`` lays them out at once (``an init``).
+    """
     from lacing import ArtifactStore
 
-    return ArtifactStore.from_directory(root)
+    return ArtifactStore.from_directory(root, create=ensure)
 
 
 def in_memory_transcripts_store() -> Any:
