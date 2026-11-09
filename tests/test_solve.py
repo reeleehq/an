@@ -386,6 +386,39 @@ def test_a_rejoin_across_a_gap_is_a_snap(tmp_path):
     assert finding[0] == "warning" and "rejoined at 0.62 s" in finding[1]
 
 
+def test_a_small_rejoin_is_blended_shut_and_not_flagged(tmp_path):
+    """an#636: let go for a frame, the hand drifts under 2 px from the grip;
+    rejoined, it is closed over a few frames (each nearer than the last)
+    rather than snapped, and joint_violation says nothing about those frames."""
+    from an.kinematics.solver import DFLT_REJOIN_BLEND_FRAMES
+
+    project = _project(tmp_path)
+    shot = _shot(
+        project,
+        duration=1.0,
+        joints=[
+            {"type": "pin", "a": "puppet/fore@hand", "b": "wheel@grip", "name": "grip"}
+        ],
+        solve={"gravity": "down", "mode": "dynamic"},
+        actions=[unjoin("grip", at=0.1), join("grip", at=0.15)],
+    )
+    doc = _compile(project, shot)
+    (snap,) = doc.meta.extensions["solve"]["snaps"]
+    assert 0.25 < snap["gap"] <= 2.0, snap
+    k0 = round(snap["at"] * 24)
+    gaps = [math.dist(*_hand_and_grip(doc, (k0 + i) / 24)) for i in range(DFLT_REJOIN_BLEND_FRAMES)]
+    assert all(a > b for a, b in zip(gaps, gaps[1:])) and gaps[0] > 0.25, gaps
+    assert gaps[-1] < 0.25, gaps
+    assert _lint(project, shot) == []
+
+
+def test_the_lint_and_the_blend_share_one_width():
+    from an.kinematics.solver import DFLT_REJOIN_BLEND_PX
+    from an.verify.joints import REJOIN_TOLERANCE_PX
+
+    assert REJOIN_TOLERANCE_PX == DFLT_REJOIN_BLEND_PX
+
+
 def test_the_solve_honours_the_step_grid(tmp_path):
     project = _project(tmp_path)
     doc = _compile(project, step_hz=12.0)

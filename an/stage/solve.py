@@ -1516,6 +1516,7 @@ def run_solve(
     from an.kinematics.solver import (
         DFLT_REGRIP_SPEED,
         Regrip,
+        RejoinBlends,
         regrip_strength_by_mass,
         solve_regripping,
     )
@@ -1545,6 +1546,7 @@ def run_solve(
     joined_before: list[bool] | None = None
     frames_inputs: list[Any] = []
     regrip = Regrip()
+    blending = RejoinBlends()
     for k, t in enumerate(times):
         pose = evaluate_timeline(timeline, t)
         world = _world_matrices(doc, [*order, *extra_paths], pose, nodes)
@@ -1687,9 +1689,14 @@ def run_solve(
             # A joint the AUTHOR joins again (a `join`, a verb's span opening),
             # not one a conflict gave up for a frame: that one is refused, and
             # unreachable_pin or joint_violation says so.
-            for j, (was, now) in enumerate(zip(joined_before, joined_now)):
-                if now and not was:
-                    run.snaps.append((k, j, _gap(current, joints[j])))
+            rejoined = [
+                (j, _gap(current, joints[j]))
+                for j, (was, now) in enumerate(zip(joined_before, joined_now))
+                if now and not was
+            ]
+            run.snaps += [(k, j, gap) for j, gap in rejoined]
+            # One within a blend's width closes over a few frames (an#636).
+            joints = blending.frame(k, joints, rejoined)
         options = dict(
             targets=targets or None,
             gravity=settings.gravity,

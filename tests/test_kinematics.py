@@ -803,3 +803,34 @@ def test_a_pull_never_drags_a_hinge_past_its_range():
     assert r.limit_violations[-1] == () and r.unsatisfied[-1] == ()  # nor apart
     posed = solve([shoulder, upper, fore], joints, forces=[pull])  # pose mode too
     assert posed.limit_violations == () and posed.unsatisfied == ()
+
+
+def test_a_small_rejoin_closes_over_a_few_frames_not_in_one():
+    """an#636: a pin rejoined under 2 apart (a part let go for one frame)
+    closes by an equal share each frame and holds from the last blend frame;
+    ``rejoin_blend_frames=1`` snaps it shut as before. A wider rejoin snaps."""
+    from an.kinematics.solver import DFLT_REJOIN_BLEND_FRAMES, _gap
+
+    peg = Body("peg", width=2.0, height=2.0, fixed=True)
+    part = Body("part", y=10.0, width=4.0, height=20.0, origin=(0.5, 0.0))
+    joined = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5))]
+    loose = [Pin(Point("part", 0.5, 0.0), Point("peg", 0.5, 0.5), joined=False)]
+
+    def gaps(**kw):
+        out = []
+        for n in range(4, 4 + DFLT_REJOIN_BLEND_FRAMES + 1):  # frames 3 (the rejoin) on
+            r = solve_frames([peg, part], joined, frames=n, dt=1 / 24, gravity=(0.0, 980.0),
+                             joints_at=lambda k: loose if k == 2 else joined, **kw)
+            out.append(_gap(list(r.final), joined[0]))
+        return out, r.snaps
+
+    blended, snaps = gaps()
+    (k, j, gap), = snaps
+    assert (k, j) == (3, 0) and 0.5 < gap <= 2.0
+    n = DFLT_REJOIN_BLEND_FRAMES
+    assert all(a > b for a, b in zip(blended, blended[1:n]))  # closing
+    assert all(g <= gap * (1 - (i + 1) / n) + 1e-6 for i, g in enumerate(blended[: n - 1]))
+    assert blended[0] > 0.25  # not snapped
+    assert max(blended[n - 1 :]) < 1e-3  # held from then on
+    snapped, _ = gaps(rejoin_blend_frames=1)
+    assert max(snapped) < 1e-3

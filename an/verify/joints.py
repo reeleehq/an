@@ -46,7 +46,9 @@ JOINT_TOLERANCE_PX: float = 0.25
 #: How far past its range a hinge may read (degrees): float noise, not a pose.
 LIMIT_TOLERANCE_DEG: float = 0.1
 #: A rejoin closing a gap wider than this in one frame is a visible snap (owner
-#: decision 9 on an#497: a lint at 2 px, a blend below it).
+#: decision 9 on an#497: a lint at 2 px, a blend below it). The solver's blend
+#: width, :data:`an.kinematics.solver.DFLT_REJOIN_BLEND_PX` (an#636): spelled
+#: here so the checks load without the solver, and held equal by a test.
 REJOIN_TOLERANCE_PX: float = 2.0
 
 
@@ -156,6 +158,27 @@ UNREACHABLE_PIN = Constraint(
 # -----------------------------------------------------------------------------
 
 
+def _blending_frames(snaps: Any, times: Any) -> set[tuple[int, int]]:
+    """``(joint, frame)`` of every frame a rejoin within the blend's width is
+    being closed over (an#636): open on purpose, not a joint that fails.
+
+    >>> sorted(_blending_frames([{"joint": 0, "at": 0.1, "gap": 1.5}], [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]))
+    [(0, 1), (0, 2), (0, 3)]
+    """
+    from an.kinematics.solver import DFLT_REJOIN_BLEND_FRAMES, DFLT_REJOIN_BLEND_PX
+
+    out = set()
+    for snap in snaps:
+        if snap["gap"] > DFLT_REJOIN_BLEND_PX:
+            continue
+        start = min(range(len(times)), key=lambda k: abs(times[k] - snap["at"]))
+        out |= {
+            (snap["joint"], k)
+            for k in range(start, start + DFLT_REJOIN_BLEND_FRAMES - 1)
+        }
+    return out
+
+
 def check_joint_violation(ctx: Any) -> None:
     """Every joined joint holds at every frame of the compiled shot."""
     if not _declares(ctx):
@@ -185,6 +208,7 @@ def check_joint_violation(ctx: Any) -> None:
         for k, t in enumerate(times)
         if a - 0.005 <= t <= b + 0.005
     }
+    refused_frames |= _blending_frames(report.get("snaps") or [], times)
     for j, row in enumerate(puppet.rows):
         broken = [
             k
