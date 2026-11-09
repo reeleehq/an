@@ -71,7 +71,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing; the first constraint of its group. The walk presets' contact instants become its input.
 
-**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. A body's surface (an#536): `place onto: <body>@surface[@f]` and `held_by:` the same lay an item on a member's supporting segment (its `surface_l`/`surface_r` bones, else the top of its ink) by the same derivation, the member then holding it; `floating_item` measures against those surfaces too. Characters' feet, a declared `support` relation and scene space's ground are missing.
+**Status.** Partial (an#502): a stage shot's floor line is `solve: {ground: y}`; an item `overrides: {held_by: ground}`, put down by `place`, or landing after a `release` rests with the lowest point of its painted pixels (the texture's alpha hull) on it, by derivation; the `floating_item` check warns when an item a hand takes hovers above it or sinks into it. A body's surface (an#536): `place onto: <body>@surface[@f]` and `held_by:` the same lay an item on a member's supporting segment (its `surface_l`/`surface_r` bones, else the top of its ink) by the same derivation, the member then holding it; `floating_item` measures against those surfaces too. Characters' feet, a declared `support` relation and scene space's ground are missing; their specification (a `support` joint type, the `EntityKind.contacts` seam, one surface module, the `support` check, `World.ground`, the PR plan) is `misc/docs/support_contacts_spec.md` (an#519 rank 2).
 
 #### A2. Solidity: non-penetration
 
@@ -199,7 +199,7 @@ Tolerances below are named, never literal: `SUPPORT_TOLERANCE`, `SKATE_TOLERANCE
 
 **Subsumes.** Nothing existing as a lint; `cutan.impacts`' ground truth (frame clock, bracketing frames) is its fixture generator, and cutan#98's "checking during motion" is the same loop over A1 and A4 declarations.
 
-**Status.** Missing as lints; the ground-truth side exists for test fixtures.
+**Status.** Missing as lints; the ground-truth side exists for test fixtures. Specified in `misc/docs/support_contacts_spec.md` (an#519 rank 2): the `skate` check over the contacts a `support` joint holds (§5.2 there), impacts as a follow-up on the same `supports_at`.
 
 #### B4. Gravity and settling
 
