@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=76620681"></script>
+    <script src="../../../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -867,7 +867,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">tree</span> <span class="k">as</span> <span class="n">stage_tree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text_layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_text_subtree</span><span class="p">,</span> <span class="n">svg_data_uri</span><span class="p">,</span> <span class="n">text_document</span>  <span class="c1"># noqa: F401  (re-exported)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_base_dir</span><span class="p">,</span> <span class="n">text_entity_problem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_base_dir</span><span class="p">,</span> <span class="n">halo_engine_problem</span><span class="p">,</span> <span class="n">text_entity_problem</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.paint</span><span class="w"> </span><span class="kn">import</span> <span class="n">Gradient</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">STYLE_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">StylePack</span><span class="p">,</span> <span class="n">resolve_palette</span><span class="p">,</span> <span class="n">surface_for</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.surface</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -3081,6 +3081,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">fonts</span><span class="o">=</span><span class="n">build</span><span class="o">.</span><span class="n">fonts</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="n">build</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">build</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+            <span class="n">renderer</span><span class="o">=</span><span class="n">build</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="p">(</span><span class="n">build</span><span class="o">.</span><span class="n">overlay</span> <span class="k">if</span> <span class="n">layer</span> <span class="o">==</span> <span class="s2">"overlay"</span> <span class="k">else</span> <span class="n">build</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
         <span class="k">return</span>
@@ -4116,11 +4117,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fonts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""A text block (an#155): its node, and the layer it belongs to.</span>
 
 <span class="sd">    Every refusal of the typesetting path — a font that is not a file, a</span>
-<span class="sd">    glyph the face lacks, an override the schema does not know — becomes a</span>
+<span class="sd">    glyph the face lacks, an override the schema does not know, a ``halo``</span>
+<span class="sd">    the shot's ``renderer`` cannot draw (an#701) — becomes a</span>
 <span class="sd">    :class:`CutoutCompileError` naming the entity; nothing falls back.</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
@@ -4141,6 +4144,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">problem</span> <span class="o">=</span> <span class="n">text_entity_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">halo_engine_problem</span><span class="p">(</span><span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">renderer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">fonts</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"two text blocks in shot share the id </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">; a unit path "</span>

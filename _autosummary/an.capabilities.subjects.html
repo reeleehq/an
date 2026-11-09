@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=76620681"></script>
+    <script src="../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -689,6 +689,9 @@ values). No subprocess, no import of the probed package.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.capabilities.subjects.ENV_MODULES" title="an.capabilities.subjects.ENV_MODULES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ENV_MODULES</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">capability:</span> <span class="pre">(python</span> <span class="pre">modules,</span> <span class="pre">remedy)</span></code> — afforded when EVERY module is importable (an import spec only: the module is never imported to find out).</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.capabilities.subjects.SVG_FILTER_PRIMITIVES" title="an.capabilities.subjects.SVG_FILTER_PRIMITIVES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SVG_FILTER_PRIMITIVES</span></code></a></p></td>
+<td><p>The SVG filter primitives an engine rasterises in an SVG texture (an#701), the keys of <code class="docutils literal notranslate"><span class="pre">engine.svg_filter</span></code>: a text halo is <code class="docutils literal notranslate"><span class="pre">feMorphology</span></code> + <code class="docutils literal notranslate"><span class="pre">feGaussianBlur</span></code> + <code class="docutils literal notranslate"><span class="pre">feComponentTransfer</span></code> + <code class="docutils literal notranslate"><span class="pre">feFlood</span></code> + <code class="docutils literal notranslate"><span class="pre">feComposite</span></code> in each unit's texture.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -706,9 +709,10 @@ values). No subprocess, no import of the probed package.</p></li>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.capabilities.subjects.ENGINE_ANALYSER_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.capabilities.subjects.</span></span><span class="sig-name descname"><span class="pre">ENGINE_ANALYSER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'3'</span></span><a class="headerlink" href="#an.capabilities.subjects.ENGINE_ANALYSER_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.capabilities.subjects.</span></span><span class="sig-name descname"><span class="pre">ENGINE_ANALYSER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'4'</span></span><a class="headerlink" href="#an.capabilities.subjects.ENGINE_ANALYSER_VERSION" title="Link to this definition">#</a></dt>
 <dd><p><code class="code docutils literal notranslate"><span class="pre">engine.measure_duration</span></code> joined the derivation (an#279).
-“3”: <code class="code docutils literal notranslate"><span class="pre">engine.paint_order</span></code> joined it (an#430).</p>
+“3”: <code class="code docutils literal notranslate"><span class="pre">engine.paint_order</span></code> joined it (an#430).
+“4”: <code class="code docutils literal notranslate"><span class="pre">engine.svg_filter</span></code> joined it (an#701).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>”2”</p>
@@ -754,6 +758,19 @@ importable (an import spec only: the module is never imported to find out).</p>
 <dt class="sig sig-object py" id="an.capabilities.subjects.ENV_TOOLS">
 <span class="sig-prename descclassname"><span class="pre">an.capabilities.subjects.</span></span><span class="sig-name descname"><span class="pre">ENV_TOOLS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'env.ffmpeg':</span> <span class="pre">(('ffmpeg',),</span> <span class="pre">'install</span> <span class="pre">ffmpeg</span> <span class="pre">(`brew</span> <span class="pre">install</span> <span class="pre">ffmpeg`</span> <span class="pre">on</span> <span class="pre">macOS,</span> <span class="pre">`apt</span> <span class="pre">install</span> <span class="pre">ffmpeg`</span> <span class="pre">on</span> <span class="pre">Debian)'),</span> <span class="pre">'env.latex':</span> <span class="pre">(('latex',</span> <span class="pre">'pdflatex',</span> <span class="pre">'xelatex'),</span> <span class="pre">'install</span> <span class="pre">a</span> <span class="pre">TeX</span> <span class="pre">distribution</span> <span class="pre">(MacTeX</span> <span class="pre">/</span> <span class="pre">TeX</span> <span class="pre">Live)</span> <span class="pre">so</span> <span class="pre">`latex`</span> <span class="pre">is</span> <span class="pre">on</span> <span class="pre">PATH'),</span> <span class="pre">'env.node':</span> <span class="pre">(('node',),</span> <span class="pre">'install</span> <span class="pre">Node.js</span> <span class="pre">(`brew</span> <span class="pre">install</span> <span class="pre">node`)'),</span> <span class="pre">'env.rhubarb':</span> <span class="pre">(('rhubarb',),</span> <span class="pre">'install</span> <span class="pre">Rhubarb</span> <span class="pre">Lip</span> <span class="pre">Sync</span> <span class="pre">(`brew</span> <span class="pre">install</span> <span class="pre">rhubarb-lipsync`)')}</span></span><a class="headerlink" href="#an.capabilities.subjects.ENV_TOOLS" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">capability:</span> <span class="pre">(executables,</span> <span class="pre">remedy)</span></code> — afforded when any executable is on PATH.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.capabilities.subjects.SVG_FILTER_PRIMITIVES">
+<span class="sig-prename descclassname"><span class="pre">an.capabilities.subjects.</span></span><span class="sig-name descname"><span class="pre">SVG_FILTER_PRIMITIVES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('feBlend',</span> <span class="pre">'feColorMatrix',</span> <span class="pre">'feComponentTransfer',</span> <span class="pre">'feComposite',</span> <span class="pre">'feConvolveMatrix',</span> <span class="pre">'feDiffuseLighting',</span> <span class="pre">'feDisplacementMap',</span> <span class="pre">'feDropShadow',</span> <span class="pre">'feFlood',</span> <span class="pre">'feGaussianBlur',</span> <span class="pre">'feImage',</span> <span class="pre">'feMerge',</span> <span class="pre">'feMorphology',</span> <span class="pre">'feOffset',</span> <span class="pre">'feSpecularLighting',</span> <span class="pre">'feTile',</span> <span class="pre">'feTurbulence')</span></span><a class="headerlink" href="#an.capabilities.subjects.SVG_FILTER_PRIMITIVES" title="Link to this definition">#</a></dt>
+<dd><p>The SVG filter primitives an engine rasterises in an SVG texture (an#701),
+the keys of <code class="docutils literal notranslate"><span class="pre">engine.svg_filter</span></code>: a text halo is <code class="docutils literal notranslate"><span class="pre">feMorphology</span></code> +
+<code class="docutils literal notranslate"><span class="pre">feGaussianBlur</span></code> + <code class="docutils literal notranslate"><span class="pre">feComponentTransfer</span></code> + <code class="docutils literal notranslate"><span class="pre">feFlood</span></code> +
+<code class="docutils literal notranslate"><span class="pre">feComposite</span></code> in each unit’s texture. An engine declares the ones it draws
+as <code class="docutils literal notranslate"><span class="pre">svg_filters</span></code>, the way it declares <code class="docutils literal notranslate"><span class="pre">paint_orders</span></code>; an engine that
+rasterised SVG without them would draw the glyphs and drop the glow, so the
+stage compiler refuses a halo it lacks, naming it. This is the Filter
+Effects Module’s whole list, which a browser-backed engine draws.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -843,6 +860,7 @@ importable (an import spec only: the module is never imported to find out).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.capabilities.subjects.ENV_KEYS"><code class="docutils literal notranslate"><span class="pre">ENV_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.capabilities.subjects.ENV_MODULES"><code class="docutils literal notranslate"><span class="pre">ENV_MODULES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.capabilities.subjects.ENV_TOOLS"><code class="docutils literal notranslate"><span class="pre">ENV_TOOLS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.capabilities.subjects.SVG_FILTER_PRIMITIVES"><code class="docutils literal notranslate"><span class="pre">SVG_FILTER_PRIMITIVES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.capabilities.subjects.engine_affordances"><code class="docutils literal notranslate"><span class="pre">engine_affordances()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.capabilities.subjects.environment_affordances"><code class="docutils literal notranslate"><span class="pre">environment_affordances()</span></code></a></li>
 </ul>

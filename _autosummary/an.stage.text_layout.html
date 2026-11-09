@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=76620681"></script>
+    <script src="../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -680,6 +680,9 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.INLINE_SRC_PREFIX" title="an.stage.text_layout.INLINE_SRC_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INLINE_SRC_PREFIX</span></code></a></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">src</span></code> scheme of a texture that carries its bytes inline.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.HALO_FILTER_ID" title="an.stage.text_layout.HALO_FILTER_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HALO_FILTER_ID</span></code></a></p></td>
+<td><p>The id of a unit texture's halo filter.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -689,21 +692,31 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.build_text_subtree" title="an.stage.text_layout.build_text_subtree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_text_subtree</span></code></a>(entity, document, *, ...)</p></td>
 <td><p>The block's node and its unit children, plus what it resolved to.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.svg_data_uri" title="an.stage.text_layout.svg_data_uri"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_data_uri</span></code></a>(svg)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.halo_filter" title="an.stage.text_layout.halo_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo_filter</span></code></a>(halo, box)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">&lt;filter&gt;</span></code> that turns a unit's glyphs into its halo (an#701): tituli's <code class="docutils literal notranslate"><span class="pre">glow</span></code> as SVG filter primitives (<code class="xref py py-data docutils literal notranslate"><span class="pre">HALO_FILTER_PRIMITIVES</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.svg_data_uri" title="an.stage.text_layout.svg_data_uri"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_data_uri</span></code></a>(svg)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">data:image/svg+xml;base64,…</span></code> — the form the vendored engine's SVG loader recognises by prefix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.text_document" title="an.stage.text_layout.text_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_document</span></code></a>(entity, props_store)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.text_document" title="an.stage.text_layout.text_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_document</span></code></a>(entity, props_store)</p></td>
 <td><p>The stored document behind a prop entity if it is a text block, else None.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.text_swap_declaration" title="an.stage.text_layout.text_swap_declaration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_swap_declaration</span></code></a>(entity, mall)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.text_swap_declaration" title="an.stage.text_layout.text_swap_declaration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text_swap_declaration</span></code></a>(entity, mall)</p></td>
 <td><p>The core <code class="docutils literal notranslate"><span class="pre">prop</span></code> kind's swap declaration (an#341): a text block with <code class="docutils literal notranslate"><span class="pre">texts</span></code> declares its <code class="docutils literal notranslate"><span class="pre">text</span></code> set, <code class="docutils literal notranslate"><span class="pre">{key:</span> <span class="pre">key}</span></code>; any other prop declares nothing (its built nodes' sets are its declaration).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.text_layout.unit_svg" title="an.stage.text_layout.unit_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_svg</span></code></a>(d, box, *, color[, stroke_width, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.text_layout.unit_svg" title="an.stage.text_layout.unit_svg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_svg</span></code></a>(d, box, *, color[, stroke_width, ...])</p></td>
 <td><p>One unit's texture: its contours in a viewBox equal to its frame-pixel box.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.stage.text_layout.HALO_FILTER_ID">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">HALO_FILTER_ID</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'halo'</span></span><a class="headerlink" href="#an.stage.text_layout.HALO_FILTER_ID" title="Link to this definition">#</a></dt>
+<dd><p>The id of a unit texture’s halo filter. Each texture is its own SVG
+document, so one fixed id never collides.</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.text_layout.INLINE_SRC_PREFIX">
 <span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">INLINE_SRC_PREFIX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'data:'</span></span><a class="headerlink" href="#an.stage.text_layout.INLINE_SRC_PREFIX" title="Link to this definition">#</a></dt>
@@ -739,6 +752,31 @@ pydantic’s <code class="code docutils literal notranslate"><span class="pre">V
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.stage.serialize.html#an.stage.serialize.NodeJSON" title="an.stage.serialize.NodeJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeJSON</span></code></a>, <a class="reference internal" href="an.stage.text.html#an.stage.text.TextDescriptor" title="an.stage.text.TextDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">TextDescriptor</span></code></a>, <a class="reference internal" href="an.stage.text.html#an.stage.text.TextLayout" title="an.stage.text.TextLayout"><code class="xref py py-class docutils literal notranslate"><span class="pre">TextLayout</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.text_layout.halo_filter">
+<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">halo_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">halo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text_layout.html#halo_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text_layout.halo_filter" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">&lt;filter&gt;</span></code> that turns a unit’s glyphs into its halo (an#701):
+tituli’s <code class="docutils literal notranslate"><span class="pre">glow</span></code> as SVG filter primitives (<code class="xref py py-data docutils literal notranslate"><span class="pre">HALO_FILTER_PRIMITIVES</span></code>).</p>
+<p>The glyphs’ alpha (<code class="docutils literal notranslate"><span class="pre">SourceAlpha</span></code>) is dilated by <code class="docutils literal notranslate"><span class="pre">spread</span></code> px
+(<code class="docutils literal notranslate"><span class="pre">feMorphology</span></code>), blurred with a standard deviation of <code class="docutils literal notranslate"><span class="pre">blur</span></code> px
+(<code class="docutils literal notranslate"><span class="pre">feGaussianBlur</span></code>), multiplied by <code class="docutils literal notranslate"><span class="pre">gain</span></code> and clipped to opaque
+(<code class="docutils literal notranslate"><span class="pre">feComponentTransfer</span></code>: a filter result is clamped to [0, 1]), and laid
+in the halo’s colour at its alpha (<code class="docutils literal notranslate"><span class="pre">feFlood</span></code> + <code class="docutils literal notranslate"><span class="pre">feComposite</span> <span class="pre">in</span></code>). The
+region is the unit’s whole box in user space, which already holds the
+glow’s reach; a zero <code class="docutils literal notranslate"><span class="pre">spread</span></code> or <code class="docutils literal notranslate"><span class="pre">blur</span></code> leaves its step out.
+Composited in sRGB, as tituli’s Pillow drawing is.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">halo_filter</span><span class="p">(</span><span class="n">HaloPaint</span><span class="p">(</span><span class="s2">"#111111"</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s2">"feMorphology"</span> <span class="ow">in</span> <span class="n">f</span><span class="p">,</span> <span class="s1">'stdDeviation="1.5"'</span> <span class="ow">in</span> <span class="n">f</span><span class="p">,</span> <span class="s1">'slope="2"'</span> <span class="ow">in</span> <span class="n">f</span>
+<span class="go">(False, True, True)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -789,7 +827,7 @@ on it, naming why.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.stage.text_layout.unit_svg">
-<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">unit_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text_layout.html#unit_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text_layout.unit_svg" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.text_layout.</span></span><span class="sig-name descname"><span class="pre">unit_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stroke_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">halo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/text_layout.html#unit_svg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.text_layout.unit_svg" title="Link to this definition">#</a></dt>
 <dd><p>One unit’s texture: its contours in a viewBox equal to its frame-pixel box.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unit_svg</span><span class="p">(</span><span class="s2">"M0 0L2 0L2 2Z"</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#123456"</span><span class="p">)[:</span><span class="mi">60</span><span class="p">]</span>
 <span class="go">'&lt;svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'</span>
@@ -800,6 +838,15 @@ TWICE <code class="docutils literal notranslate"><span class="pre">stroke_width<
 the glyph once the fill covers the inner half: two paths rather than
 <code class="docutils literal notranslate"><span class="pre">paint-order</span></code>, so no rasteriser’s support for that attribute is assumed.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s1">'stroke-width="6"'</span> <span class="ow">in</span> <span class="n">unit_svg</span><span class="p">(</span><span class="s2">"M0 0Z"</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#fff"</span><span class="p">,</span> <span class="n">stroke_width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stroke_color</span><span class="o">=</span><span class="s2">"#000"</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>With a halo (an#701) the contours are drawn first of all through a filter
+(<a class="reference internal" href="#an.stage.text_layout.halo_filter" title="an.stage.text_layout.halo_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">halo_filter()</span></code></a>) that keeps only the glow, so the texture is glow,
+then outline, then fill:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">HaloPaint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">svg</span> <span class="o">=</span> <span class="n">unit_svg</span><span class="p">(</span><span class="s2">"M0 0Z"</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#fff"</span><span class="p">,</span> <span class="n">halo</span><span class="o">=</span><span class="n">HaloPaint</span><span class="p">(</span><span class="s2">"#111111"</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">svg</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'filter="url(#halo)"'</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">svg</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'fill="#fff"'</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
@@ -859,11 +906,13 @@ the glyph once the fill covers the inner half: two paths rather than
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.HALO_FILTER_ID"><code class="docutils literal notranslate"><span class="pre">HALO_FILTER_ID</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.INLINE_SRC_PREFIX"><code class="docutils literal notranslate"><span class="pre">INLINE_SRC_PREFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.TEXT_ALIAS_DIGEST_LEN"><code class="docutils literal notranslate"><span class="pre">TEXT_ALIAS_DIGEST_LEN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.TEXT_TEXTURE_OVERSAMPLE"><code class="docutils literal notranslate"><span class="pre">TEXT_TEXTURE_OVERSAMPLE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.TEXT_TEXTURE_PREFIX"><code class="docutils literal notranslate"><span class="pre">TEXT_TEXTURE_PREFIX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.build_text_subtree"><code class="docutils literal notranslate"><span class="pre">build_text_subtree()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.halo_filter"><code class="docutils literal notranslate"><span class="pre">halo_filter()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.svg_data_uri"><code class="docutils literal notranslate"><span class="pre">svg_data_uri()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.text_document"><code class="docutils literal notranslate"><span class="pre">text_document()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.text_layout.text_swap_declaration"><code class="docutils literal notranslate"><span class="pre">text_swap_declaration()</span></code></a></li>

@@ -138,7 +138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.CutoutRenderer(engine=StageEngine(), name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=dict(), paint_orders=('container', 'global'))
+### *class* an.adapters.cutout.CutoutRenderer(engine=StageEngine(), name='cutout', supported_renderers=('cutout', 'stage'), error=<class 'an.stage.render.CutoutRenderError'>, capture_options=dict(), paint_orders=('container', 'global'), svg_filters=('feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDropShadow', 'feFlood', 'feGaussianBlur', 'feImage', 'feMerge', 'feMorphology', 'feOffset', 'feSpecularLighting', 'feTile', 'feTurbulence'))
 
 Bases: [`FrameStageRenderer`](an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
@@ -173,6 +173,12 @@ items sorted (`applyPaintOrder`) and one list across containers
 #### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout', 'stage')*
 
 The `Shot.renderer` values this renderer claims (the ONE place it names them).
+
+#### svg_filters *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDropShadow', 'feFlood', 'feGaussianBlur', 'feImage', 'feMerge', 'feMorphology', 'feOffset', 'feSpecularLighting', 'feTile', 'feTurbulence')*
+
+The SVG filter primitives the stage draws inside an SVG texture
+(an#701): Chromium rasterises every texture, filters included. Read
+as the `engine.svg_filter` capability; a text `halo` needs them.
 
 ### *class* an.adapters.cutout.CutoutSceneJSON(\*, version='0.1.0', meta=<factory>, scene, animations=<factory>, timeline, assets=<factory>, asset_resolution=<factory>, overlay=None, \*\*extra_data)
 

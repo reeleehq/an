@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=76620681"></script>
+    <script src="../../../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -773,7 +773,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseModel</span><span class="p">,</span>
@@ -796,7 +796,12 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"TextFontError"</span><span class="p">,</span>
     <span class="s2">"TextLayoutError"</span><span class="p">,</span>
     <span class="s2">"TextOutlineWarning"</span><span class="p">,</span>
+    <span class="s2">"TextHaloWarning"</span><span class="p">,</span>
     <span class="s2">"TextUnit"</span><span class="p">,</span>
+    <span class="s2">"HaloPaint"</span><span class="p">,</span>
+    <span class="s2">"halo_paint"</span><span class="p">,</span>
+    <span class="s2">"halo_engine_problem"</span><span class="p">,</span>
+    <span class="s2">"HALO_FILTER_PRIMITIVES"</span><span class="p">,</span>
     <span class="s2">"TextLayout"</span><span class="p">,</span>
     <span class="s2">"FontIdentity"</span><span class="p">,</span>
     <span class="s2">"resolve_text"</span><span class="p">,</span>
@@ -864,6 +869,31 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Pixels of clear margin around each unit's texture box, so anti-aliased ink</span>
 <span class="c1">#: at the box edge is never clipped.</span>
 <span class="n">UNIT_BOX_PAD_PX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1">#: An 8-bit channel's maximum: a tituli colour's alpha over this is a fraction.</span>
+<span class="n">_ALPHA_MAX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">255</span>
+
+<span class="c1">#: How far a halo's Gaussian is drawn past its dilation, in standard</span>
+<span class="c1">#: deviations: the unit's box grows by ``spread + ceil(this x blur)`` so the</span>
+<span class="c1">#: glow is never clipped. tituli's own reach (``tituli.render._BLUR_REACH``).</span>
+<span class="n">HALO_BLUR_REACH</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1">#: How far past the ink a halo still visibly covers a NEIGHBOUR's glyphs, in</span>
+<span class="c1">#: standard deviations past the dilation: at 2 the default halo's glow is down</span>
+<span class="c1">#: to ~3 % (``gain`` 2 x the Gaussian tail 0.023 x ``opacity`` 0.65). What</span>
+<span class="c1">#: :class:`TextHaloWarning` measures against.</span>
+<span class="n">HALO_COVER_SIGMAS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="c1">#: The SVG filter primitives a halo is drawn with (an#701), in the order the</span>
+<span class="c1">#: unit's texture chains them: what the shot's engine must afford as</span>
+<span class="c1">#: ``engine.svg_filter`` keys, or the text is refused at compile.</span>
+<span class="n">HALO_FILTER_PRIMITIVES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"feMorphology"</span><span class="p">,</span>
+    <span class="s2">"feGaussianBlur"</span><span class="p">,</span>
+    <span class="s2">"feComponentTransfer"</span><span class="p">,</span>
+    <span class="s2">"feFlood"</span><span class="p">,</span>
+    <span class="s2">"feComposite"</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">_HEX_COLOUR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">"</span><span class="p">)</span>
 
@@ -934,6 +964,70 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="c1">#: The numeric fields of a tituli ``Halo``, checked here because a dataclass</span>
+<span class="c1">#: does not check its own types: a string ``spread`` would fail in a filter.</span>
+<span class="n">_HALO_NUMBERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"spread"</span><span class="p">,</span> <span class="s2">"blur"</span><span class="p">,</span> <span class="s2">"gain"</span><span class="p">,</span> <span class="s2">"opacity"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_halo</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A text block's ``halo`` as a ``tituli.Halo`` (or ``None``), refusing</span>
+<span class="sd">    what tituli would not draw: an unknown field, a non-number, a negative</span>
+<span class="sd">    size, an opacity outside [0, 1], a colour tituli cannot parse.</span>
+
+<span class="sd">    &gt;&gt;&gt; _as_halo(True).spread, _as_halo({"blur": 0.2}).blur, _as_halo(None)</span>
+<span class="sd">    (0.03, 0.2, None)</span>
+<span class="sd">    &gt;&gt;&gt; _as_halo({"glow": 1})</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: `halo` has no field(s) ['glow']; it takes tituli's Halo fields ['blur', 'color', 'gain', 'opacity', 'spread']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="n">Halo</span><span class="p">,</span> <span class="n">parse_color</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># a tituli from before Halo (tituli#24)</span>
+        <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span>
+            <span class="s2">"`halo` needs tituli &gt;= 0.0.13 (pip install -U tituli)"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Halo</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Halo</span><span class="p">):</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">Halo</span><span class="p">)}</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-</span> <span class="n">known</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`halo` has no field(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; it takes tituli's Halo "</span>
+                <span class="sa">f</span><span class="s2">"fields </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">known</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"`halo` takes true, a mapping of tituli's Halo fields or a "</span>
+            <span class="sa">f</span><span class="s2">"tituli.Halo; got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_HALO_NUMBERS</span><span class="p">:</span>
+        <span class="n">number</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`halo.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` takes a number; got </span><span class="si">{</span><span class="n">number</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`halo.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` must be finite; got </span><span class="si">{</span><span class="n">number</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"color"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>  <span class="c1"># JSON has no tuples</span>
+        <span class="n">fields</span><span class="p">[</span><span class="s2">"color"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="s2">"color"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"color"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parse_color</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="s2">"color"</span><span class="p">])</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`halo.color` </span><span class="si">{</span><span class="n">fields</span><span class="p">[</span><span class="s1">'color'</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> is not a colour tituli reads: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">return</span> <span class="n">Halo</span><span class="p">(</span><span class="o">**</span><span class="n">fields</span><span class="p">)</span>  <span class="c1"># its own checks raise ValueError (negative, opacity)</span>
+
+
 <div class="viewcode-block" id="TextDescriptor">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextDescriptor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TextDescriptor</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
@@ -985,6 +1079,33 @@ window.runMermaid = runMermaid;</script>
     <span class="n">stroke_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="c1">#: The outline's ``#rrggbb``; needs ``stroke_width``.</span>
     <span class="n">stroke_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_TEXT_STROKE_COLOUR</span>
+    <span class="c1">#: A soft glow under every unit (an#701): tituli's own ``Halo`` (one</span>
+    <span class="c1">#: vocabulary for both packages), given as ``true`` (the default halo), a</span>
+    <span class="c1">#: mapping of its fields (``color``, ``spread``, ``blur``, ``gain``,</span>
+    <span class="c1">#: ``opacity``; sizes in em) or a ``tituli.Halo``. ``color`` unset is the</span>
+    <span class="c1">#: opposite of ``color`` (``tituli.color.ink_for``). Drawn in each unit's</span>
+    <span class="c1">#: own texture, under the outline and the fill, with SVG filters the</span>
+    <span class="c1">#: shot's engine must afford (``engine.svg_filter``).</span>
+    <span class="n">halo</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">"anyOf"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"boolean"</span><span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+                    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"color"</span><span class="p">:</span> <span class="p">{},</span>
+                        <span class="s2">"spread"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span> <span class="s2">"minimum"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+                        <span class="s2">"blur"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span> <span class="s2">"minimum"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+                        <span class="s2">"gain"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span> <span class="s2">"minimum"</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+                        <span class="s2">"opacity"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span> <span class="s2">"minimum"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"maximum"</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                    <span class="p">},</span>
+                    <span class="s2">"additionalProperties"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"null"</span><span class="p">},</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
     <span class="c1">#: ``None`` = the embedded face; else a font FILE path (see the module doc).</span>
     <span class="n">font</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: OpenType features to apply, by tag (an#362): ``["tnum"]`` sets tabular</span>
@@ -1020,6 +1141,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_HEX_COLOUR</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`color` takes a #rrggbb string; got </span><span class="si">{</span><span class="n">color</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">color</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"halo"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_a_tituli_halo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">halo</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_as_halo</span><span class="p">(</span><span class="n">halo</span><span class="p">)</span>
 
     <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span>
     <span class="nd">@classmethod</span>
@@ -1223,6 +1349,70 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="HaloPaint">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.HaloPaint">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HaloPaint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A tituli ``Halo`` resolved for one unit: frame pixels and one colour.</span>
+
+<span class="sd">    What a unit's texture draws (an#701): the glyphs' alpha dilated by</span>
+<span class="sd">    ``spread`` (whole pixels, as tituli rounds it), blurred with a Gaussian</span>
+<span class="sd">    of standard deviation ``blur``, multiplied by ``gain`` and clipped to</span>
+<span class="sd">    opaque, then laid in ``color`` at ``alpha`` (the halo's ``opacity`` times</span>
+<span class="sd">    its colour's own alpha) — tituli's ``glow`` and ``draw_halo``, step for</span>
+<span class="sd">    step.</span>
+<span class="sd">    """</span>
+
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">spread</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">blur</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">gain</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reach</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whole pixels the glow reaches past the ink: the unit's box grows by it."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spread</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">HALO_BLUR_REACH</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">blur</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Pixels past the ink where the glow still visibly covers another</span>
+<span class="sd">        unit's glyphs (:data:`HALO_COVER_SIGMAS`)."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spread</span> <span class="o">+</span> <span class="n">HALO_COVER_SIGMAS</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">blur</span></div>
+
+
+
+<div class="viewcode-block" id="halo_paint">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.halo_paint">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">halo_paint</span><span class="p">(</span><span class="n">halo</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">em</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ink</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HaloPaint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``halo`` (a ``tituli.Halo``) at a type size of ``em`` pixels, under</span>
+<span class="sd">    glyphs drawn in ``ink``: its em sizes in pixels, its colour (unset = the</span>
+<span class="sd">    opposite of the ink, ``tituli.color.ink_for``) and its final alpha.</span>
+
+<span class="sd">    &gt;&gt;&gt; from tituli import Halo</span>
+<span class="sd">    &gt;&gt;&gt; p = halo_paint(Halo(), em=100, ink="#ffffff")</span>
+<span class="sd">    &gt;&gt;&gt; p.color, p.spread, p.blur, p.gain, p.alpha, p.reach</span>
+<span class="sd">    ('#111111', 3, 10.0, 2.0, 0.65, 33)</span>
+<span class="sd">    &gt;&gt;&gt; halo_paint(Halo(color="#ffd40080", opacity=1.0), em=40, ink="#000000").alpha</span>
+<span class="sd">    0.5019607843137255</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="n">ink_for</span><span class="p">,</span> <span class="n">parse_color</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli.color</span><span class="w"> </span><span class="kn">import</span> <span class="n">relative_luminance</span>
+
+    <span class="k">if</span> <span class="n">halo</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">parse_color</span><span class="p">(</span><span class="n">halo</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">parse_color</span><span class="p">(</span><span class="n">ink_for</span><span class="p">(</span><span class="n">luminance</span><span class="o">=</span><span class="n">relative_luminance</span><span class="p">(</span><span class="n">ink</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">HaloPaint</span><span class="p">(</span>
+        <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">"#</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">g</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">b</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="n">halo</span><span class="o">.</span><span class="n">opacity</span> <span class="o">*</span> <span class="n">a</span> <span class="o">/</span> <span class="n">_ALPHA_MAX</span><span class="p">,</span>
+        <span class="n">spread</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">halo</span><span class="o">.</span><span class="n">spread</span> <span class="o">*</span> <span class="n">em</span><span class="p">)),</span>
+        <span class="n">blur</span><span class="o">=</span><span class="n">halo</span><span class="o">.</span><span class="n">blur</span> <span class="o">*</span> <span class="n">em</span><span class="p">,</span>
+        <span class="n">gain</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">halo</span><span class="o">.</span><span class="n">gain</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="TextUnit">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextUnit">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1232,13 +1422,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``box`` is ``(x0, y0, x1, y1)`` in frame pixels, snapped OUTWARD to whole</span>
 <span class="sd">    pixels and containing both the layout box and the ink, so the sprite's</span>
 <span class="sd">    corners sit on the pixel grid and nothing is clipped. ``d`` is the unit's</span>
-<span class="sd">    glyph contours as SVG path data in frame pixels.</span>
+<span class="sd">    glyph contours as SVG path data in frame pixels. ``halo`` is the glow</span>
+<span class="sd">    drawn under it (an#701), ``None`` for none.</span>
 <span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
     <span class="n">d</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">halo</span><span class="p">:</span> <span class="n">HaloPaint</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
@@ -1401,10 +1593,15 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># tituli sets lines; a block is its lines drawn as ONE unit (below).</span>
     <span class="n">typeset_unit</span> <span class="o">=</span> <span class="s2">"line"</span> <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">BLOCK_UNIT</span> <span class="k">else</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span>
     <span class="n">lay</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span> <span class="n">max_width</span><span class="o">=</span><span class="n">max_w</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">typeset_unit</span><span class="p">)</span>
+    <span class="n">_refuse_plates</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">lay</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">halo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The block's halo rides on its runs, tituli's own carrier for it</span>
+        <span class="c1"># (tituli#19): one place says which glow a unit draws, whether the</span>
+        <span class="c1"># document asked for it or the layout came with one (an#682).</span>
+        <span class="n">lay</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">with_halo</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">halo</span><span class="p">)</span>
     <span class="n">runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">runs</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> lays out to nothing drawable"</span><span class="p">)</span>
-    <span class="n">_refuse_halos</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">runs</span><span class="p">)</span>
     <span class="n">face</span> <span class="o">=</span> <span class="n">runs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">face</span>
     <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">face</span><span class="o">.</span><span class="n">path</span> <span class="o">!=</span> <span class="n">request</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="n">TextFontError</span><span class="p">(</span>
@@ -1436,8 +1633,6 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
         <span class="k">if</span> <span class="n">outline</span><span class="o">.</span><span class="n">bbox</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">inked</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">run</span><span class="p">,</span> <span class="n">outline</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span> <span class="ow">and</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"word"</span><span class="p">,</span> <span class="s2">"glyph"</span><span class="p">):</span>
-        <span class="n">_warn_if_outlines_overlap</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">inked</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">BLOCK_UNIT</span><span class="p">:</span>
         <span class="c1"># One unit for the whole block: the lines' contours in one path, the</span>
         <span class="c1"># union of their boxes (an#341).</span>
@@ -1445,12 +1640,20 @@ window.runMermaid = runMermaid;</script>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">groups</span> <span class="o">=</span> <span class="p">[[</span><span class="n">pair</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">inked</span><span class="p">]</span>
     <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">inks</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># each unit's ink box, parallel to `units`</span>
     <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
         <span class="n">box</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bbox</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
+        <span class="n">ink</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bbox</span>
         <span class="k">for</span> <span class="n">run</span><span class="p">,</span> <span class="n">outline</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="n">box</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">bbox</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
-        <span class="c1"># The outline reaches `stroke_width` past the ink (an#313).</span>
-        <span class="n">pad</span> <span class="o">=</span> <span class="n">UNIT_BOX_PAD_PX</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span><span class="p">)</span>
+            <span class="n">ink</span> <span class="o">=</span> <span class="n">ink</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
+        <span class="n">inks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ink</span><span class="p">)</span>
+        <span class="n">halo</span> <span class="o">=</span> <span class="n">_unit_halo</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span>
+        <span class="c1"># The outline reaches `stroke_width` past the ink (an#313), the</span>
+        <span class="c1"># halo its `reach` (an#701); the box holds the further of the two.</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="n">UNIT_BOX_PAD_PX</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span><span class="p">,</span> <span class="n">halo</span><span class="o">.</span><span class="n">reach</span> <span class="k">if</span> <span class="n">halo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">TextUnit</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -1462,8 +1665,31 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">box</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span> <span class="o">+</span> <span class="n">pad</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">d</span><span class="o">=</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outline</span><span class="o">.</span><span class="n">d</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">outline</span> <span class="ow">in</span> <span class="n">group</span><span class="p">),</span>
+                <span class="n">halo</span><span class="o">=</span><span class="n">halo</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span><span class="p">:</span>
+        <span class="c1"># The outline reaches `stroke_width` past the ink on both sides, so</span>
+        <span class="c1"># two units closer than twice that show the later one's over the</span>
+        <span class="c1"># earlier one's fill (an#313).</span>
+        <span class="n">_warn_if_underlay_covers</span><span class="p">(</span>
+            <span class="n">desc</span><span class="p">,</span>
+            <span class="n">units</span><span class="p">,</span>
+            <span class="n">inks</span><span class="p">,</span>
+            <span class="n">reach</span><span class="o">=</span><span class="k">lambda</span> <span class="n">unit</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span><span class="p">,</span>
+            <span class="n">noun</span><span class="o">=</span><span class="s2">"outline"</span><span class="p">,</span>
+            <span class="n">knobs</span><span class="o">=</span><span class="s2">"a thinner `stroke_width`, a larger `size`"</span><span class="p">,</span>
+            <span class="n">category</span><span class="o">=</span><span class="n">TextOutlineWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">_warn_if_underlay_covers</span><span class="p">(</span>
+        <span class="n">desc</span><span class="p">,</span>
+        <span class="n">units</span><span class="p">,</span>
+        <span class="n">inks</span><span class="p">,</span>
+        <span class="n">reach</span><span class="o">=</span><span class="k">lambda</span> <span class="n">unit</span><span class="p">:</span> <span class="n">unit</span><span class="o">.</span><span class="n">halo</span><span class="o">.</span><span class="n">cover</span> <span class="k">if</span> <span class="n">unit</span><span class="o">.</span><span class="n">halo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">noun</span><span class="o">=</span><span class="s2">"halo"</span><span class="p">,</span>
+        <span class="n">knobs</span><span class="o">=</span><span class="s2">"a smaller `halo.spread`/`halo.blur`"</span><span class="p">,</span>
+        <span class="n">category</span><span class="o">=</span><span class="n">TextHaloWarning</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">identity</span> <span class="o">=</span> <span class="n">FontIdentity</span><span class="p">(</span>
         <span class="n">family</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">family</span><span class="p">,</span>
         <span class="n">style</span><span class="o">=</span><span class="n">face</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
@@ -1480,21 +1706,45 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_halos</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">runs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Refuse runs that carry a tituli ``halo`` (a soft glow under the glyphs,</span>
-<span class="sd">    tituli#19): ``an`` draws a run from its glyph contours alone, so the glow</span>
-<span class="sd">    would be silently left off the film (an#682). ``an`` never asks for one</span>
-<span class="sd">    (``block`` sets none), so this guards against tituli changing its</span>
-<span class="sd">    defaults, until ``an`` draws a halo as an underlay (an#701)."""</span>
-    <span class="n">haloed</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">"halo"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">haloed</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_plates</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">lay</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a layout carrying tituli ``plates`` (scrims, boxes, rules drawn</span>
+<span class="sd">    under the runs): ``an`` draws a block's units and nothing else, so a</span>
+<span class="sd">    plate would be silently left off the film. ``tituli.block`` makes none</span>
+<span class="sd">    today; this guards against that changing, the way an#682 guarded halos,</span>
+<span class="sd">    until ``an`` draws one (an#701's review)."""</span>
+    <span class="n">plates</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="s2">"plates"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">())</span>
+    <span class="k">if</span> <span class="n">plates</span><span class="p">:</span>
+        <span class="n">kinds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plates</span><span class="p">})</span>
         <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: `tituli.block` returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">haloed</span><span class="p">)</span><span class="si">}</span><span class="s2"> run(s) "</span>
-            <span class="sa">f</span><span class="s2">"carrying a `halo` (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">haloed</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', ...'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">haloed</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">), which `an` never asks for and "</span>
-            <span class="s2">"cannot draw yet (an#701): it draws text from glyph outlines and "</span>
-            <span class="s2">"would leave the glow off. Did tituli change its defaults?"</span>
+            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: `tituli.block` returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">plates</span><span class="p">)</span><span class="si">}</span><span class="s2"> plate(s) "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kinds</span><span class="p">)</span><span class="si">}</span><span class="s2">) under the text, which `an` does not draw: it "</span>
+            <span class="s2">"would leave the scrim off. Give the block a plate as an environment "</span>
+            <span class="s2">"plane or a prop behind it, or a `halo` for legibility over footage."</span>
         <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unit_halo</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">HaloPaint</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The glow one unit draws: the halo its runs carry (the block's own</span>
+<span class="sd">    ``halo``, or one the layout came with — an#682's refusal is lifted for</span>
+<span class="sd">    what ``an`` can draw), resolved at the runs' type size.</span>
+
+<span class="sd">    A unit is one texture with one underlay, so a ``block`` unit whose lines</span>
+<span class="sd">    carry DIFFERENT halos (or some none) is refused, naming them, rather than</span>
+<span class="sd">    drawn with one of them."""</span>
+    <span class="n">halos</span> <span class="o">=</span> <span class="p">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="s2">"halo"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">run</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">group</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">halos</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">run</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">run</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">group</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="n">TextLayoutError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: one </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2"> unit (</span><span class="si">{</span><span class="n">lines</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', ...'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">) has runs carrying different "</span>
+            <span class="s2">"halos, and a unit draws ONE glow under its glyphs. Set one `halo` "</span>
+            <span class="s2">"on the block, or use `unit: line` so each line is its own unit."</span>
+        <span class="p">)</span>
+    <span class="p">(</span><span class="n">halo</span><span class="p">,)</span> <span class="o">=</span> <span class="n">halos</span>
+    <span class="k">if</span> <span class="n">halo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">run</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">halo_paint</span><span class="p">(</span><span class="n">halo</span><span class="p">,</span> <span class="n">em</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">face</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">ink</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TextOutlineWarning">
@@ -1504,28 +1754,90 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_warn_if_outlines_overlap</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span> <span class="n">inked</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Each unit is its own texture, so a unit's outline is drawn OVER the</span>
-<span class="sd">    fill of the unit before it wherever the two meet (an#313): two units on</span>
-<span class="sd">    one line closer than twice ``stroke_width`` show it. Said once, naming</span>
-<span class="sd">    the remedies, rather than drawn silently."""</span>
+<div class="viewcode-block" id="TextHaloWarning">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.TextHaloWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextHaloWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A unit's halo reaches far enough to dim a neighbouring unit's glyphs."""</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_if_underlay_covers</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">TextDescriptor</span><span class="p">,</span>
+    <span class="n">units</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">],</span>
+    <span class="n">inks</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">reach</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TextUnit</span><span class="p">],</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">noun</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">knobs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">category</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="ne">Warning</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Warn once when a unit's underlay (its outline, an#313, or its halo,</span>
+<span class="sd">    an#701) reaches over an EARLIER unit's ink: every unit is its own</span>
+<span class="sd">    texture, drawn in order, so a later unit's underlay covers the fill of</span>
+<span class="sd">    any unit before it wherever the two meet (tituli draws every underlay</span>
+<span class="sd">    first; per-unit alpha rules that out here). Any pair is checked, across</span>
+<span class="sd">    and down the page, so a heavy underlay on stacked lines is caught as</span>
+<span class="sd">    well as one between neighbours on a line.</span>
+
+<span class="sd">    ``reach(unit)`` is how close two inks may come before the unit's</span>
+<span class="sd">    underlay shows on the other (``None``: the unit draws none); ``inks``</span>
+<span class="sd">    are the units' ink boxes, parallel to ``units``.</span>
+<span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-    <span class="n">reach</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">oa</span><span class="p">),</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">ob</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inked</span><span class="p">,</span> <span class="n">inked</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
-        <span class="n">ink_a</span><span class="p">,</span> <span class="n">ink_b</span> <span class="o">=</span> <span class="n">oa</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span> <span class="n">ob</span><span class="o">.</span><span class="n">bbox</span>
-        <span class="n">same_line</span> <span class="o">=</span> <span class="n">ink_a</span><span class="o">.</span><span class="n">y0</span> <span class="o">&lt;</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">y1</span> <span class="ow">and</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">y0</span> <span class="o">&lt;</span> <span class="n">ink_a</span><span class="o">.</span><span class="n">y1</span>
-        <span class="k">if</span> <span class="n">same_line</span> <span class="ow">and</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">x0</span> <span class="o">-</span> <span class="n">ink_a</span><span class="o">.</span><span class="n">x1</span> <span class="o">&lt;</span> <span class="n">reach</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: a </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> px outline reaches "</span>
-                <span class="sa">f</span><span class="s2">"across the gap between </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2">, so each "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">'s outline covers part of the one before it (every "</span>
-                <span class="s2">"unit is its own texture). Use a thinner `stroke_width`, a larger "</span>
-                <span class="s2">"`size`, or `unit: line`/`block` for a heavy outline."</span><span class="p">,</span>
-                <span class="n">TextOutlineWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">return</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"word"</span><span class="p">,</span> <span class="s2">"glyph"</span><span class="p">):</span>
+        <span class="n">regroup</span> <span class="o">=</span> <span class="s2">"`unit: line`/`block`"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">regroup</span> <span class="o">=</span> <span class="s2">"`unit: block`"</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">unit_b</span><span class="p">,</span> <span class="n">ink_b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">inks</span><span class="p">)):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">reach</span><span class="p">(</span><span class="n">unit_b</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">unit_a</span><span class="p">,</span> <span class="n">ink_a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">units</span><span class="p">[:</span><span class="n">j</span><span class="p">],</span> <span class="n">inks</span><span class="p">[:</span><span class="n">j</span><span class="p">]):</span>
+            <span class="n">gap_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ink_a</span><span class="o">.</span><span class="n">x0</span> <span class="o">-</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">x1</span><span class="p">,</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">x0</span> <span class="o">-</span> <span class="n">ink_a</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span>
+            <span class="n">gap_y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ink_a</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">y1</span><span class="p">,</span> <span class="n">ink_b</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="n">ink_a</span><span class="o">.</span><span class="n">y1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gap_x</span> <span class="o">&lt;</span> <span class="n">r</span> <span class="ow">and</span> <span class="n">gap_y</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"text </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: the </span><span class="si">{</span><span class="n">noun</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">unit_b</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> covers "</span>
+                    <span class="sa">f</span><span class="s2">"part of the one before it, </span><span class="si">{</span><span class="n">unit_a</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: their inks are "</span>
+                    <span class="sa">f</span><span class="s2">"closer than the </span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> px it reaches, and every "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2"> is its own texture, so a later </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">'s "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">noun</span><span class="si">}</span><span class="s2"> is drawn over an earlier one's glyphs. Use </span><span class="si">{</span><span class="n">knobs</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="sa">f</span><span class="s2">"or </span><span class="si">{</span><span class="n">regroup</span><span class="si">}</span><span class="s2">."</span><span class="p">,</span>
+                    <span class="n">category</span><span class="p">,</span>
+                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span>
+
+
+<div class="viewcode-block" id="halo_engine_problem">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text.html#an.stage.text.halo_engine_problem">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">halo_engine_problem</span><span class="p">(</span><span class="n">units</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TextUnit</span><span class="p">],</span> <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What stops ``renderer`` drawing these units' halos, or ``None``.</span>
+
+<span class="sd">    A halo is SVG filters in the unit's texture (:data:`HALO_FILTER_PRIMITIVES`);</span>
+<span class="sd">    an engine that does not afford them as ``engine.svg_filter`` keys would</span>
+<span class="sd">    draw the glyphs with no glow, so the compiler raises on this and ``an</span>
+<span class="sd">    validate`` reports it. A renderer that is not registered is left to its</span>
+<span class="sd">    own check.</span>
+
+<span class="sd">    &gt;&gt;&gt; halo_engine_problem([], "stage") is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">halo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.capabilities.subjects</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENGINE_SVG_FILTER</span><span class="p">,</span> <span class="n">missing_engine_terms</span>
+
+    <span class="n">lacking</span> <span class="o">=</span> <span class="n">missing_engine_terms</span><span class="p">(</span>
+        <span class="n">renderer</span><span class="p">,</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ENGINE_SVG_FILTER</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">HALO_FILTER_PRIMITIVES</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lacking</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"a text `halo` is drawn with SVG filters (</span><span class="si">{</span><span class="n">lacking</span><span class="si">}</span><span class="s2">), which renderer "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> does not afford: </span><span class="si">{</span><span class="n">ENGINE_SVG_FILTER</span><span class="o">.</span><span class="n">remedy</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_layout_engine_name</span><span class="p">(</span><span class="n">face</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

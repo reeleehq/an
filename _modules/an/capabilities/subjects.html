@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=76620681"></script>
+    <script src="../../../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -767,13 +767,15 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"ENV_TOOLS"</span><span class="p">,</span>
     <span class="s2">"ENV_KEYS"</span><span class="p">,</span>
     <span class="s2">"ENV_MODULES"</span><span class="p">,</span>
+    <span class="s2">"SVG_FILTER_PRIMITIVES"</span><span class="p">,</span>
     <span class="s2">"engine_affordances"</span><span class="p">,</span>
     <span class="s2">"environment_affordances"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: "2": `engine.measure_duration` joined the derivation (an#279).</span>
 <span class="c1">#: "3": `engine.paint_order` joined it (an#430).</span>
-<span class="n">ENGINE_ANALYSER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"3"</span>
+<span class="c1">#: "4": `engine.svg_filter` joined it (an#701).</span>
+<span class="n">ENGINE_ANALYSER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"4"</span>
 <span class="c1">#: "2": `env.manim` joined the derivation (an#279).</span>
 <span class="n">ENVIRONMENT_ANALYSER_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"2"</span>
 
@@ -912,6 +914,47 @@ window.runMermaid = runMermaid;</script>
     <span class="n">subject</span><span class="o">=</span><span class="s2">"engine"</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="c1">#: The SVG filter primitives an engine rasterises in an SVG texture (an#701),</span>
+<span class="c1">#: the keys of ``engine.svg_filter``: a text halo is ``feMorphology`` +</span>
+<span class="c1">#: ``feGaussianBlur`` + ``feComponentTransfer`` + ``feFlood`` +</span>
+<span class="c1">#: ``feComposite`` in each unit's texture. An engine declares the ones it draws</span>
+<span class="c1">#: as ``svg_filters``, the way it declares ``paint_orders``; an engine that</span>
+<span class="c1">#: rasterised SVG without them would draw the glyphs and drop the glow, so the</span>
+<span class="c1">#: stage compiler refuses a halo it lacks, naming it. This is the Filter</span>
+<span class="c1">#: Effects Module's whole list, which a browser-backed engine draws.</span>
+<span class="n">SVG_FILTER_PRIMITIVES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"feBlend"</span><span class="p">,</span>
+    <span class="s2">"feColorMatrix"</span><span class="p">,</span>
+    <span class="s2">"feComponentTransfer"</span><span class="p">,</span>
+    <span class="s2">"feComposite"</span><span class="p">,</span>
+    <span class="s2">"feConvolveMatrix"</span><span class="p">,</span>
+    <span class="s2">"feDiffuseLighting"</span><span class="p">,</span>
+    <span class="s2">"feDisplacementMap"</span><span class="p">,</span>
+    <span class="s2">"feDropShadow"</span><span class="p">,</span>
+    <span class="s2">"feFlood"</span><span class="p">,</span>
+    <span class="s2">"feGaussianBlur"</span><span class="p">,</span>
+    <span class="s2">"feImage"</span><span class="p">,</span>
+    <span class="s2">"feMerge"</span><span class="p">,</span>
+    <span class="s2">"feMorphology"</span><span class="p">,</span>
+    <span class="s2">"feOffset"</span><span class="p">,</span>
+    <span class="s2">"feSpecularLighting"</span><span class="p">,</span>
+    <span class="s2">"feTile"</span><span class="p">,</span>
+    <span class="s2">"feTurbulence"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ENGINE_SVG_FILTER</span> <span class="o">=</span> <span class="n">register_capability</span><span class="p">(</span>
+    <span class="s2">"engine.svg_filter"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"the engine rasterises SVG filter primitives inside an SVG texture "</span>
+        <span class="s2">"(keys: the primitives, e.g. `feGaussianBlur`)"</span>
+    <span class="p">),</span>
+    <span class="n">remedy</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"render the shot with an engine that declares those filter primitives "</span>
+        <span class="s2">"(the stage does: Chromium rasterises its SVG textures), or drop the "</span>
+        <span class="s2">"text block's `halo` (a `stroke_width` outline needs no filter)"</span>
+    <span class="p">),</span>
+    <span class="n">subject</span><span class="o">=</span><span class="s2">"engine"</span><span class="p">,</span>
+<span class="p">)</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">missing_engine_terms</span><span class="p">(</span><span class="n">renderer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">terms</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The requirement ``terms`` the renderer registered as ``renderer_name``</span>
@@ -1000,6 +1043,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">orders</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="s2">"paint_orders"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">())</span>
     <span class="k">if</span> <span class="n">orders</span><span class="p">:</span>
         <span class="n">out</span><span class="p">[</span><span class="n">ENGINE_PAINT_ORDER</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">KEYS_PARAM</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">orders</span><span class="p">)}</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="s2">"svg_filters"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">())</span>
+    <span class="k">if</span> <span class="n">filters</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">ENGINE_SVG_FILTER</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">KEYS_PARAM</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">filters</span><span class="p">)}</span>
     <span class="n">spaces</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="s2">"view_spaces"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">spaces</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">spaces</span> <span class="o">=</span> <span class="n">DFLT_ENGINE_VIEW_SPACES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span> <span class="p">())</span>

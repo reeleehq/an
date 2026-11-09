@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=76620681"></script>
+    <script src="../../../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -760,6 +760,7 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.text</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TEXT_SET</span><span class="p">,</span>
+    <span class="n">HaloPaint</span><span class="p">,</span>
     <span class="n">TextDescriptor</span><span class="p">,</span>
     <span class="n">TextLayout</span><span class="p">,</span>
     <span class="n">TextUnit</span><span class="p">,</span>
@@ -785,6 +786,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">_SVG_NS</span> <span class="o">=</span> <span class="s2">"http://www.w3.org/2000/svg"</span>
 
+<span class="c1">#: The id of a unit texture's halo filter. Each texture is its own SVG</span>
+<span class="c1">#: document, so one fixed id never collides.</span>
+<span class="n">HALO_FILTER_ID</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"halo"</span>
+
 
 <div class="viewcode-block" id="unit_svg">
 <a class="viewcode-back" href="../../../_autosummary/an.stage.text_layout.html#an.stage.text_layout.unit_svg">[docs]</a>
@@ -795,6 +800,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">stroke_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">stroke_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">halo</span><span class="p">:</span> <span class="n">HaloPaint</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""One unit's texture: its contours in a viewBox equal to its frame-pixel box.</span>
 
@@ -808,10 +814,25 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    &gt;&gt;&gt; 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")</span>
 <span class="sd">    True</span>
+
+<span class="sd">    With a halo (an#701) the contours are drawn first of all through a filter</span>
+<span class="sd">    (:func:`halo_filter`) that keeps only the glow, so the texture is glow,</span>
+<span class="sd">    then outline, then fill:</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.stage.text import HaloPaint</span>
+<span class="sd">    &gt;&gt;&gt; svg = unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", halo=HaloPaint("#111111", 0.65, 1, 2.0, 2.0))</span>
+<span class="sd">    &gt;&gt;&gt; svg.index('filter="url(#halo)"') &lt; svg.index('fill="#fff"')</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">box</span>
     <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span>
     <span class="n">k</span> <span class="o">=</span> <span class="n">TEXT_TEXTURE_OVERSAMPLE</span>
+    <span class="n">glow</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">halo_filter</span><span class="p">(</span><span class="n">halo</span><span class="p">,</span><span class="w"> </span><span class="n">box</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="sa">f</span><span class="s1">'&lt;path fill="#000000" filter="url(#</span><span class="si">{</span><span class="n">HALO_FILTER_ID</span><span class="si">}</span><span class="s1">)" d="</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">"/&gt;'</span>
+        <span class="k">if</span> <span class="n">halo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="s2">""</span>
+    <span class="p">)</span>
     <span class="n">outline</span> <span class="o">=</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s1">'&lt;path fill="none" stroke="</span><span class="si">{</span><span class="n">stroke_color</span><span class="si">}</span><span class="s1">" stroke-width="</span><span class="si">{</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">stroke_width</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" '</span>
         <span class="sa">f</span><span class="s1">'stroke-linejoin="round" d="</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">"/&gt;'</span>
@@ -820,7 +841,52 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">_SVG_NS</span><span class="si">}</span><span class="s1">" width="</span><span class="si">{</span><span class="n">w</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">k</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">h</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">k</span><span class="si">}</span><span class="s1">" '</span>
-        <span class="sa">f</span><span class="s1">'viewBox="</span><span class="si">{</span><span class="n">x0</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">y0</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">outline</span><span class="si">}</span><span class="s1">&lt;path fill="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" d="</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">"/&gt;&lt;/svg&gt;'</span>
+        <span class="sa">f</span><span class="s1">'viewBox="</span><span class="si">{</span><span class="n">x0</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">y0</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">glow</span><span class="si">}{</span><span class="n">outline</span><span class="si">}</span><span class="s1">&lt;path fill="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" d="</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s1">"/&gt;&lt;/svg&gt;'</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="halo_filter">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.text_layout.html#an.stage.text_layout.halo_filter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">halo_filter</span><span class="p">(</span><span class="n">halo</span><span class="p">:</span> <span class="n">HaloPaint</span><span class="p">,</span> <span class="n">box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``&lt;filter&gt;`` that turns a unit's glyphs into its halo (an#701):</span>
+<span class="sd">    tituli's ``glow`` as SVG filter primitives (:data:`HALO_FILTER_PRIMITIVES`).</span>
+
+<span class="sd">    The glyphs' alpha (``SourceAlpha``) is dilated by ``spread`` px</span>
+<span class="sd">    (``feMorphology``), blurred with a standard deviation of ``blur`` px</span>
+<span class="sd">    (``feGaussianBlur``), multiplied by ``gain`` and clipped to opaque</span>
+<span class="sd">    (``feComponentTransfer``: a filter result is clamped to [0, 1]), and laid</span>
+<span class="sd">    in the halo's colour at its alpha (``feFlood`` + ``feComposite in``). The</span>
+<span class="sd">    region is the unit's whole box in user space, which already holds the</span>
+<span class="sd">    glow's reach; a zero ``spread`` or ``blur`` leaves its step out.</span>
+<span class="sd">    Composited in sRGB, as tituli's Pillow drawing is.</span>
+
+<span class="sd">    &gt;&gt;&gt; f = halo_filter(HaloPaint("#111111", 0.65, 0, 1.5, 2.0), (0, 0, 10, 10))</span>
+<span class="sd">    &gt;&gt;&gt; "feMorphology" in f, 'stdDeviation="1.5"' in f, 'slope="2"' in f</span>
+<span class="sd">    (False, True, True)</span>
+<span class="sd">    """</span>
+    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">box</span>
+    <span class="n">src</span> <span class="o">=</span> <span class="s1">' in="SourceAlpha"'</span>  <span class="c1"># the first step reads the glyphs' alpha</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">halo</span><span class="o">.</span><span class="n">spread</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;feMorphology</span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s1"> operator="dilate" radius="</span><span class="si">{</span><span class="n">halo</span><span class="o">.</span><span class="n">spread</span><span class="si">}</span><span class="s1">"/&gt;'</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">if</span> <span class="n">halo</span><span class="o">.</span><span class="n">blur</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;feGaussianBlur</span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s1"> stdDeviation="</span><span class="si">{</span><span class="n">halo</span><span class="o">.</span><span class="n">blur</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"/&gt;'</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'&lt;feComponentTransfer</span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s1"> result="glow"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;feFuncA type="linear" slope="</span><span class="si">{</span><span class="n">halo</span><span class="o">.</span><span class="n">gain</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"/&gt;'</span>
+        <span class="s2">"&lt;/feComponentTransfer&gt;"</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'&lt;defs&gt;&lt;filter id="</span><span class="si">{</span><span class="n">HALO_FILTER_ID</span><span class="si">}</span><span class="s1">" filterUnits="userSpaceOnUse" '</span>
+        <span class="sa">f</span><span class="s1">'x="</span><span class="si">{</span><span class="n">x0</span><span class="si">}</span><span class="s1">" y="</span><span class="si">{</span><span class="n">y0</span><span class="si">}</span><span class="s1">" width="</span><span class="si">{</span><span class="n">x1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x0</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">y1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y0</span><span class="si">}</span><span class="s1">" '</span>
+        <span class="s1">'color-interpolation-filters="sRGB"&gt;'</span>
+        <span class="o">+</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s1">'&lt;feFlood flood-color="</span><span class="si">{</span><span class="n">halo</span><span class="o">.</span><span class="n">color</span><span class="si">}</span><span class="s1">" flood-opacity="</span><span class="si">{</span><span class="n">halo</span><span class="o">.</span><span class="n">alpha</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"/&gt;'</span>
+        <span class="o">+</span> <span class="s1">'&lt;feComposite in2="glow" operator="in"/&gt;'</span>
+        <span class="s2">"&lt;/filter&gt;&lt;/defs&gt;"</span>
     <span class="p">)</span></div>
 
 
@@ -900,6 +966,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">color</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
             <span class="n">stroke_width</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">stroke_width</span><span class="p">,</span>
             <span class="n">stroke_color</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">stroke_color</span><span class="p">,</span>
+            <span class="n">halo</span><span class="o">=</span><span class="n">unit</span><span class="o">.</span><span class="n">halo</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"ascii"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="n">TEXT_ALIAS_DIGEST_LEN</span><span class="p">]</span>

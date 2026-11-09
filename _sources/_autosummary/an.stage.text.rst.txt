@@ -12,6 +12,7 @@ an.stage.text
       DFLT_TEXT_SIZE
       DFLT_TEXT_COLOUR
       RESERVED_TEXT_IDS
+      HALO_FILTER_PRIMITIVES
       BLOCK_UNIT
       TEXT_SET
    
@@ -19,6 +20,8 @@ an.stage.text
 
    .. autosummary::
    
+      halo_paint
+      halo_engine_problem
       resolve_text
       font_base_dir
       text_entity_problem
@@ -35,6 +38,7 @@ an.stage.text
       TextDescriptor
       Counter
       TextUnit
+      HaloPaint
       TextLayout
       FontIdentity
    
@@ -45,4 +49,5 @@ an.stage.text
       TextFontError
       TextLayoutError
       TextOutlineWarning
+      TextHaloWarning
    

@@ -14,6 +14,7 @@ an.capabilities.subjects
       ENV_TOOLS
       ENV_KEYS
       ENV_MODULES
+      SVG_FILTER_PRIMITIVES
    
    .. rubric:: Functions
 

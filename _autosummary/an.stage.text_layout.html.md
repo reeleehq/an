@@ -34,15 +34,22 @@ to whole pixels, so at zoom 1 a sprite’s corners sit on the pixel grid.
 | [`TEXT_TEXTURE_PREFIX`](#an.stage.text_layout.TEXT_TEXTURE_PREFIX)       | What a text texture's alias starts with — `text.<entity>.<unit>.<digest>`. |
 | [`TEXT_ALIAS_DIGEST_LEN`](#an.stage.text_layout.TEXT_ALIAS_DIGEST_LEN)     | Hex digits of the texture's sha256 kept in its alias.                      |
 | [`INLINE_SRC_PREFIX`](#an.stage.text_layout.INLINE_SRC_PREFIX)         | The `src` scheme of a texture that carries its bytes inline.               |
+| [`HALO_FILTER_ID`](#an.stage.text_layout.HALO_FILTER_ID)            | The id of a unit texture's halo filter.                                    |
 
 ### Functions
 
 | [`build_text_subtree`](#an.stage.text_layout.build_text_subtree)(entity, document, \*, ...)    | The block's node and its unit children, plus what it resolved to.                                                                                                                               |
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`halo_filter`](#an.stage.text_layout.halo_filter)(halo, box)                           | The `<filter>` that turns a unit's glyphs into its halo (an#701): tituli's `glow` as SVG filter primitives (`HALO_FILTER_PRIMITIVES`).                                                          |
 | [`svg_data_uri`](#an.stage.text_layout.svg_data_uri)(svg)                                | `data:image/svg+xml;base64,…` — the form the vendored engine's SVG loader recognises by prefix.                                                                                                 |
 | [`text_document`](#an.stage.text_layout.text_document)(entity, props_store)               | The stored document behind a prop entity if it is a text block, else None.                                                                                                                      |
 | [`text_swap_declaration`](#an.stage.text_layout.text_swap_declaration)(entity, mall)              | The core `prop` kind's swap declaration (an#341): a text block with `texts` declares its `text` set, `{key: key}`; any other prop declares nothing (its built nodes' sets are its declaration). |
 | [`unit_svg`](#an.stage.text_layout.unit_svg)(d, box, \*, color[, stroke_width, ...]) | One unit's texture: its contours in a viewBox equal to its frame-pixel box.                                                                                                                     |
+
+### an.stage.text_layout.HALO_FILTER_ID *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'halo'*
+
+The id of a unit texture’s halo filter. Each texture is its own SVG
+document, so one fixed id never collides.
 
 ### an.stage.text_layout.INLINE_SRC_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:'*
 
@@ -71,6 +78,29 @@ pydantic’s `ValidationError`) — the compiler wraps them.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`NodeJSON`](an.stage.serialize.html.md#an.stage.serialize.NodeJSON), [`TextDescriptor`](an.stage.text.html.md#an.stage.text.TextDescriptor), [`TextLayout`](an.stage.text.html.md#an.stage.text.TextLayout)]
+
+### an.stage.text_layout.halo_filter(halo, box)
+
+The `<filter>` that turns a unit’s glyphs into its halo (an#701):
+tituli’s `glow` as SVG filter primitives (`HALO_FILTER_PRIMITIVES`).
+
+The glyphs’ alpha (`SourceAlpha`) is dilated by `spread` px
+(`feMorphology`), blurred with a standard deviation of `blur` px
+(`feGaussianBlur`), multiplied by `gain` and clipped to opaque
+(`feComponentTransfer`: a filter result is clamped to [0, 1]), and laid
+in the halo’s colour at its alpha (`feFlood` + `feComposite in`). The
+region is the unit’s whole box in user space, which already holds the
+glow’s reach; a zero `spread` or `blur` leaves its step out.
+Composited in sRGB, as tituli’s Pillow drawing is.
+
+```pycon
+>>> f = halo_filter(HaloPaint("#111111", 0.65, 0, 1.5, 2.0), (0, 0, 10, 10))
+>>> "feMorphology" in f, 'stdDeviation="1.5"' in f, 'slope="2"' in f
+(False, True, True)
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.stage.text_layout.svg_data_uri(svg)
 
@@ -105,7 +135,7 @@ on it, naming why.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
-### an.stage.text_layout.unit_svg(d, box, , color, stroke_width=0.0, stroke_color=None)
+### an.stage.text_layout.unit_svg(d, box, , color, stroke_width=0.0, stroke_color=None, halo=None)
 
 One unit’s texture: its contours in a viewBox equal to its frame-pixel box.
 
@@ -121,6 +151,17 @@ the glyph once the fill covers the inner half: two paths rather than
 
 ```pycon
 >>> 'stroke-width="6"' in unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", stroke_width=3, stroke_color="#000")
+True
+```
+
+With a halo (an#701) the contours are drawn first of all through a filter
+([`halo_filter()`](#an.stage.text_layout.halo_filter)) that keeps only the glow, so the texture is glow,
+then outline, then fill:
+
+```pycon
+>>> from an.stage.text import HaloPaint
+>>> svg = unit_svg("M0 0Z", (0, 0, 4, 4), color="#fff", halo=HaloPaint("#111111", 0.65, 1, 2.0, 2.0))
+>>> svg.index('filter="url(#halo)"') < svg.index('fill="#fff"')
 True
 ```
 

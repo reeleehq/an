@@ -33,13 +33,14 @@ Both analysers take their evidence as `doc` so a test can inject it:
 
 ### Module Attributes
 
-| [`ENGINE_ANALYSER_VERSION`](#an.capabilities.subjects.ENGINE_ANALYSER_VERSION)      | `engine.measure_duration` joined the derivation (an#279).                                                                                          |
-|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`ENVIRONMENT_ANALYSER_VERSION`](#an.capabilities.subjects.ENVIRONMENT_ANALYSER_VERSION) | `env.manim` joined the derivation (an#279).                                                                                                        |
-| [`ENGINE_OPTIONAL_MEMBERS`](#an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS)      | Optional engine members a renderer may implement, each afforded as `engine.<member>` when it is a callable attribute of the renderer.              |
-| [`ENV_TOOLS`](#an.capabilities.subjects.ENV_TOOLS)                    | `capability: (executables, remedy)` — afforded when any executable is on PATH.                                                                     |
-| [`ENV_KEYS`](#an.capabilities.subjects.ENV_KEYS)                     | `capability: (environment variables, remedy)` — afforded when any is set.                                                                          |
-| [`ENV_MODULES`](#an.capabilities.subjects.ENV_MODULES)                  | `capability: (python modules, remedy)` — afforded when EVERY module is importable (an import spec only: the module is never imported to find out). |
+| [`ENGINE_ANALYSER_VERSION`](#an.capabilities.subjects.ENGINE_ANALYSER_VERSION)      | `engine.measure_duration` joined the derivation (an#279).                                                                                                                                                                                |
+|-------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ENVIRONMENT_ANALYSER_VERSION`](#an.capabilities.subjects.ENVIRONMENT_ANALYSER_VERSION) | `env.manim` joined the derivation (an#279).                                                                                                                                                                                              |
+| [`ENGINE_OPTIONAL_MEMBERS`](#an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS)      | Optional engine members a renderer may implement, each afforded as `engine.<member>` when it is a callable attribute of the renderer.                                                                                                    |
+| [`ENV_TOOLS`](#an.capabilities.subjects.ENV_TOOLS)                    | `capability: (executables, remedy)` — afforded when any executable is on PATH.                                                                                                                                                           |
+| [`ENV_KEYS`](#an.capabilities.subjects.ENV_KEYS)                     | `capability: (environment variables, remedy)` — afforded when any is set.                                                                                                                                                                |
+| [`ENV_MODULES`](#an.capabilities.subjects.ENV_MODULES)                  | `capability: (python modules, remedy)` — afforded when EVERY module is importable (an import spec only: the module is never imported to find out).                                                                                       |
+| [`SVG_FILTER_PRIMITIVES`](#an.capabilities.subjects.SVG_FILTER_PRIMITIVES)        | The SVG filter primitives an engine rasterises in an SVG texture (an#701), the keys of `engine.svg_filter`: a text halo is `feMorphology` + `feGaussianBlur` + `feComponentTransfer` + `feFlood` + `feComposite` in each unit's texture. |
 
 ### Functions
 
@@ -47,10 +48,11 @@ Both analysers take their evidence as `doc` so a test can inject it:
 |---------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`environment_affordances`](#an.capabilities.subjects.environment_affordances)(\*[, probe]) | What this machine affords: tools on PATH, a browser, API keys set.             |
 
-### an.capabilities.subjects.ENGINE_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
+### an.capabilities.subjects.ENGINE_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '4'*
 
 `engine.measure_duration` joined the derivation (an#279).
 “3”: `engine.paint_order` joined it (an#430).
+“4”: `engine.svg_filter` joined it (an#701).
 
 * **Type:**
   ”2”
@@ -82,6 +84,17 @@ importable (an import spec only: the module is never imported to find out).
 ### an.capabilities.subjects.ENV_TOOLS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'env.ffmpeg': (('ffmpeg',), 'install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)'), 'env.latex': (('latex', 'pdflatex', 'xelatex'), 'install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH'), 'env.node': (('node',), 'install Node.js (\`brew install node\`)'), 'env.rhubarb': (('rhubarb',), 'install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)')}*
 
 `capability: (executables, remedy)` — afforded when any executable is on PATH.
+
+### an.capabilities.subjects.SVG_FILTER_PRIMITIVES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDropShadow', 'feFlood', 'feGaussianBlur', 'feImage', 'feMerge', 'feMorphology', 'feOffset', 'feSpecularLighting', 'feTile', 'feTurbulence')*
+
+The SVG filter primitives an engine rasterises in an SVG texture (an#701),
+the keys of `engine.svg_filter`: a text halo is `feMorphology` +
+`feGaussianBlur` + `feComponentTransfer` + `feFlood` +
+`feComposite` in each unit’s texture. An engine declares the ones it draws
+as `svg_filters`, the way it declares `paint_orders`; an engine that
+rasterised SVG without them would draw the glyphs and drop the glow, so the
+stage compiler refuses a halo it lacks, naming it. This is the Filter
+Effects Module’s whole list, which a browser-backed engine draws.
 
 ### an.capabilities.subjects.engine_affordances(renderer)
 

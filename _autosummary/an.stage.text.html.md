@@ -57,18 +57,21 @@ recorded in the compiled document.
 
 ### Module Attributes
 
-| [`TEXT_DOCUMENT_KIND`](#an.stage.text.TEXT_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema (the rule `PathDescriptor` and `PropDescriptor` follow).                        |
-|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DFLT_TEXT_SIZE`](#an.stage.text.DFLT_TEXT_SIZE)       | 0.06 is 65 px at 1080p, and the same block reads the same at 720p and at 4K.                                                                                     |
-| [`DFLT_TEXT_COLOUR`](#an.stage.text.DFLT_TEXT_COLOUR)     | Ink when the document names none — a near-black that reads on the default white background.                                                                      |
-| [`RESERVED_TEXT_IDS`](#an.stage.text.RESERVED_TEXT_IDS)    | the runtime indexes the scene's container as `root` (the camera's target), and the overlay container is named `overlay`.                                         |
-| [`BLOCK_UNIT`](#an.stage.text.BLOCK_UNIT)           | The unit that typesets the whole string as ONE node, `block_0` (an#341): what a replacement set swaps, since per-word units of different strings do not line up. |
-| [`TEXT_SET`](#an.stage.text.TEXT_SET)             | The swap set a text block with `texts` declares (an#341).                                                                                                        |
+| [`TEXT_DOCUMENT_KIND`](#an.stage.text.TEXT_DOCUMENT_KIND)     | Its own versioned document kind, registered from the module that owns the schema (the rule `PathDescriptor` and `PropDescriptor` follow).                                                                |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_TEXT_SIZE`](#an.stage.text.DFLT_TEXT_SIZE)         | 0.06 is 65 px at 1080p, and the same block reads the same at 720p and at 4K.                                                                                                                             |
+| [`DFLT_TEXT_COLOUR`](#an.stage.text.DFLT_TEXT_COLOUR)       | Ink when the document names none — a near-black that reads on the default white background.                                                                                                              |
+| [`RESERVED_TEXT_IDS`](#an.stage.text.RESERVED_TEXT_IDS)      | the runtime indexes the scene's container as `root` (the camera's target), and the overlay container is named `overlay`.                                                                                 |
+| [`HALO_FILTER_PRIMITIVES`](#an.stage.text.HALO_FILTER_PRIMITIVES) | The SVG filter primitives a halo is drawn with (an#701), in the order the unit's texture chains them: what the shot's engine must afford as `engine.svg_filter` keys, or the text is refused at compile. |
+| [`BLOCK_UNIT`](#an.stage.text.BLOCK_UNIT)             | The unit that typesets the whole string as ONE node, `block_0` (an#341): what a replacement set swaps, since per-word units of different strings do not line up.                                         |
+| [`TEXT_SET`](#an.stage.text.TEXT_SET)               | The swap set a text block with `texts` declares (an#341).                                                                                                                                                |
 
 ### Functions
 
-| [`resolve_text`](#an.stage.text.resolve_text)(document[, overrides])               | The text block an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                              |
+| [`halo_paint`](#an.stage.text.halo_paint)(halo, \*, em, ink)                     | `halo` (a `tituli.Halo`) at a type size of `em` pixels, under glyphs drawn in `ink`: its em sizes in pixels, its colour (unset = the opposite of the ink, `tituli.color.ink_for`) and its final alpha.                                                                                    |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`halo_engine_problem`](#an.stage.text.halo_engine_problem)(units, renderer)              | What stops `renderer` drawing these units' halos, or `None`.                                                                                                                                                                                                                              |
+| [`resolve_text`](#an.stage.text.resolve_text)(document[, overrides])               | The text block an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                              |
 | [`font_base_dir`](#an.stage.text.font_base_dir)(props_store, ref)                   | What a relative `font` path resolves against: the text document's own directory in an on-disk props store — `None` for an in-memory one, where a relative path then RAISES rather than resolving against the working directory (which would make the picture depend on where you ran it). |
 | [`text_entity_problem`](#an.stage.text.text_entity_problem)(entity, desc)                 | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
 | [`layout_text`](#an.stage.text.layout_text)(desc, \*, width, height[, base_dir])  | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
@@ -82,7 +85,8 @@ recorded in the compiled document.
 | [`TextDescriptor`](#an.stage.text.TextDescriptor)(\*[, kind, schema_version, ...])   | The on-disk text schema, saved as a prop's `prop.json`.                                                                                                                                                                                                                |
 |----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Counter`](#an.stage.text.Counter)(\*[, format, start])                      | A counter block's number-to-text rule (an#342): `format` in the declared d3-format subset ([`an.formats`](an.formats.html.md#module-an.formats)), and the value shown before any `value` action (`start`; `None` = the first action's value). |
-| [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d)                      | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
+| [`TextUnit`](#an.stage.text.TextUnit)(name, text, box, d[, halo])              | One addressable unit: its node name, its string, its box and its ink.                                                                                                                                                                                                  |
+| [`HaloPaint`](#an.stage.text.HaloPaint)(color, alpha, spread, blur, gain)       | A tituli `Halo` resolved for one unit: frame pixels and one colour.                                                                                                                                                                                                    |
 | [`TextLayout`](#an.stage.text.TextLayout)(units, origin, font[, bounds])         | A placed block: its units, its reference point, and the face that set it.                                                                                                                                                                                              |
 | [`FontIdentity`](#an.stage.text.FontIdentity)(family, style, sha256, embedded)     | Which face drew a block — by its bytes, not its name.                                                                                                                                                                                                                  |
 
@@ -92,6 +96,7 @@ recorded in the compiled document.
 |---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [`TextLayoutError`](#an.stage.text.TextLayoutError)    | The text cannot be set as asked (a glyph the face lacks, nothing to draw).                                  |
 | [`TextOutlineWarning`](#an.stage.text.TextOutlineWarning) | A unit's outline is wide enough to cover its neighbour's glyphs.                                            |
+| [`TextHaloWarning`](#an.stage.text.TextHaloWarning)    | A unit's halo reaches far enough to dim a neighbouring unit's glyphs.                                       |
 
 ### an.stage.text.BLOCK_UNIT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'block'*
 
@@ -167,6 +172,37 @@ ligatures and is used for a font file whenever libraqm can be loaded,
 so the same bytes can set differently on two machines. The embedded
 face is always `basic`.
 
+### an.stage.text.HALO_FILTER_PRIMITIVES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('feMorphology', 'feGaussianBlur', 'feComponentTransfer', 'feFlood', 'feComposite')*
+
+The SVG filter primitives a halo is drawn with (an#701), in the order the
+unit’s texture chains them: what the shot’s engine must afford as
+`engine.svg_filter` keys, or the text is refused at compile.
+
+### *class* an.stage.text.HaloPaint(color, alpha, spread, blur, gain)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A tituli `Halo` resolved for one unit: frame pixels and one colour.
+
+What a unit’s texture draws (an#701): the glyphs’ alpha dilated by
+`spread` (whole pixels, as tituli rounds it), blurred with a Gaussian
+of standard deviation `blur`, multiplied by `gain` and clipped to
+opaque, then laid in `color` at `alpha` (the halo’s `opacity` times
+its colour’s own alpha) — tituli’s `glow` and `draw_halo`, step for
+step.
+
+#### *property* cover *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Pixels past the ink where the glow still visibly covers another
+unit’s glyphs (`HALO_COVER_SIGMAS`).
+
+#### *property* reach *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+the unit’s box grows by it.
+
+* **Type:**
+  Whole pixels the glow reaches past the ink
+
 ### an.stage.text.RESERVED_TEXT_IDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'overlay', 'root'})*
 
 the runtime indexes the scene’s
@@ -186,7 +222,7 @@ schema (the rule `PathDescriptor` and `PropDescriptor` follow).
 
 The swap set a text block with `texts` declares (an#341).
 
-### *class* an.stage.text.TextDescriptor(\*, kind='TextDescriptor', schema_version='0.1.0', name, text=None, texts=None, rest=None, counter=None, layer='world', unit='word', size=0.06, color='#1a1a1a', stroke_width=0.0, stroke_color='#1a1a1a', font=None, features=None, align='center', max_width=None, leading=1.2, tracking=0.0, anchor=None, source=None, metadata=<factory>)
+### *class* an.stage.text.TextDescriptor(\*, kind='TextDescriptor', schema_version='0.1.0', name, text=None, texts=None, rest=None, counter=None, layer='world', unit='word', size=0.06, color='#1a1a1a', stroke_width=0.0, stroke_color='#1a1a1a', halo=None, font=None, features=None, align='center', max_width=None, leading=1.2, tracking=0.0, anchor=None, source=None, metadata=<factory>)
 
 Bases: `BaseModel`
 
@@ -248,6 +284,19 @@ has them is recorded with it (`meta.fonts`, `features:`).
 #### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the embedded face; else a font FILE path (see the module doc).
+
+#### halo *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
+
+tituli’s own `Halo` (one
+vocabulary for both packages), given as `true` (the default halo), a
+mapping of its fields (`color`, `spread`, `blur`, `gain`,
+`opacity`; sizes in em) or a `tituli.Halo`. `color` unset is the
+opposite of `color` (`tituli.color.ink_for`). Drawn in each unit’s
+own texture, under the outline and the fill, with SVG filters the
+shot’s engine must afford (`engine.svg_filter`).
+
+* **Type:**
+  A soft glow under every unit (an#701)
 
 #### max_width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -338,6 +387,12 @@ A text block’s font cannot be used: not a file, not a font, or not the
 face the typesetter actually used. Raised instead of falling back, because
 a fallback face is a different picture wearing the right one’s clothes.
 
+### *exception* an.stage.text.TextHaloWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A unit’s halo reaches far enough to dim a neighbouring unit’s glyphs.
+
 ### *class* an.stage.text.TextLayout(units, origin, font, bounds=(0.0, 0.0, 0.0, 0.0))
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -369,7 +424,7 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A unit’s outline is wide enough to cover its neighbour’s glyphs.
 
-### *class* an.stage.text.TextUnit(name, text, box, d)
+### *class* an.stage.text.TextUnit(name, text, box, d, halo=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -378,7 +433,8 @@ One addressable unit: its node name, its string, its box and its ink.
 `box` is `(x0, y0, x1, y1)` in frame pixels, snapped OUTWARD to whole
 pixels and containing both the layout box and the ink, so the sprite’s
 corners sit on the pixel grid and nothing is clipped. `d` is the unit’s
-glyph contours as SVG path data in frame pixels.
+glyph contours as SVG path data in frame pixels. `halo` is the glow
+drawn under it (an#701), `None` for none.
 
 #### *property* center *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
@@ -397,6 +453,42 @@ directory (which would make the picture depend on where you ran it).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stage.text.halo_engine_problem(units, renderer)
+
+What stops `renderer` drawing these units’ halos, or `None`.
+
+A halo is SVG filters in the unit’s texture ([`HALO_FILTER_PRIMITIVES`](#an.stage.text.HALO_FILTER_PRIMITIVES));
+an engine that does not afford them as `engine.svg_filter` keys would
+draw the glyphs with no glow, so the compiler raises on this and `an
+validate` reports it. A renderer that is not registered is left to its
+own check.
+
+```pycon
+>>> halo_engine_problem([], "stage") is None
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stage.text.halo_paint(halo, , em, ink)
+
+`halo` (a `tituli.Halo`) at a type size of `em` pixels, under
+glyphs drawn in `ink`: its em sizes in pixels, its colour (unset = the
+opposite of the ink, `tituli.color.ink_for`) and its final alpha.
+
+```pycon
+>>> from tituli import Halo
+>>> p = halo_paint(Halo(), em=100, ink="#ffffff")
+>>> p.color, p.spread, p.blur, p.gain, p.alpha, p.reach
+('#111111', 3, 10.0, 2.0, 0.65, 33)
+>>> halo_paint(Halo(color="#ffd40080", opacity=1.0), em=40, ink="#000000").alpha
+0.5019607843137255
+```
+
+* **Return type:**
+  [`HaloPaint`](#an.stage.text.HaloPaint)
 
 ### an.stage.text.layout_text(desc, , width, height, base_dir=None)
 

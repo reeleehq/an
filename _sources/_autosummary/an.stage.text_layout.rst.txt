@@ -12,12 +12,14 @@ an.stage.text\_layout
       TEXT_TEXTURE_PREFIX
       TEXT_ALIAS_DIGEST_LEN
       INLINE_SRC_PREFIX
+      HALO_FILTER_ID
    
    .. rubric:: Functions
 
    .. autosummary::
    
       build_text_subtree
+      halo_filter
       svg_data_uri
       text_document
       text_swap_declaration

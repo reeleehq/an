@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=76620681"></script>
+    <script src="../../../_static/documentation_options.js?v=419a8ceb"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.385" />
+  <meta name="docsearch:version" content="0.1.386" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,6 +731,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">text_card  text — overlay words revealed one by one, a world label — under</span>
 <span class="sd">           the camera's ZOOM and ROLL (the overlay holds still, the world does not)</span>
 <span class="sd">text_outline outlined words over a plate, revealed word by word (an#313)</span>
+<span class="sd">text_halo  words with a halo (tituli's ``Halo``) over sand, revealed word by</span>
+<span class="sd">           word, and a dark caption in a gold halo (an#701)</span>
 <span class="sd">text_swap  text content over time — a `texts` replacement set swapped twice,</span>
 <span class="sd">           right-aligned (an#341)</span>
 <span class="sd">text_counter a counter — one block counting 1 to 30, lowered at compile (an#342)</span>
@@ -766,7 +768,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_outline', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -1018,6 +1020,24 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"stripe alike. A regression in the outline's width, its order under "</span>
             <span class="s2">"the fill, the box growth that keeps it unclipped, or per-word "</span>
             <span class="s2">"alpha moves a golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"text_halo"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/text_halo"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"text with a HALO (an#701, tituli's `Halo`): white words over sand, "</span>
+            <span class="s2">"where white alone does not read, with the default halo (a dark "</span>
+            <span class="s2">"glow: the opposite of the ink, dilated, blurred, boosted by its "</span>
+            <span class="s2">"gain), the second word fading in from 0.125 s; and a dark overlay "</span>
+            <span class="s2">"caption in a gold halo (`color`, `spread`, `blur`, `gain`, "</span>
+            <span class="s2">"`opacity` set). Frame 0 shows the first word with its glow and NO "</span>
+            <span class="s2">"glow where the second word will be (the glow lives in the word's "</span>
+            <span class="s2">"own texture, so its alpha hides both); frame 8 shows both words "</span>
+            <span class="s2">"ringed. A regression in the filter chain (dilation, blur, gain, "</span>
+            <span class="s2">"colour, opacity), its order under the fill, the box growth that "</span>
+            <span class="s2">"keeps it unclipped, or per-word alpha moves a golden."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"rig_order"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
