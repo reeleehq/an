@@ -45,6 +45,7 @@ from an.ir.assets import (
     license_restriction,
     provider_terms_restriction,
     requires_attribution,
+    restriction_breaches,
 )
 from an.ir.sync import DEFAULT_SCENE_FILE
 from an.stores._common import is_os_junk
@@ -115,6 +116,12 @@ class CreditsReport:
     #: (an#357) — a statement about some bytes freer than the one that binds
     #: them. Informative: the binding statement is already among the entries.
     conflicts: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
+    #: The use the restrictions are read against (an#743): the video's annual
+    #: revenue in USD and where it is used (an ISO 3166-1 alpha-2 code, or
+    #: ``"WORLD"`` for online publishing). ``None`` is unstated, and a
+    #: restriction that asks about it is not met.
+    revenue_usd: int | None = None
+    territory: str | None = None
 
     @property
     def owed(self) -> list[CreditEntry]:
@@ -135,8 +142,21 @@ class CreditsReport:
     @property
     def commercial(self) -> bool:
         """Whether a COMMERCIAL video may contain everything here (publishable,
-        and nothing non-commercial)."""
-        return self.publishable and not self.noncommercial
+        nothing non-commercial, and every restriction met by the stated use)."""
+        return self.publishable and not self.noncommercial and not self.restricted
+
+    @property
+    def restricted(self) -> list[tuple[CreditEntry, str]]:
+        """``(entry, why)`` for every restriction beyond an entry's licence that
+        the stated use breaks (an#743: a revenue cap, an excluded territory, a
+        kind nobody knows), read by :func:`~an.ir.assets.restriction_breaches`.
+        Flagged, never blocking, like :attr:`noncommercial`."""
+        use = {"revenue_usd": self.revenue_usd, "territory": self.territory}
+        return [
+            (e, why)
+            for e in self.entries
+            for why in restriction_breaches(e.source, **use)
+        ]
 
     @property
     def ai_generated(self) -> list[tuple[CreditEntry, str]]:
@@ -185,6 +205,9 @@ class CreditsReport:
             "unverified": [e.asset for e in self.unverified],
             "private_study": [e.asset for e in self.private],
             "non_commercial": [e.asset for e in self.noncommercial],
+            "restricted": [
+                {"asset": e.asset, "why": why} for e, why in self.restricted
+            ],
             "ai_generated": [
                 {"asset": e.asset, "disclosure": label}
                 for e, label in self.ai_generated
@@ -246,6 +269,14 @@ class CreditsReport:
             )
             for e in self.noncommercial:
                 lines.append(f"  {e.asset}: license={e.source.license!r}{_detail(e)}")
+        if restricted := self.restricted:
+            lines.append("")
+            lines.append(
+                f"RESTRICTED — {len(restricted)} restriction(s) beyond the licence "
+                "that this use does not meet (state the use with --revenue-usd "
+                "and --territory):"
+            )
+            lines += [f"  {e.asset}: {why}" for e, why in restricted]
         if self.owed:
             lines.append("")
             lines.append("MUST BE DISPLAYED to ship this video:")
@@ -1319,14 +1350,20 @@ def _reconstruct_legacy_source(descriptor: Any) -> AssetSource | None:
 
 
 def credits_for_project(
-    project_dir: str | Path, *, scene_file: Any = DEFAULT_SCENE_FILE
+    project_dir: str | Path,
+    *,
+    scene_file: Any = DEFAULT_SCENE_FILE,
+    revenue_usd: int | None = None,
+    territory: str | None = None,
 ) -> CreditsReport:
     """Credits for the project at ``project_dir``: its assets, and the speech
     of its scene (``scene_file``: another scene of the project,
-    ``scene.studio.md``, an#554)."""
+    ``scene.studio.md``, an#554), with restrictions read against the use
+    (``revenue_usd``, ``territory``: :attr:`CreditsReport.restricted`)."""
     from an.project import load
 
     project = load(Path(project_dir), scene_file=scene_file, sync=False)
     report = collect_credits(project.mall)
     report.entries.extend(speech_credits(project.mall, project.scene))
+    report.revenue_usd, report.territory = revenue_usd, territory
     return report

@@ -423,13 +423,19 @@ def probe(
 
 
 def credits(
-    project_dir: str, json_out: str | None = None, scene: str = DEFAULT_SCENE_FILE
+    project_dir: str,
+    json_out: str | None = None,
+    scene: str = DEFAULT_SCENE_FILE,
+    revenue_usd: int | None = None,
+    territory: str | None = None,
 ) -> str:
     """Show what third-party work is in ``project_dir`` and what it obliges.
 
     project_dir: the an project
     json_out: also write the machine-readable record to this path
     scene: the scene file whose speech is credited, inside the project (default scene.md; for example scene.studio.md)
+    revenue_usd: the video's annual revenue in USD, read against an asset's revenue cap (unstated: a cap is not met)
+    territory: where the video is used, an ISO 3166-1 alpha-2 code or WORLD for online publishing (unstated: an excluded territory is not met)
 
     A licence recorded and never displayed is not compliance, so this is the
     consumer that makes the provenance field worth having.
@@ -441,7 +447,9 @@ def credits(
     """
     from an.credits import credits_for_project
 
-    report = credits_for_project(project_dir, scene_file=scene)
+    report = credits_for_project(
+        project_dir, scene_file=scene, revenue_usd=revenue_usd, territory=territory
+    )
     if json_out:
         import json as _json
 
