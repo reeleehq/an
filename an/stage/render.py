@@ -52,6 +52,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from an.adapters._base import RenderContext
+from an.capabilities.subjects import SVG_FILTER_PRIMITIVES
 from an.stage.canvas_capture import (
     CanvasCaptureError,
     canvas_frame_png,
@@ -1028,6 +1029,10 @@ class CutoutRenderer(FrameStageRenderer):
     #: items sorted (``applyPaintOrder``) and one list across containers
     #: (``applyGlobalPaint``). Read as the ``engine.paint_order`` capability.
     paint_orders: tuple[str, ...] = ("container", "global")
+    #: The SVG filter primitives the stage draws inside an SVG texture
+    #: (an#701): Chromium rasterises every texture, filters included. Read
+    #: as the ``engine.svg_filter`` capability; a text ``halo`` needs them.
+    svg_filters: tuple[str, ...] = SVG_FILTER_PRIMITIVES
 
 
 # -----------------------------------------------------------------------------

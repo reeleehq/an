@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-11-09T03:02:13Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 15808,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "63b99d97d1074483f8458f3fa199385e8243910be54e4f288785f3b09fcb56e6",
+      "shot_id": "label",
+      "time": 0.0
+    },
+    {
+      "bytes": 24762,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "9ac5b8244f9fca95dc66aa5ece2b64fd700c80e6ffb54370afbfea516c6bded3",
+      "shot_id": "label",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "text-halo-701",
+    "dirty": true,
+    "sha": "c9098cdd2c6840cb8a85031ba33d53cb6258e4af"
+  },
+  "reason": "new core scene (an#701): haloed words over sand, revealed word by word, and a caption in a gold halo",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "text_halo",
+  "scene_contract_sha256": "b47c3545195b8343cda4f99128bfadda33b0e7e97bbb47f34b3bdf0a35984bfd",
+  "shot_ids": [
+    "label"
+  ],
+  "source": "misc/bench/corpus/text_halo",
+  "what_moves": "text with a HALO (an#701, tituli's `Halo`): white words over sand, where white alone does not read, with the default halo (a dark glow: the opposite of the ink, dilated, blurred, boosted by its gain), the second word fading in from 0.125 s; and a dark overlay caption in a gold halo (`color`, `spread`, `blur`, `gain`, `opacity` set). Frame 0 shows the first word with its glow and NO glow where the second word will be (the glow lives in the word's own texture, so its alpha hides both); frame 8 shows both words ringed. A regression in the filter chain (dilation, blur, gain, colour, opacity), its order under the fill, the box growth that keeps it unclipped, or per-word alpha moves a golden."
+}

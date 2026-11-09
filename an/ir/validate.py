@@ -300,6 +300,7 @@ def _check_text_blocks(
         return set()
     from an.stage.text import (
         font_base_dir,
+        halo_engine_problem,
         layout_text,
         layout_text_set,
         resolve_text,
@@ -349,7 +350,9 @@ def _check_text_blocks(
                 f"set — rendering this shot raises: {err}",
             )
             continue
-        problem = text_entity_problem(entity, desc)
+        problem = text_entity_problem(entity, desc) or halo_engine_problem(
+            lay.units, shot.renderer
+        )
         others = {e.id for e in shot.entities if e is not entity}
         if problem is None and desc.layer == "overlay" and entity.id in others:
             problem = (

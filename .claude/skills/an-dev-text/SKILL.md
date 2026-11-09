@@ -34,6 +34,15 @@ description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) �
 - `stroke_width` is the VISIBLE thickness outside the glyph; `unit_svg` strokes the contours at `2 × stroke_width` (round joins) and then fills them, two paths rather than `paint-order`. The unit box grows by `ceil(stroke_width)`.
 - Every unit is its own texture, so outlines cannot all sit under all fills: a unit's outline covers its predecessor's fill where they meet. `_warn_if_outlines_overlap` says so (`TextOutlineWarning`). Moving outlines to a separate layer would break per-unit alpha; do not.
 
+## Halos (an#701)
+
+- `halo` is tituli's own `Halo` (`true`, a mapping of its fields, a `tituli.Halo`), coerced by `_as_halo` with tituli imported lazily (`an.stage.text` must not import tituli at module level). `_layout_string` puts it on the runs with `Layout.with_halo`, so the unit draws whatever its runs carry: the document's halo, or one a layout came with. That is how an#682's refusal was lifted; a `block` unit whose lines carry different halos is still refused (one texture, one glow).
+- Semantics are tituli's (`tituli.render.glow`/`draw_halo`), resolved per unit by `halo_paint` at `run.face.size`: spread `round(spread × em)` px, blur `blur × em` px as the Gaussian's standard deviation, `gain` then clip to opaque, colour = `ink_for` the opposite of the block's `color` (not `run.color`: `an` fills in `desc.color`) when unset, alpha = `opacity` × the colour's alpha. Measured against tituli's Pillow drawing of the same word: the same dark-pixel count within 4 % and the same darkest value.
+- `unit_svg` draws glow (the contours through `halo_filter`: `feMorphology` dilate → `feGaussianBlur` → `feComponentTransfer` slope `gain` → `feFlood` + `feComposite in`, sRGB, region = the unit's box in user space) → outline → fill. The box grows by `spread + ceil(HALO_BLUR_REACH × blur)`.
+- A later unit's glow covers an earlier unit's glyphs (tituli draws every halo first; per-unit alpha rules that out here, the an#313 trade). `TextHaloWarning` fires when two units' inks are within `spread + HALO_COVER_SIGMAS × blur` (default halo: about 0.23 em, so word units are fine, glyph units always warn).
+- The glow is SVG filters, so the engine must afford them: `engine.svg_filter` (keys: the primitives; a renderer's `svg_filters` member; the stage declares the whole Filter Effects list). `halo_engine_problem` is the one statement, raised by `_build_text_block` and reported by `_check_text_blocks`.
+- `Layout.plates` (scrims, boxes, rules) are refused by name in `_refuse_plates`: `an` draws units only. Drawing them would be a separate node under the block.
+
 ## Silent failures this prevents — keep each one refused
 
 1. **A fallback face.** `tituli.resolve_face` NEVER fails: a font path that is missing or unparseable silently becomes Aileron. So `_font_request` checks the file exists AND `layout_text` checks the face tituli used came from that file (`face.path == request`). Remove either and a scene renders in the wrong face with no signal. Tested: missing file, non-font bytes.
@@ -77,5 +86,5 @@ description: Text on screen in the `an` repo (an#155, an#175, epic #9 Wave 8) �
 - Captions: WebVTT (the epic assigns it to `lacing`), a scrim/plate behind the caption, speaker labels, captions in `an preview`, a caption corpus scene.
 - A StylePack `text` role (colour is compiler-decided, so it is reachable — add the role and a fixed-scene assertion together, the `REACHABLE_ROLES` rule).
 - Text on a path / calligrams (`tituli.along_path`, `rain` already place runs with an `angle`; `run_outline` rotates — the compiler would need per-unit rotation in the node transform instead of in the outline, so a `rotation` tween still pivots at the unit).
-- A corpus scene + golden + palette support; scrims/plates (`Layout.plates`) are not drawn.
+- A corpus scene + golden + palette support; scrims/plates (`Layout.plates`) are not drawn (refused by name, an#701).
 - Engine stays pinned (Decision 4): nothing here needs dynamic bitmap fonts.

@@ -50,13 +50,15 @@ __all__ = [
     "ENV_TOOLS",
     "ENV_KEYS",
     "ENV_MODULES",
+    "SVG_FILTER_PRIMITIVES",
     "engine_affordances",
     "environment_affordances",
 ]
 
 #: "2": `engine.measure_duration` joined the derivation (an#279).
 #: "3": `engine.paint_order` joined it (an#430).
-ENGINE_ANALYSER_VERSION: str = "3"
+#: "4": `engine.svg_filter` joined it (an#701).
+ENGINE_ANALYSER_VERSION: str = "4"
 #: "2": `env.manim` joined the derivation (an#279).
 ENVIRONMENT_ANALYSER_VERSION: str = "2"
 
@@ -195,6 +197,47 @@ ENGINE_PAINT_ORDER = register_capability(
     subject="engine",
 )
 
+#: The SVG filter primitives an engine rasterises in an SVG texture (an#701),
+#: the keys of ``engine.svg_filter``: a text halo is ``feMorphology`` +
+#: ``feGaussianBlur`` + ``feComponentTransfer`` + ``feFlood`` +
+#: ``feComposite`` in each unit's texture. An engine declares the ones it draws
+#: as ``svg_filters``, the way it declares ``paint_orders``; an engine that
+#: rasterised SVG without them would draw the glyphs and drop the glow, so the
+#: stage compiler refuses a halo it lacks, naming it. This is the Filter
+#: Effects Module's whole list, which a browser-backed engine draws.
+SVG_FILTER_PRIMITIVES: tuple[str, ...] = (
+    "feBlend",
+    "feColorMatrix",
+    "feComponentTransfer",
+    "feComposite",
+    "feConvolveMatrix",
+    "feDiffuseLighting",
+    "feDisplacementMap",
+    "feDropShadow",
+    "feFlood",
+    "feGaussianBlur",
+    "feImage",
+    "feMerge",
+    "feMorphology",
+    "feOffset",
+    "feSpecularLighting",
+    "feTile",
+    "feTurbulence",
+)
+ENGINE_SVG_FILTER = register_capability(
+    "engine.svg_filter",
+    description=(
+        "the engine rasterises SVG filter primitives inside an SVG texture "
+        "(keys: the primitives, e.g. `feGaussianBlur`)"
+    ),
+    remedy=(
+        "render the shot with an engine that declares those filter primitives "
+        "(the stage does: Chromium rasterises its SVG textures), or drop the "
+        "text block's `halo` (a `stroke_width` outline needs no filter)"
+    ),
+    subject="engine",
+)
+
 
 def missing_engine_terms(renderer_name: str, terms: Iterable[str]) -> list[str]:
     """The requirement ``terms`` the renderer registered as ``renderer_name``
@@ -283,6 +326,9 @@ def _derive_engine(renderer: Any, art: Mapping[str, Any]) -> dict[str, dict[str,
     orders = tuple(getattr(renderer, "paint_orders", ()) or ())
     if orders:
         out[ENGINE_PAINT_ORDER.name] = {KEYS_PARAM: list(orders)}
+    filters = tuple(getattr(renderer, "svg_filters", ()) or ())
+    if filters:
+        out[ENGINE_SVG_FILTER.name] = {KEYS_PARAM: list(filters)}
     spaces = getattr(renderer, "view_spaces", None)
     if spaces is None:
         spaces = DFLT_ENGINE_VIEW_SPACES.get(getattr(renderer, "name", ""), ())

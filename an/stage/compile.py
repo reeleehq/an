@@ -150,7 +150,7 @@ from an.stage.paths import (
 )
 from an.stage import tree as stage_tree
 from an.stage.text_layout import build_text_subtree, svg_data_uri, text_document  # noqa: F401  (re-exported)
-from an.stage.text import font_base_dir, text_entity_problem
+from an.stage.text import font_base_dir, halo_engine_problem, text_entity_problem
 from an.paint import Gradient
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette, surface_for
 from an.stage.surface import (
@@ -2292,6 +2292,7 @@ def _build_prop_entity(entity: AssetRef, build: SceneBuild) -> None:
             fonts=build.fonts,
             width=build.width,
             height=build.height,
+            renderer=build.shot.renderer,
         )
         (build.overlay if layer == "overlay" else build.children).append(sub)
         return
@@ -3315,11 +3316,13 @@ def _build_text_block(
     fonts: dict[str, str],
     width: int,
     height: int,
+    renderer: str | None = None,
 ) -> tuple[NodeJSON, str]:
     """A text block (an#155): its node, and the layer it belongs to.
 
     Every refusal of the typesetting path — a font that is not a file, a
-    glyph the face lacks, an override the schema does not know — becomes a
+    glyph the face lacks, an override the schema does not know, a ``halo``
+    the shot's ``renderer`` cannot draw (an#701) — becomes a
     :class:`CutoutCompileError` naming the entity; nothing falls back.
     """
     try:
@@ -3340,6 +3343,9 @@ def _build_text_block(
     problem = text_entity_problem(entity, desc)
     if problem is not None:
         raise CutoutCompileError(problem)
+    problem = halo_engine_problem(lay.units, renderer)
+    if problem is not None:
+        raise CutoutCompileError(f"text {entity.id!r}: {problem}")
     if entity.id in fonts:
         raise CutoutCompileError(
             f"two text blocks in shot share the id {entity.id!r}; a unit path "

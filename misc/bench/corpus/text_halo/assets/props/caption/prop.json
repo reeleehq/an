@@ -1,0 +1,18 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "caption",
+  "text": "oasis",
+  "layer": "overlay",
+  "anchor": "bottom",
+  "unit": "word",
+  "size": 0.1,
+  "color": "#1a1a1a",
+  "halo": {
+    "color": "#ffd400",
+    "spread": 0.08,
+    "blur": 0.15,
+    "gain": 3,
+    "opacity": 0.8
+  }
+}
