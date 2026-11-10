@@ -85,6 +85,7 @@ EXIT_POLICY: dict[str, str] = {
     "cache info": "0",
     "cache gc": "refuses",
     "sounds add": "refuses",
+    "sounds sync": "refuses",
     "music add-library": "failed: a title no mirror served (an#470); refuses: bad arguments",
     "music use": "refuses",
     "props validate": "failed: a FAILED report (an#480)",

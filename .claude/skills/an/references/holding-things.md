@@ -18,8 +18,9 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 - {kind: place, item: musket, onto: nap/arm_r/weapon, start: 7.0}          # into a socket, aligned with it
 - {kind: place, item: book, onto: ground@-860, start: 9.0}                 # lie it on the floor at x -860
 - {kind: place, item: cup, onto: table@surface, start: 11.0}               # stand it on the table top, below the hand
-- {kind: release, item: musket, at: 13.4, onto: ground@-420, arc: 60}      # toss it to land at x -420
-- {kind: release, item: cup, at: 5.0}                                      # drop it: falls with the hand's velocity
+- {kind: release, item: musket, at: 13.4, onto: ground@-420, arc: 60}      # toss it up 60 px to land at x -420
+- {kind: release, item: musket, at: 13.4, onto: ground@-420}               # let it fall, nudged to land at x -420 (never rises)
+- {kind: release, item: cup, at: 5.0}                                      # drop it: falls straight down
 - {kind: handover, item: cup, to: jo@hand_l, meet: 0.5, start: 4.0}        # both reach; jo takes it in the middle
 - {kind: swap, holder: nap/arm_r/weapon, take: musket, give: sword, by: stu@hand_r, start: 10.4}
 - {kind: place, item: musket, onto: nap/arm_r/weapon, start: 14.0, rotation: -0.1}   # aimed: the barrel at the stage angle -0.1
@@ -35,8 +36,9 @@ A carried item turns, mirrors and squashes with the hand that holds it (a charac
 | `reach`, `retract` | grasp, place, handover, swap | seconds out and back | 0.4, 0.35 |
 | `lean` | grasp, place, handover, swap | most degrees the body may bend | 60 |
 | `align` | grasp, handover, swap | over the retract the item turns to how the hand holds things (drawn as it is, along the hand's part, as a socket holds it); `false` keeps the angle it was taken at | true |
-| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's; on a surface, relative to the surface). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket | as it last lay on the ground, else its nearest quarter turn; a socket's own |
-| `arc` | release | how high a toss rises above its higher end (px) | 40 |
+| `rotation` | place, release, swap (the give) | the item's rotation where it comes to rest (radians, the stage's; on a surface, relative to the surface). Into a socket it is how the item is **aimed** there (a musket pointed at someone, a sabre raised): it arrives at that angle, grip on the socket, and from then on turns with the socket. On a `release` it FORCES the rest angle (the item spins to it in the air): leave it out and it lands on whichever side it falls nearest to | place: as it last lay on the ground, else its nearest quarter turn; release: the side of its ink it falls onto; a socket's own |
+| `arc` | release | how high a toss rises above its higher end (px); 0 lets it fall (a let-go item never rises) | 0 |
+| `bounce` | release | the coefficient of restitution when it lands (0: dead) | 0.15 |
 | `lag` | swap | how long after the taking hand the giving hand starts | 0.25 |
 
 A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whichever hand holds it, onto `holder`, at the swap's `rotation`) a beat apart: the socket is emptied before the new item arrives.
@@ -70,7 +72,10 @@ A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whicheve
 ## Things to know
 
 - **Draw order follows the holder** (an#537): while a hand or a socket holds an item, the item draws just above the part that holds it (over the arm that carries it, under whatever the carrier draws over that arm; with the figurine once it is put in its hand), and back at its staged place (its entity order, `stage.after` included) once it is on the ground or in the air. Its `stage.after` only decides where it draws while nothing holds it.
-- **Gravity for a fall** is the shot's or the style pack's (`gravity:`), else 980 px/s² down; `solve: {gravity: none}` makes a released item stay where it was let go (a warning).
+- **A release is a rigid fall** (2026-11-10): it drops from where it was let go (never up, unless `arc` > 0), spinning at a steady rate, one end touches the floor first, it tips onto its side about that end and bounces a little, then lies on the side it fell nearest to. Let go while its lowest point is already at or below the floor (a long musket hanging from a short arm), it falls over that end where it is, lying in front of the floor line, and `an validate` warns: lift the arm first (a `tween` of the arm's `rotation` before the release) so it clears the floor. The hold report's `events` say when it `land`s and `rest`s; a sound cue can be timed by them (`at: {when: musket, event: land}`, below).
+- **Gravity for a fall** is the shot's or the style pack's (`gravity:`), else 980 px/s² down — which is slow for a figure a few hundred px tall (980 is 9.8 m/s² at 100 px per metre; a 400 px figure is about 235 px per metre, so 2200 reads as real weight). Set it for the falls without making the puppet dynamic: `solve: {ground: 502, gravity: down 2200, mode: pose}` (without `mode: pose`, gravity makes every limb hang and swing). `solve: {gravity: none}` makes a released item stay where it was let go (a warning).
+- **Sounds on the frame of the event:** `sounds: [{sound: clink, at: {when: sabre, event: place}}]` — events `grasp`, `place`, `contact` (either), `release`, `land`, `bounce`, `rest` (and a `topple`'s: `topple`, `hit`, `land`, `pin`), `nth: 2` for the second; `an validate` errors when the event does not happen (`cue_event`). A clip whose hit is not its first sample is late by its lead-in: declare the hit once, `an sounds sync <project> <key>` (measured), and every cue puts the hit at its `at`; `an validate` warns when an undeclared hit is 125 ms or more in.
+- **Falling over** (a camera knocked over, a figurine tipping onto its face, one knocking the next): `topple`, see `references/falls-and-topples.md`.
 - **A catch:** a `release` and another hand's `grasp` of the same item at the same instant: the release comes first, the other hand catches it where it was let go.
 - **Two gestures that bend one body opposite ways at once** cannot both arrive; `unreachable_hold` says which other gesture bends it the other way. Do them one after the other.
 - **Reading the result:** `meta.extensions.solve.holds` in the compiled shot lists each gesture (`contact`, `gap`, `lean`) and each item's holders over time; `an probe <dir> --shot ID --at <contact>` shows the frame the item changes hands.

@@ -1404,7 +1404,7 @@
    "id": "action.release",
    "kind": "action",
    "name": "release",
-   "version": "1",
+   "version": "2",
    "title": "",
    "description": "let a held item go: it falls, or is tossed, onto the ground",
    "levels": [
@@ -1412,7 +1412,7 @@
    ],
    "params": {
     "additionalProperties": true,
-    "description": "The hand holding ``item`` lets it go at ``at``: it falls with the\nvelocity it had onto the ground, or is tossed ``onto: ground@x`` on an\narc ``arc`` px high, and lands at ``rotation`` (default: as in ``place``).\n\n>>> ReleaseAction(item=\"cup\", at=1.0).onto is None\nTrue",
+    "description": "The hand holding ``item`` lets it go at ``at``: it falls (never rising)\nonto the ground, ``onto: ground@x`` nudged to land there, or tossed up\nfirst when ``arc`` (px above the hand) is positive; it lands one end\nfirst, tips onto its side at ``rotation`` (default: the side of it it falls nearest to) and\nbounces a little (``bounce``: the coefficient of restitution, default\n:data:`an.stage.rigid.DFLT_BOUNCE`; 0 lands dead).\n\n>>> ReleaseAction(item=\"cup\", at=1.0).onto is None\nTrue",
     "properties": {
      "name": {
       "anyOf": [
@@ -1448,7 +1448,7 @@
       "title": "Onto"
      },
      "arc": {
-      "default": 40.0,
+      "default": 0.0,
       "minimum": 0,
       "title": "Arc",
       "type": "number"
@@ -1464,6 +1464,20 @@
       ],
       "default": null,
       "title": "Rotation"
+     },
+     "bounce": {
+      "anyOf": [
+       {
+        "maximum": 0.95,
+        "minimum": 0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Bounce"
      }
     },
     "required": [
@@ -2005,6 +2019,128 @@
      "by"
     ],
     "title": "SwapAction",
+    "type": "object"
+   }
+  },
+  {
+   "id": "action.topple",
+   "kind": "action",
+   "name": "topple",
+   "version": "1",
+   "title": "",
+   "description": "a rigid body falls over about its foot under gravity, onto the floor or until a point of it reaches a target; one can knock another",
+   "levels": [
+    "a"
+   ],
+   "params": {
+    "additionalProperties": true,
+    "description": "``body`` falls over ``toward`` a side, about its foot on that side.\n\n>>> ToppleAction(body=\"nap\", after=\"cam_falls\", point=\"sabre@0.97,0.03\", until=\"han@0.62,0.2\").toward\n'right'",
+    "properties": {
+     "name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Name"
+     },
+     "body": {
+      "title": "Body",
+      "type": "string"
+     },
+     "id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Id"
+     },
+     "toward": {
+      "default": "right",
+      "enum": [
+       "left",
+       "right"
+      ],
+      "title": "Toward",
+      "type": "string"
+     },
+     "push": {
+      "default": 0.6,
+      "minimum": 0,
+      "title": "Push",
+      "type": "number"
+     },
+     "after": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "After"
+     },
+     "point": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Point"
+     },
+     "until": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Until"
+     },
+     "bounce": {
+      "anyOf": [
+       {
+        "maximum": 0.95,
+        "minimum": 0,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Bounce"
+     },
+     "knock": {
+      "default": 0.6,
+      "exclusiveMinimum": 0,
+      "maximum": 2.0,
+      "title": "Knock",
+      "type": "number"
+     }
+    },
+    "required": [
+     "body"
+    ],
+    "title": "ToppleAction",
     "type": "object"
    }
   },
