@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-10
+- A let-go item keeps the mirror it was carried with: an item lying unmirrored, picked up by a figure that has turned round and released, no longer eases its `scale_x` through 0 in the air (squashed flat, then flipped) or slides sideways from a still hand. The falls reference also says how to lift before a deliberate drop (fast and high) and how to swing into a throw (`ease_in`, no `arc` for a toss down).
 - `topple`'s `point` and `until` name a rig's bone or landmark (`until: 'han/head@eye_unpatched'`) through the solve's one point resolver, instead of only `path@u,v` or `world@x,y` (an#811).
 - Physical falls and sounds on their frame: a `release` is a rigid fall (never rising unless `arc` > 0, default `arc` now 0; lands one end first, tips onto its side, bounces, rests on its nearest side), `topple` makes a body fall over about its foot and knock the next (a point can stop on a target), the hold report records `events`, a cue can be timed by one (`at: {when: musket, event: land}`), and a sound's `sync` point (`an sounds sync`) puts its hit, not its first sample, at `at`. Breaking: an existing `release` with `onto: ground@x` and no `arc` no longer rises 40 px; a release with no `rotation` lands on its side (not upright); contract 2.0.0.
 
