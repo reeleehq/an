@@ -3455,7 +3455,9 @@ def _late_hit(
 
         read_audio = getattr(sounds, "read_audio", None)
         try:
-            measured[cue.sound] = measure_sync(read_audio(cue.sound)) if read_audio else None
+            measured[cue.sound] = (
+                measure_sync(read_audio(cue.sound)) if read_audio else None
+            )
         except (SoundError, OSError, ValueError, KeyError):
             measured[cue.sound] = None
     lead = measured[cue.sound]

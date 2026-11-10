@@ -2103,8 +2103,14 @@ class CueAnchor(_IRModel):
                 f"frame row or column) or `event: <{event_names()}>` (an item's "
                 f"hold or topple event), not {'both' if self.event else 'neither'}"
             )
-        if self.event is not None and self.event not in EVENTS and self.event not in ALIASES:
-            raise ValueError(f"`event: {self.event}` is not an event: say one of {event_names()}")
+        if (
+            self.event is not None
+            and self.event not in EVENTS
+            and self.event not in ALIASES
+        ):
+            raise ValueError(
+                f"`event: {self.event}` is not an event: say one of {event_names()}"
+            )
         if self.reaches is not None and (
             len(self.reaches) != 1 or next(iter(self.reaches)) not in ("x", "y")
         ):
@@ -2126,7 +2132,9 @@ class CueAnchor(_IRModel):
     def axis(self) -> tuple[str, float]:
         """``(axis, pixels)`` of a crossing."""
         if self.reaches is None:
-            raise ValueError(f"anchor {self.describe()!r} is a hold event, not a crossing")
+            raise ValueError(
+                f"anchor {self.describe()!r} is a hold event, not a crossing"
+            )
         ((axis, value),) = self.reaches.items()
         return axis, float(value)
 

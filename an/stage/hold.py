@@ -2690,7 +2690,14 @@ def _nearest_support(
 #: it is put (``place``, a swap's give included), it is let go (``release``),
 #: it first touches the floor (``land``), each bounce lands (``bounce``), it
 #: stops moving (``rest``); ``contact`` is any of ``grasp`` and ``place``.
-HOLD_EVENTS: tuple[str, ...] = ("grasp", "place", "release", "land", "bounce", "rest")  # names from an.ir.events.EVENTS
+HOLD_EVENTS: tuple[str, ...] = (
+    "grasp",
+    "place",
+    "release",
+    "land",
+    "bounce",
+    "rest",
+)  # names from an.ir.events.EVENTS
 
 
 def hold_events(
@@ -2706,16 +2713,31 @@ def hold_events(
     falls = _falls_as_shown(gestures, falls)
     for g in gestures:
         if g.kind in ("grasp", "take"):
-            out.append({"event": "grasp", "item": g.item, "at": round(g.contact, 4), "by": g.ref})
+            out.append(
+                {
+                    "event": "grasp",
+                    "item": g.item,
+                    "at": round(g.contact, 4),
+                    "by": g.ref,
+                }
+            )
         elif g.kind in ("place", "give"):
             onto = g.target.text() if g.target is not None else None
-            out.append({"event": "place", "item": g.item, "at": round(g.contact, 4), "onto": onto})
+            out.append(
+                {
+                    "event": "place",
+                    "item": g.item,
+                    "at": round(g.contact, 4),
+                    "onto": onto,
+                }
+            )
     for f in falls:
         out.append({"event": "release", "item": f["item"], "at": round(f["at"], 4)})
         if f["lands"] is not None:
             out.append({"event": "land", "item": f["item"], "at": round(f["lands"], 4)})
         out.extend(
-            {"event": "bounce", "item": f["item"], "at": round(b, 4)} for b in f["bounces"]
+            {"event": "bounce", "item": f["item"], "at": round(b, 4)}
+            for b in f["bounces"]
         )
         if f["rests"] is not None:
             out.append({"event": "rest", "item": f["item"], "at": round(f["rests"], 4)})

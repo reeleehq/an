@@ -120,7 +120,9 @@ def _nodes_under(doc: Any, root: str) -> list[tuple[str, Any]]:
     """``(path, node)`` of entity ``root`` and every node under it (:func:`an.stage.tree.walk_document`)."""
     from an.stage.tree import walk_document
 
-    return [(p, n) for p, n in walk_document(doc) if p == root or p.startswith(root + "/")]
+    return [
+        (p, n) for p, n in walk_document(doc) if p == root or p.startswith(root + "/")
+    ]
 
 
 def _ink(doc: Any, mall: Any, path: str, pose: Any) -> list[Point]:
@@ -154,10 +156,18 @@ def _point(doc: Any, ref: str, pose: Any, *, where: str) -> Point:
         ) from None
     if name == "world":
         return (u, v)
-    node = next((n for p, n in _nodes_under(doc, name.split("/", 1)[0]) if p == name), None)
+    node = next(
+        (n for p, n in _nodes_under(doc, name.split("/", 1)[0]) if p == name), None
+    )
     if node is None:
-        raise ToppleError(f"{where}: {ref!r} names {name!r}, which the shot does not draw")
-    drawn = [(p, n) for p, n in _nodes_under(doc, name) if p.startswith(name) and n.visual is not None]
+        raise ToppleError(
+            f"{where}: {ref!r} names {name!r}, which the shot does not draw"
+        )
+    drawn = [
+        (p, n)
+        for p, n in _nodes_under(doc, name)
+        if p.startswith(name) and n.visual is not None
+    ]
     if node.visual is None and drawn:
         name, node = drawn[0]
     left, top, w, h = _local_box(node)
@@ -190,7 +200,14 @@ def topple_pass(state: Any) -> None:
     from an.ir.schema import gravity_vector
     from an.stage.compile import _assemble_document
     from an.stage.hold import DFLT_FALL_GRAVITY, _gravity
-    from an.stage.rigid import DFLT_BOUNCE, MAX_BOUNCES, MIN_ROCK, _hull, inertia, pivot_fall
+    from an.stage.rigid import (
+        DFLT_BOUNCE,
+        MAX_BOUNCES,
+        MIN_ROCK,
+        _hull,
+        inertia,
+        pivot_fall,
+    )
     from an.stage.solve import _compose, _invert, frame_times
     from an.stage.timeline import evaluate_timeline, timeline_from_scene
 
@@ -201,12 +218,16 @@ def topple_pass(state: Any) -> None:
     # default). The floor is each body's own foot line, not `solve.ground`: in
     # a 2.5D set a body standing farther back falls onto its own line.
     g = (_gravity(shot, state.style_pack) or (0.0, DFLT_FALL_GRAVITY))[1]
-    holders = (state.meta_extensions.get("solve") or {}).get("holds", {}).get("holders", {})
+    holders = (
+        (state.meta_extensions.get("solve") or {}).get("holds", {}).get("holders", {})
+    )
     named = {a.id: a for a, _t, _w in topples if a.id}
     bodies = [a.body for a, _t, _w in topples]
     for a, _t, where in topples:
         if bodies.count(a.body) > 1 and not a.id:
-            raise ToppleError(f"{where}: {a.body!r} topples more than once: give each topple an `id:`")
+            raise ToppleError(
+                f"{where}: {a.body!r} topples more than once: give each topple an `id:`"
+            )
     for a, _t, where in topples:
         if a.after is not None and a.after not in named:
             raise ToppleError(
@@ -227,7 +248,9 @@ def topple_pass(state: Any) -> None:
             for at, holder in timeline_:
                 if at <= t + 1e-9:
                     current = holder
-            if current and (current == body or current.startswith((body + "/", body + "@"))):
+            if current and (
+                current == body or current.startswith((body + "/", body + "@"))
+            ):
                 out.append(item)
         return out
 
@@ -285,7 +308,9 @@ def topple_pass(state: Any) -> None:
             if sign * r[0] < 0:
                 # Its centre is inside its feet: it tips over only if it turns
                 # far enough to bring the centre over the foot.
-                rise = math.hypot(*r) + r[1]  # how far the centre must rise (r[1] < 0: above)
+                rise = (
+                    math.hypot(*r) + r[1]
+                )  # how far the centre must rise (r[1] < 0: above)
                 need = math.sqrt(2.0 * g * rise / (i_cm + r[0] ** 2 + r[1] ** 2))
                 if abs(omega) < need * 1.02:
                     how = (
@@ -303,7 +328,9 @@ def topple_pass(state: Any) -> None:
             pin = None
             if a.until is not None:
                 if a.point is None:
-                    raise ToppleError(f"{where}: `until` needs the `point` of the body that reaches it")
+                    raise ToppleError(
+                        f"{where}: `until` needs the `point` of the body that reaches it"
+                    )
                 q = _point(doc, a.point, p0, where=where)
                 target = _point(doc, a.until, p0, where=where)
                 r_q = math.hypot(q[0] - pivot[0], q[1] - pivot[1])
@@ -326,9 +353,9 @@ def topple_pass(state: Any) -> None:
                         f"(it sweeps {r_q:.0f} px about its foot, the target is {r_t:.0f} px away). "
                         f"Move {a.body!r} about {abs(dx):.0f} px to the {'right' if dx > 0 else 'left'}"
                     )
-                want = math.atan2(target[1] - pivot[1], target[0] - pivot[0]) - math.atan2(
-                    q[1] - pivot[1], q[0] - pivot[0]
-                )
+                want = math.atan2(
+                    target[1] - pivot[1], target[0] - pivot[0]
+                ) - math.atan2(q[1] - pivot[1], q[0] - pivot[0])
                 want = math.remainder(want, 2 * math.pi)
                 if want * sign <= 0:
                     raise ToppleError(
@@ -337,8 +364,14 @@ def topple_pass(state: Any) -> None:
                     )
                 pin = (want, target)
 
-            def floor_gap(angle: float, others=others, pivot=pivot, floor=floor) -> float:
-                return min(floor - _rot_about(p, pivot, angle)[1] for p in others) if others else 1.0
+            def floor_gap(
+                angle: float, others=others, pivot=pivot, floor=floor
+            ) -> float:
+                return (
+                    min(floor - _rot_about(p, pivot, angle)[1] for p in others)
+                    if others
+                    else 1.0
+                )
 
             def stop(angle: float, pin=pin) -> float:
                 gap = floor_gap(angle)
@@ -346,7 +379,9 @@ def topple_pass(state: Any) -> None:
                     gap = min(gap, sign * (pin[0] - angle))
                 return gap
 
-            fall = pivot_fall(com, pivot, gravity=g, omega=omega, inertia_cm=i_cm, stop=stop)
+            fall = pivot_fall(
+                com, pivot, gravity=g, omega=omega, inertia_cm=i_cm, stop=stop
+            )
             segments = [(t_start, fall, 0.0)]
             end_t = t_start + fall.duration
             end_angle = fall.turn(fall.duration)
@@ -362,7 +397,11 @@ def topple_pass(state: Any) -> None:
                 for _ in range(MAX_BOUNCES):
                     # Its far end bounces up about the foot and falls back.
                     rock = pivot_fall(
-                        com_end, pivot, gravity=g, omega=w, inertia_cm=i_cm,
+                        com_end,
+                        pivot,
+                        gravity=g,
+                        omega=w,
+                        inertia_cm=i_cm,
                         stop=lambda ang: 1e-9 - sign * ang,
                     )
                     if not rock.stopped or max(abs(x) for x in rock.turns) < MIN_ROCK:
@@ -398,17 +437,30 @@ def topple_pass(state: Any) -> None:
                         c = _touch(moved, other)
                         near[body] = min(
                             near.get(body, math.inf),
-                            min(math.hypot(p[0] - o[0], p[1] - o[1]) for p in moved for o in other),
+                            min(
+                                math.hypot(p[0] - o[0], p[1] - o[1])
+                                for p in moved
+                                for o in other
+                            ),
                         )
                         if c is not None:
                             du = fall.duration / steps
                             w_now = (ang - fall.turn(max(0.0, u - du))) / du
-                            speed = abs(w_now) * math.hypot(c[0] - pivot[0], c[1] - pivot[1])
+                            speed = abs(w_now) * math.hypot(
+                                c[0] - pivot[0], c[1] - pivot[1]
+                            )
                             # Its own turn rate: the knocker's tip speed over the struck body's height.
-                            height = max(1.0, max(p[1] for p in other) - min(p[1] for p in other))
+                            height = max(
+                                1.0, max(p[1] for p in other) - min(p[1] for p in other)
+                            )
                             hits[body] = {"at": t_start + u, "speed": speed / height}
                             events.append(
-                                {"event": "hit", "item": a.body, "at": round(t_start + u, 4), "on": body}
+                                {
+                                    "event": "hit",
+                                    "item": a.body,
+                                    "at": round(t_start + u, 4),
+                                    "on": body,
+                                }
                             )
                             break
             plans[a.id or a.body] = {"body": a.body, "hits": hits, "near": near}
@@ -427,16 +479,33 @@ def topple_pass(state: Any) -> None:
                 values: dict[str, list[tuple[float, float]]] = {
                     p: [] for p in ("x", "y", "rotation", "scale_x", "scale_y")
                 }
-                node = next(n for p, n in _nodes_under(doc, path.split("/", 1)[0]) if p == path)
-                piv = (node.transform.pivot_x or 0.0, node.transform.pivot_y or 0.0) if node.transform else (0.0, 0.0)
+                node = next(
+                    n for p, n in _nodes_under(doc, path.split("/", 1)[0]) if p == path
+                )
+                piv = (
+                    (node.transform.pivot_x or 0.0, node.transform.pivot_y or 0.0)
+                    if node.transform
+                    else (0.0, 0.0)
+                )
                 prev_rot = None
                 # A key at its start (the pose it has then), then one per frame.
                 for tk in [t_start, *(t for t in times if t > t_start + 1e-6)]:
                     ang = angle_at(tk)
                     c, s = math.cos(ang), math.sin(ang)
-                    d = (c, s, -s, c, pivot[0] - c * pivot[0] + s * pivot[1], pivot[1] - s * pivot[0] - c * pivot[1])
+                    d = (
+                        c,
+                        s,
+                        -s,
+                        c,
+                        pivot[0] - c * pivot[0] + s * pivot[1],
+                        pivot[1] - s * pivot[0] - c * pivot[1],
+                    )
                     world = _compose(d, _affine(doc, path, pose(tk)))
-                    par = _affine(doc, parent, pose(tk)) if parent else (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+                    par = (
+                        _affine(doc, parent, pose(tk))
+                        if parent
+                        else (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+                    )
                     local = _compose(_invert(par), world)
                     theta, sx, sy, mirrored = _decompose(local)
                     if prev_rot is not None:
@@ -445,8 +514,11 @@ def topple_pass(state: Any) -> None:
                     x = local[0] * piv[0] + local[2] * piv[1] + local[4]
                     y = local[1] * piv[0] + local[3] * piv[1] + local[5]
                     for prop, v in (
-                        ("x", x), ("y", y), ("rotation", theta),
-                        ("scale_x", -sx if mirrored else sx), ("scale_y", sy),
+                        ("x", x),
+                        ("y", y),
+                        ("rotation", theta),
+                        ("scale_x", -sx if mirrored else sx),
+                        ("scale_y", sy),
                     ):
                         values[prop].append((tk - t_start, v))
                 for prop, keys in values.items():
@@ -455,16 +527,25 @@ def topple_pass(state: Any) -> None:
                             ChannelJSON(
                                 target=path,
                                 property=prop,
-                                keyframes=[KeyframeJSON(time=t, value=v, easing="linear") for t, v in keys],
+                                keyframes=[
+                                    KeyframeJSON(time=t, value=v, easing="linear")
+                                    for t, v in keys
+                                ],
                             )
                         )
             name = f"{TOPPLE_CLIP_PREFIX}{a.id or a.body}"
             # Placed from its start: before it, the body and what it carries move as they did.
             duration = max(0.001, float(shot.duration) - t_start)
-            state.animations[name] = AnimationClipJSON(name=name, duration=duration, channels=channels)
+            state.animations[name] = AnimationClipJSON(
+                name=name, duration=duration, channels=channels
+            )
             for root in sorted({p.split("/", 1)[0] for p in [a.body, *items]}):
-                placed = PlacedClipJSON(animation_id=name, start_time=t_start, duration=duration)
-                track = next((tr for tr in state.tracks if tr.target_root == root), None)
+                placed = PlacedClipJSON(
+                    animation_id=name, start_time=t_start, duration=duration
+                )
+                track = next(
+                    (tr for tr in state.tracks if tr.target_root == root), None
+                )
                 if track is None:
                     state.tracks.append(TrackJSON(target_root=root, clips=[placed]))
                 else:
@@ -485,7 +566,9 @@ def topple_pass(state: Any) -> None:
             progressed = True
         if not progressed:
             stuck = ", ".join(f"{a.body} (after {a.after})" for a, _t, _w in pending)
-            raise ToppleError(f"topples that wait on each other and never start: {stuck}")
+            raise ToppleError(
+                f"topples that wait on each other and never start: {stuck}"
+            )
     state.meta_extensions[TOPPLE_EXTENSION] = {
         "topples": report,
         "events": sorted(events, key=lambda e: e["at"]),

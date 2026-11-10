@@ -134,7 +134,9 @@ def document_events(doc: Any) -> list[dict[str, Any]]:
 
     def take(report: Any) -> None:
         if isinstance(report, dict) and isinstance(report.get("events"), list):
-            events.extend(e for e in report["events"] if isinstance(e, dict) and "at" in e)
+            events.extend(
+                e for e in report["events"] if isinstance(e, dict) and "at" in e
+            )
 
     for report in ext.values():
         take(report)
@@ -144,7 +146,9 @@ def document_events(doc: Any) -> list[dict[str, Any]]:
     return sorted(events, key=lambda e: e["at"])
 
 
-def event_in_document(doc: Any, anchor: CueAnchor, *, shot_id: str, where: str) -> float:
+def event_in_document(
+    doc: Any, anchor: CueAnchor, *, shot_id: str, where: str
+) -> float:
     """Shot-local seconds of ``anchor``'s hold event (the ``nth`` ``event`` of
     item ``when``) in a compiled stage document."""
     events = document_events(doc)

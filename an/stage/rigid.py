@@ -135,7 +135,9 @@ def stable_angles(points: Sequence[Point]) -> list[float]:
         if nx * (-a[0]) + ny * (-a[1]) > 0:  # pointing at the centre: flip it
             nx, ny = -nx, -ny
         angle = math.remainder(math.pi / 2 - math.atan2(ny, nx), 2 * math.pi)
-        if all(abs(math.remainder(angle - o, 2 * math.pi)) > FLAT_TOLERANCE for o in out):
+        if all(
+            abs(math.remainder(angle - o, 2 * math.pi)) > FLAT_TOLERANCE for o in out
+        ):
             out.append(angle)
     return out
 
@@ -247,9 +249,9 @@ class DropTrack:
     #: The floor line it lies on: ``ground``, or the line its lowest point was
     #: already on (below ``ground``) when it was let go touching the floor.
     floor: float
-    _phases: list[tuple[float, float, Callable[[float], tuple[float, float, float]]]] = field(
-        repr=False
-    )
+    _phases: list[
+        tuple[float, float, Callable[[float], tuple[float, float, float]]]
+    ] = field(repr=False)
     _scale: tuple[tuple[float, float], tuple[float, float]] = field(repr=False)
 
     def pose(self, t: float) -> tuple[float, float, float, float, float]:
@@ -263,7 +265,9 @@ class DropTrack:
         return (*self._phases[-1][2](self._phases[-1][1] - self._phases[-1][0]), sx, sy)
 
 
-def _lowest(points: Sequence[Point], centre: Point, angle: float) -> tuple[float, Point]:
+def _lowest(
+    points: Sequence[Point], centre: Point, angle: float
+) -> tuple[float, Point]:
     """The lowest (largest ``y``) of ``points`` (about the centre, at angle 0)
     turned by ``angle`` about ``centre``: ``(y, the point)``."""
     best = None
@@ -317,7 +321,9 @@ def _drop_once(
     g = float(gravity)
     if rest_angle is None:
         sides = stable_angles(points) or [angle]
-        rest_angle = min(sides, key=lambda a: abs(math.remainder(a - angle, 2 * math.pi)))
+        rest_angle = min(
+            sides, key=lambda a: abs(math.remainder(a - angle, 2 * math.pi))
+        )
     target = angle + math.remainder(rest_angle - angle, 2 * math.pi)
     delta = target - angle
     flat = abs(delta) <= FLAT_TOLERANCE
@@ -363,7 +369,9 @@ def _drop_once(
         vx = (toss_x - cx0) / air  # let fall, nudged sideways to land at toss_x
     air = max(0.0, air)
     spin = (touch_angle - angle) / air if air > 0 else 0.0
-    phases: list[tuple[float, float, Callable[[float], tuple[float, float, float]]]] = []
+    phases: list[
+        tuple[float, float, Callable[[float], tuple[float, float, float]]]
+    ] = []
 
     def flight(t: float) -> tuple[float, float, float]:
         return (cx0 + vx * t, cy0 + vy * t + 0.5 * g * t * t, angle + spin * t)
@@ -391,7 +399,15 @@ def _drop_once(
             bounces.append(t)
             v *= bounce
         phases.append((t, t, lambda u, cx=cx, cy=cy: (cx, cy, target)))
-        return DropTrack(touch=air, rest=t, bounces=bounces, floor=floor, angle=target, _phases=phases, _scale=scale)
+        return DropTrack(
+            touch=air,
+            rest=t,
+            bounces=bounces,
+            floor=floor,
+            angle=target,
+            _phases=phases,
+            _scale=scale,
+        )
     # One end touches first: it tips about it onto its side, then rocks.
     _y, pivot = _lowest(points, c_touch, touch_angle)
     r = (c_touch[0] - pivot[0], c_touch[1] - pivot[1])
@@ -399,13 +415,27 @@ def _drop_once(
     omega = (i_cm * spin + (r[0] * v_touch[1] - r[1] * v_touch[0])) / ip
     sign = 1.0 if tip > 0 else -1.0
     fall = pivot_fall(
-        c_touch, pivot, gravity=g, omega=omega, inertia_cm=i_cm,
+        c_touch,
+        pivot,
+        gravity=g,
+        omega=omega,
+        inertia_cm=i_cm,
         stop=lambda a: sign * (tip - a),
     )
-    if not fall.stopped:  # pushed the other way harder than gravity brings it back: no tip
+    if (
+        not fall.stopped
+    ):  # pushed the other way harder than gravity brings it back: no tip
         final = (c_touch[0], c_touch[1], target)
         phases.append((t, t, lambda u: final))
-        return DropTrack(touch=air, rest=t, bounces=bounces, floor=floor, angle=target, _phases=phases, _scale=scale)
+        return DropTrack(
+            touch=air,
+            rest=t,
+            bounces=bounces,
+            floor=floor,
+            angle=target,
+            _phases=phases,
+            _scale=scale,
+        )
 
     def tipping(u: float, fall=fall) -> tuple[float, float, float]:
         c = fall.centre(u)
@@ -418,7 +448,11 @@ def _drop_once(
     for _ in range(MAX_BOUNCES):
         # The far end bounces up about the same contact and falls back flat.
         rock = pivot_fall(
-            centre_now, pivot, gravity=g, omega=omega, inertia_cm=i_cm,
+            centre_now,
+            pivot,
+            gravity=g,
+            omega=omega,
+            inertia_cm=i_cm,
             stop=lambda a: 1e-9 - sign * a,
         )
         if not rock.stopped or max(abs(a) for a in rock.turns) < MIN_ROCK:
@@ -434,7 +468,15 @@ def _drop_once(
         omega = -bounce * rock.omega_end
     final = (centre_now[0], centre_now[1], target)
     phases.append((t, t, lambda u: final))
-    return DropTrack(touch=air, rest=t, bounces=bounces, floor=floor, angle=target, _phases=phases, _scale=scale)
+    return DropTrack(
+        touch=air,
+        rest=t,
+        bounces=bounces,
+        floor=floor,
+        angle=target,
+        _phases=phases,
+        _scale=scale,
+    )
 
 
 #: Rounds of aiming a toss so it comes to rest (after its tip) centred on its ``x``.

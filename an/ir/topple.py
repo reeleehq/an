@@ -87,7 +87,11 @@ def _read_md(item: dict[str, Any], *, index: int) -> Any:
 
 def _write_md(action: Any) -> dict[str, Any]:
     entry = action.model_dump(exclude_none=True)
-    for key, default in (("toward", "right"), ("push", DFLT_PUSH), ("knock", DFLT_KNOCK)):
+    for key, default in (
+        ("toward", "right"),
+        ("push", DFLT_PUSH),
+        ("knock", DFLT_KNOCK),
+    ):
         if entry.get(key) == default:
             entry.pop(key)
     return entry

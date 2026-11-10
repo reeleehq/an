@@ -88,7 +88,9 @@ def sync(project_dir: str, key: str, at: str = "auto") -> str:
         try:
             value = float(at)
         except ValueError:
-            raise SystemExit(f"an sounds sync: --at {at!r}: say seconds, auto or none") from None
+            raise SystemExit(
+                f"an sounds sync: --at {at!r}: say seconds, auto or none"
+            ) from None
     try:
         asset = set_sync(mall["sounds"], key, value)
     except (SoundError, KeyError) as e:
