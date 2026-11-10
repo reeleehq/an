@@ -2009,6 +2009,10 @@ def _fall(
     lin1 = _rest_lin(
         ctx, item, lin0, rotation, rests, lean=_holder_lean(ctx, entity, k)
     )
+    # A rigid body cannot turn itself over in the air: it lands with the mirror
+    # it was let go with, not the one it had when it last lay (that eased its
+    # scale_x through 0 in flight, and slid it sideways from a still hand).
+    lin1 = (lin1[0], math.copysign(abs(lin1[1]), lin0[1]), lin1[2])
     if ground is None or gy <= 0:
         ctx.warnings.append(
             {
