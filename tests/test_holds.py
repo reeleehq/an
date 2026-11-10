@@ -391,6 +391,28 @@ def test_a_release_onto_x_with_no_arc_never_rises(tmp_path):
     assert _stage(doc, "stick", 4.0)[0] == pytest.approx(-20.0, abs=1e-3)
 
 
+def test_a_dropped_item_keeps_the_mirror_it_was_let_go_with(tmp_path):
+    """A rigid body cannot turn itself over in the air (Punic Wars III round 5,
+    2026-11-10): a sabre lying unmirrored, picked up by a figure that has turned
+    round (so it is carried mirrored) and let go, fell with its ``scale_x``
+    eased from -0.8 to +0.8 through 0 (squashed flat, then flipped) and drifted
+    170 px sideways from a still hand, because the fall took the mirror of the
+    item's previous rest. It keeps its carried mirror all the way down, and a
+    straight drop stays straight."""
+    actions = """- {kind: set, target: fig, property: scale_x, value: -1.0, at: 0.0}
+- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}
+- {kind: release, item: stick, at: 2.0}"""
+    doc = _compile(_project(tmp_path, actions))
+    land, rest = _event(doc, "land")["at"], _event(doc, "rest")["at"]
+    assert _pose(doc, 1.9)[("stick", "scale_x")] < 0  # carried mirrored
+    for t in _times(2.0, 4.0):
+        assert _pose(doc, t)[("stick", "scale_x")] < 0, t
+    x0 = _stage(doc, "stick", 2.0, point=(0.0, 0.0))[0]
+    for t in _times(2.0, land):
+        assert _stage(doc, "stick", t, point=(0.0, 0.0))[0] == pytest.approx(x0, abs=0.5), t
+    assert _lowest_ink(doc, "stick", rest + 0.1) == pytest.approx(GROUND, abs=1.0)
+
+
 def test_a_held_item_turns_round_with_its_carrier(tmp_path):
     """A carrier that mirrors (scale_x through 0) mirrors what it holds."""
     actions = """- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}
