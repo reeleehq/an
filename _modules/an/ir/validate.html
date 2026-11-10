@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../../../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -4170,6 +4170,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">sounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>  <span class="c1"># store not supplied: the reference checks did not run</span>
     <span class="n">durations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># one read of each sound, however many cues</span>
+    <span class="n">measured</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># each undeclared sound's hit, measured once</span>
     <span class="k">for</span> <span class="n">base</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/sound"</span>
         <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">sound</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sounds</span><span class="p">:</span>
@@ -4184,6 +4185,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">durations</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sound_duration_problem</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">durations</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">durations</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">])</span>
+        <span class="n">late</span> <span class="o">=</span> <span class="n">_late_hit</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="n">cue</span><span class="p">,</span> <span class="n">measured</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">late</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/at"</span><span class="p">,</span> <span class="n">late</span><span class="p">)</span>
         <span class="n">source</span> <span class="o">=</span> <span class="p">(</span><span class="n">sounds</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"license"</span><span class="p">):</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
@@ -4192,6 +4196,44 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">!r}</span><span class="s2"> has no recorded licence; `an credits` "</span>
                 <span class="s2">"reports it UNVERIFIED — unknown is not unencumbered"</span><span class="p">,</span>
             <span class="p">)</span>
+
+
+<span class="c1">#: A hit this far (s) into its file, cued by its first sample, sounds late</span>
+<span class="c1">#: enough to be seen (ITU-R BT.1359's 125 ms sound-behind window).</span>
+<span class="n">LATE_HIT_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.125</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_late_hit</span><span class="p">(</span>
+    <span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">cue</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">measured</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A warning when ``cue`` (not a loop) plays a sound whose hit comes</span>
+<span class="sd">    :data:`LATE_HIT_S` or more after its first sample and whose ``sound.json``</span>
+<span class="sd">    declares no ``sync`` point: the cue's ``at`` is its first sample, so what</span>
+<span class="sd">    is heard is late by that lead-in."""</span>
+    <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">loop</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">sounds</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sync"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">sound</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">measured</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundError</span><span class="p">,</span> <span class="n">measure_sync</span>
+
+        <span class="n">read_audio</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="s2">"read_audio"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">measured</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">measure_sync</span><span class="p">(</span><span class="n">read_audio</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">))</span> <span class="k">if</span> <span class="n">read_audio</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">SoundError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="n">measured</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">lead</span> <span class="o">=</span> <span class="n">measured</span><span class="p">[</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">lead</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">lead</span> <span class="o">&lt;</span> <span class="n">LATE_HIT_S</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">!r}</span><span class="s2"> hits </span><span class="si">{</span><span class="n">lead</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s into its file, and its sound.json "</span>
+        <span class="s2">"declares no sync point, so this cue is heard that late after its `at`. "</span>
+        <span class="sa">f</span><span class="s2">"Declare it: `an sounds sync &lt;project&gt; </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2">` (measures </span><span class="si">{</span><span class="n">lead</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s; "</span>
+        <span class="s2">"the cue then puts the hit at `at`), or trim the clip's lead-in"</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sound_duration_problem</span><span class="p">(</span><span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>

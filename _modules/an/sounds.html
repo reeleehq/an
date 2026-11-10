@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -761,6 +761,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"SoundError"</span><span class="p">,</span>
     <span class="s2">"add_sound"</span><span class="p">,</span>
     <span class="s2">"get_sound"</span><span class="p">,</span>
+    <span class="s2">"measure_sync"</span><span class="p">,</span>
+    <span class="s2">"set_sync"</span><span class="p">,</span>
     <span class="s2">"synth_bed"</span><span class="p">,</span>
     <span class="s2">"synth_hit"</span><span class="p">,</span>
     <span class="s2">"synth_tone"</span><span class="p">,</span>
@@ -825,7 +827,12 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Seconds of audio, from the audio bytes (:func:`wav_duration`; before</span>
     <span class="c1">#: an#330 a pipe-cut WAV recorded its streaming header's ~22369 s).</span>
     <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span></div>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="c1">#: Seconds from the first sample to the instant the sound IS its event (a</span>
+    <span class="c1">#: hit's transient, the clink after a scrape): a cue's ``at`` puts THIS</span>
+    <span class="c1">#: instant there (an#317 follow-up; :func:`measure_sync`, :func:`set_sync`).</span>
+    <span class="c1">#: ``None``: its first sample is the event, as before.</span>
+    <span class="n">sync</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -994,6 +1001,95 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">asset</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">store</span><span class="o">.</span><span class="n">write_audio</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">audio</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">asset</span></div>
+
+
+
+<span class="c1">#: A sync point is the first window within this many dB of the loudest one: the</span>
+<span class="c1">#: attack of the main hit, not a soft lead-in before it.</span>
+<span class="n">SYNC_PEAK_DB</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.0</span>
+<span class="c1">#: The window the loudness is measured over (s).</span>
+<span class="n">SYNC_WINDOW_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">wav_samples</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(mono float samples in [-1, 1], sample rate)`` of PCM WAV ``data``.</span>
+
+<span class="sd">    &gt;&gt;&gt; samples, rate = wav_samples(synth_tone(440.0, 0.1))</span>
+<span class="sd">    &gt;&gt;&gt; rate, len(samples), round(float(abs(samples).max()), 1)</span>
+<span class="sd">    (44100, 4410, 0.3)</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">lay</span> <span class="o">=</span> <span class="n">_wav_layout</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">block_align</span> <span class="o">//</span> <span class="n">lay</span><span class="o">.</span><span class="n">channels</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">lay</span><span class="o">.</span><span class="n">offset</span> <span class="p">:</span> <span class="n">lay</span><span class="o">.</span><span class="n">end</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">width</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">-</span> <span class="mf">128.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">128.0</span>
+    <span class="k">elif</span> <span class="n">width</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span> <span class="k">if</span> <span class="n">width</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="sa">f</span><span class="s2">"&lt;i</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">width</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">b</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">|</span> <span class="p">(</span><span class="n">b</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">b</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">v</span> <span class="o">&amp;</span> <span class="mh">0x800000</span><span class="p">,</span> <span class="n">v</span> <span class="o">-</span> <span class="mh">0x1000000</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="mf">8388608.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mi">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="si">}</span><span class="s2">-bit samples are not read here"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">lay</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">lay</span><span class="o">.</span><span class="n">sample_rate</span>
+
+
+<div class="viewcode-block" id="measure_sync">
+<a class="viewcode-back" href="../../_autosummary/an.sounds.html#an.sounds.measure_sync">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">measure_sync</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds from the start of WAV ``data`` to its hit: the first</span>
+<span class="sd">    :data:`SYNC_WINDOW_S` window within :data:`SYNC_PEAK_DB` dB of the loudest</span>
+<span class="sd">    one. A clip with silence or a lead-in before its transient is late by this</span>
+<span class="sd">    much when it is cued by its first sample.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; lead = np.zeros(int(0.3 * 44100))</span>
+<span class="sd">    &gt;&gt;&gt; hit, _ = wav_samples(synth_hit(0.2))</span>
+<span class="sd">    &gt;&gt;&gt; round(measure_sync(_wav_bytes(np.concatenate([lead, hit]), sample_rate=44100)), 2)</span>
+<span class="sd">    0.3</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">wav_samples</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">rate</span> <span class="o">*</span> <span class="n">SYNC_WINDOW_S</span><span class="p">)))</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">//</span> <span class="n">w</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="n">rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span><span class="p">[:</span> <span class="n">n</span> <span class="o">*</span> <span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-20</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="mf">20.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">rms</span><span class="p">)</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">db</span> <span class="o">&gt;=</span> <span class="n">db</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">SYNC_PEAK_DB</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">first</span> <span class="o">*</span> <span class="n">w</span> <span class="o">/</span> <span class="n">rate</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="set_sync">
+<a class="viewcode-back" href="../../_autosummary/an.sounds.html#an.sounds.set_sync">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_sync</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">"auto"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SoundAsset</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record ``key``'s sync point: ``"auto"`` measures it</span>
+<span class="sd">    (:func:`measure_sync`), a number states it, ``None`` clears it (its first</span>
+<span class="sd">    sample is the event again). Only ``sound.json`` changes: the bytes, and the</span>
+<span class="sd">    licence recorded against them, stay as they were."""</span>
+    <span class="n">asset</span><span class="p">,</span> <span class="n">audio</span> <span class="o">=</span> <span class="n">get_sound</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">seconds</span> <span class="o">==</span> <span class="s2">"auto"</span><span class="p">:</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">measure_sync</span><span class="p">(</span><span class="n">audio</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">seconds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">asset</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SoundError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">: a sync point at </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s is outside its "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">asset</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> s of audio"</span>
+            <span class="p">)</span>
+    <span class="n">updated</span> <span class="o">=</span> <span class="n">asset</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"sync"</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+    <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">updated</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">updated</span></div>
 
 
 

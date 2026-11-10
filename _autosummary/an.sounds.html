@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.joints.html">an.ir.joints</a></li>
@@ -512,6 +513,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rigid.html">an.stage.rigid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
@@ -523,6 +525,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.topple.html">an.stage.topple</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.world.html">an.stage.world</a></li>
 </ul>
@@ -681,6 +684,12 @@ numpy, seeded, so the same call writes the same bytes.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.sounds.get_sound" title="an.sounds.get_sound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sound</span></code></a>(store, key)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(asset,</span> <span class="pre">wav_bytes)</span></code> for <code class="docutils literal notranslate"><span class="pre">key</span></code>, the bytes checked against the digest.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sounds.measure_sync" title="an.sounds.measure_sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_sync</span></code></a>(data)</p></td>
+<td><p>Seconds from the start of WAV <code class="docutils literal notranslate"><span class="pre">data</span></code> to its hit: the first <code class="xref py py-data docutils literal notranslate"><span class="pre">SYNC_WINDOW_S</span></code> window within <code class="xref py py-data docutils literal notranslate"><span class="pre">SYNC_PEAK_DB</span></code> dB of the loudest one.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sounds.set_sync" title="an.sounds.set_sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_sync</span></code></a>(store, key[, seconds])</p></td>
+<td><p>Record <code class="docutils literal notranslate"><span class="pre">key</span></code>'s sync point: <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> measures it (<a class="reference internal" href="#an.sounds.measure_sync" title="an.sounds.measure_sync"><code class="xref py py-func docutils literal notranslate"><span class="pre">measure_sync()</span></code></a>), a number states it, <code class="docutils literal notranslate"><span class="pre">None</span></code> clears it (its first sample is the event again).</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.sounds.synth_bed" title="an.sounds.synth_bed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_bed</span></code></a>(duration, *[, chord, pulse_hz, ...])</p></td>
 <td><p>A music bed: a sustained chord with a gentle pulse, loopable end to end.</p></td>
 </tr>
@@ -730,7 +739,7 @@ numbers, so no third party’s work is in it.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.sounds.SoundAsset">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.sounds.</span></span><span class="sig-name descname"><span class="pre">SoundAsset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sounds.html#SoundAsset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sounds.SoundAsset" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.sounds.</span></span><span class="sig-name descname"><span class="pre">SoundAsset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sounds.html#SoundAsset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sounds.SoundAsset" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">sound.json</span></code> of one entry in the <code class="docutils literal notranslate"><span class="pre">sounds</span></code> store.</p>
 <dl class="field-list simple">
@@ -752,6 +761,15 @@ an#330 a pipe-cut WAV recorded its streaming header’s ~22369 s).</p>
 <dt class="sig sig-object py" id="an.sounds.SoundAsset.sha256">
 <span class="sig-name descname"><span class="pre">sha256</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.sounds.SoundAsset.sha256" title="Link to this definition">#</a></dt>
 <dd><p>Digest of <code class="docutils literal notranslate"><span class="pre">audio.wav</span></code> as it entered the project; checked on every read.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.sounds.SoundAsset.sync">
+<span class="sig-name descname"><span class="pre">sync</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.sounds.SoundAsset.sync" title="Link to this definition">#</a></dt>
+<dd><p>Seconds from the first sample to the instant the sound IS its event (a
+hit’s transient, the clink after a scrape): a cue’s <code class="docutils literal notranslate"><span class="pre">at</span></code> puts THIS
+instant there (an#317 follow-up; <a class="reference internal" href="#an.sounds.measure_sync" title="an.sounds.measure_sync"><code class="xref py py-func docutils literal notranslate"><span class="pre">measure_sync()</span></code></a>, <a class="reference internal" href="#an.sounds.set_sync" title="an.sounds.set_sync"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_sync()</span></code></a>).
+<code class="docutils literal notranslate"><span class="pre">None</span></code>: its first sample is the event, as before.</p>
 </dd></dl>
 
 </dd></dl>
@@ -788,6 +806,41 @@ bytes under the same key are an asset nobody recorded.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sounds.measure_sync">
+<span class="sig-prename descclassname"><span class="pre">an.sounds.</span></span><span class="sig-name descname"><span class="pre">measure_sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sounds.html#measure_sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sounds.measure_sync" title="Link to this definition">#</a></dt>
+<dd><p>Seconds from the start of WAV <code class="docutils literal notranslate"><span class="pre">data</span></code> to its hit: the first
+<code class="xref py py-data docutils literal notranslate"><span class="pre">SYNC_WINDOW_S</span></code> window within <code class="xref py py-data docutils literal notranslate"><span class="pre">SYNC_PEAK_DB</span></code> dB of the loudest
+one. A clip with silence or a lead-in before its transient is late by this
+much when it is cued by its first sample.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lead</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">0.3</span> <span class="o">*</span> <span class="mi">44100</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hit</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">wav_samples</span><span class="p">(</span><span class="n">synth_hit</span><span class="p">(</span><span class="mf">0.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">measure_sync</span><span class="p">(</span><span class="n">_wav_bytes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">lead</span><span class="p">,</span> <span class="n">hit</span><span class="p">]),</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mi">44100</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">0.3</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sounds.set_sync">
+<span class="sig-prename descclassname"><span class="pre">an.sounds.</span></span><span class="sig-name descname"><span class="pre">set_sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sounds.html#set_sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sounds.set_sync" title="Link to this definition">#</a></dt>
+<dd><p>Record <code class="docutils literal notranslate"><span class="pre">key</span></code>’s sync point: <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> measures it
+(<a class="reference internal" href="#an.sounds.measure_sync" title="an.sounds.measure_sync"><code class="xref py py-func docutils literal notranslate"><span class="pre">measure_sync()</span></code></a>), a number states it, <code class="docutils literal notranslate"><span class="pre">None</span></code> clears it (its first
+sample is the event again). Only <code class="docutils literal notranslate"><span class="pre">sound.json</span></code> changes: the bytes, and the
+licence recorded against them, stay as they were.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.sounds.SoundAsset" title="an.sounds.SoundAsset"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundAsset</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -946,11 +999,14 @@ anything past its audio dropped, the format chunk untouched
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.SoundAsset.duration"><code class="docutils literal notranslate"><span class="pre">SoundAsset.duration</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.SoundAsset.model_config"><code class="docutils literal notranslate"><span class="pre">SoundAsset.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.SoundAsset.sha256"><code class="docutils literal notranslate"><span class="pre">SoundAsset.sha256</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.SoundAsset.sync"><code class="docutils literal notranslate"><span class="pre">SoundAsset.sync</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.SoundError"><code class="docutils literal notranslate"><span class="pre">SoundError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.add_sound"><code class="docutils literal notranslate"><span class="pre">add_sound()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.get_sound"><code class="docutils literal notranslate"><span class="pre">get_sound()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.measure_sync"><code class="docutils literal notranslate"><span class="pre">measure_sync()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.set_sync"><code class="docutils literal notranslate"><span class="pre">set_sync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.synth_bed"><code class="docutils literal notranslate"><span class="pre">synth_bed()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.synth_hit"><code class="docutils literal notranslate"><span class="pre">synth_hit()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sounds.synth_tone"><code class="docutils literal notranslate"><span class="pre">synth_tone()</span></code></a></li>

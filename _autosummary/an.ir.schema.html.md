@@ -93,7 +93,7 @@ True
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, ...])     | One camera pose at one time — the explicit door behind the named moves.                                                                                                                                                                                                                  |
 | [`CameraShake`](#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                                                                                                                                                  |
 | [`Captions`](#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                                                                                                                                     |
-| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                                                                                                                                          |
+| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when[, reaches, event, nth, ...])    | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column, or when an item's hold event happens.                                                                                                                                                    |
 | [`CueUntil`](#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                                                                                                                                                  |
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                                                                                                                                           |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                                                                                                                                             |
@@ -466,29 +466,52 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
 
-### *class* an.ir.schema.CueAnchor(, when, reaches, offset=0.0, shot=None, \*\*extra_data)
+### *class* an.ir.schema.CueAnchor(, when, reaches=None, event=None, nth=1, offset=0.0, shot=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
-A sound cue’s time, taken from the picture (an#317): when a node reaches a frame row or column.
+A sound cue’s time, taken from the picture (an#317): when a node reaches
+a frame row or column, or when an item’s hold event happens.
 
-`when` is a node path in a stage shot (`crawl/line_7`: a text block’s
-unit, a prop, a plane); `reaches` is `{"y": px}` or `{"x": px}` in
-the frame’s pixels (0 at the top or left), crossed in either direction by
-the node’s on-screen centre — the camera, parallax and a crawl’s tilt
-included. Resolved when the film is laid out, never written back into the
-scene: a layout change moves the sound with the picture. `offset` is
+**A crossing:** `when` is a node path in a stage shot (`crawl/line_7`:
+a text block’s unit, a prop, a plane); `reaches` is `{"y": px}` or
+`{"x": px}` in the frame’s pixels (0 at the top or left), crossed in
+either direction by the node’s on-screen centre — the camera, parallax and
+a crawl’s tilt included.
+
+**A hold event:** `when` is an item (an entity a hold verb moves, or a
+body a `topple` moves) and `event` what happens to it, as the compiled
+shot’s hold report records it ([`an.stage.hold.HOLD_EVENTS`](an.stage.hold.html.md#an.stage.hold.HOLD_EVENTS)):
+`grasp` (a hand takes it), `place` (it arrives where it is put),
+`contact` (either), `release` (let go), `land` (it first touches the
+floor), `bounce`, `rest`; `nth` picks the n-th such event (1: the
+first). The swap’s clink is `{when: sabre, event: place}`; the drop’s
+thud `{when: musket, event: land}`.
+
+Resolved when the film is laid out, never written back into the scene: a
+layout or timing change moves the sound with the picture. `offset` is
 added after. `shot` names the shot to look in, for a cue in
 `meta.sounds` (default: the first shot that has the node).
 
 ```pycon
 >>> CueAnchor(when="crawl/line_7", reaches={"y": 840}).axis
 ('y', 840.0)
+>>> CueAnchor(when="musket", event="land").describe()
+'musket land'
+>>> CueAnchor(when="musket", event="land").model_dump()
+{'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}
 ```
 
 #### *property* axis *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
-`(axis, pixels)`.
+`(axis, pixels)` of a crossing.
+
+#### describe()
+
+The anchor in words, for a finding: `crawl/line_7 reached y=840`, `musket land`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 

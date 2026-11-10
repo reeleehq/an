@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -720,7 +720,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"add"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"add"</span><span class="p">,</span> <span class="s2">"sync"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="add">
@@ -781,7 +781,46 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">add</span><span class="p">]</span>
+<div class="viewcode-block" id="sync">
+<a class="viewcode-back" href="../../_autosummary/an.sounds_cli.html#an.sounds_cli.sync">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record where a sound's hit is, so a cue puts the hit (not the file's first sample) at its `at`.</span>
+
+<span class="sd">    A clip whose clink comes after a scrape, or after silence, is heard late by</span>
+<span class="sd">    that lead-in when it is cued by its first sample; `an validate` warns when</span>
+<span class="sd">    a cued hit is 125 ms or more into its file. Only sound.json changes.</span>
+
+<span class="sd">    project_dir: the an project</span>
+<span class="sd">    key: the sound's key in the project's sounds store</span>
+<span class="sd">    at: seconds into the file, "auto" to measure it (the first 10 ms within 6 dB of the loudest), or "none" to clear it</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundError</span><span class="p">,</span> <span class="n">set_sync</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_project_mall</span>
+
+    <span class="n">mall</span> <span class="o">=</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">at</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"auto"</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="s2">"auto"</span>
+    <span class="k">elif</span> <span class="n">at</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"none"</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"an sounds sync: --at </span><span class="si">{</span><span class="n">at</span><span class="si">!r}</span><span class="s2">: say seconds, auto or none"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">asset</span> <span class="o">=</span> <span class="n">set_sync</span><span class="p">(</span><span class="n">mall</span><span class="p">[</span><span class="s2">"sounds"</span><span class="p">],</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">SoundError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"an sounds sync: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">if</span> <span class="n">asset</span><span class="o">.</span><span class="n">sync</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: no sync point (a cue places its first sample)"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: its hit is </span><span class="si">{</span><span class="n">asset</span><span class="o">.</span><span class="n">sync</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s into the file; a cue's `at` is the hit"</span></div>
+
+
+
+<span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">add</span><span class="p">,</span> <span class="n">sync</span><span class="p">]</span>
 </pre></div>
 
                 </article>

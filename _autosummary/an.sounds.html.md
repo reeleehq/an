@@ -38,6 +38,8 @@ numpy, seeded, so the same call writes the same bytes.
 | [`add_sound`](#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.                                                                                                                                                                |
 |-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`get_sound`](#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.                                                                                                                                                               |
+| [`measure_sync`](#an.sounds.measure_sync)(data)                                 | Seconds from the start of WAV `data` to its hit: the first `SYNC_WINDOW_S` window within `SYNC_PEAK_DB` dB of the loudest one.                                                                                                      |
+| [`set_sync`](#an.sounds.set_sync)(store, key[, seconds])                    | Record `key`'s sync point: `"auto"` measures it ([`measure_sync()`](#an.sounds.measure_sync)), a number states it, `None` clears it (its first sample is the event again).                                      |
 | [`synth_bed`](#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end.                                                                                                                                                            |
 | [`synth_hit`](#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.                                                                                                                                                             |
 | [`synth_tone`](#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.                                                                                                                                                                  |
@@ -61,7 +63,7 @@ The provenance of everything [`synth_tone()`](#an.sounds.synth_tone) / [`synth_h
 [`synth_bed()`](#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
 numbers, so no third party’s work is in it.
 
-### *class* an.sounds.SoundAsset(, source, sha256, sample_rate, channels, duration, description='', \*\*extra_data)
+### *class* an.sounds.SoundAsset(, source, sha256, sample_rate, channels, duration, description='', sync=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -79,6 +81,13 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### sha256 *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Digest of `audio.wav` as it entered the project; checked on every read.
+
+#### sync *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Seconds from the first sample to the instant the sound IS its event (a
+hit’s transient, the clink after a scrape): a cue’s `at` puts THIS
+instant there (an#317 follow-up; [`measure_sync()`](#an.sounds.measure_sync), [`set_sync()`](#an.sounds.set_sync)).
+`None`: its first sample is the event, as before.
 
 ### *exception* an.sounds.SoundError
 
@@ -108,6 +117,34 @@ bytes under the same key are an asset nobody recorded.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SoundAsset`](#an.sounds.SoundAsset), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
+### an.sounds.measure_sync(data)
+
+Seconds from the start of WAV `data` to its hit: the first
+`SYNC_WINDOW_S` window within `SYNC_PEAK_DB` dB of the loudest
+one. A clip with silence or a lead-in before its transient is late by this
+much when it is cued by its first sample.
+
+```pycon
+>>> import numpy as np
+>>> lead = np.zeros(int(0.3 * 44100))
+>>> hit, _ = wav_samples(synth_hit(0.2))
+>>> round(measure_sync(_wav_bytes(np.concatenate([lead, hit]), sample_rate=44100)), 2)
+0.3
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.sounds.set_sync(store, key, seconds='auto')
+
+Record `key`’s sync point: `"auto"` measures it
+([`measure_sync()`](#an.sounds.measure_sync)), a number states it, `None` clears it (its first
+sample is the event again). Only `sound.json` changes: the bytes, and the
+licence recorded against them, stay as they were.
+
+* **Return type:**
+  [`SoundAsset`](#an.sounds.SoundAsset)
 
 ### an.sounds.synth_bed(duration, , chord=(220.0, 277.18, 329.63), pulse_hz=2.0, sample_rate=44100, amplitude=0.3)
 

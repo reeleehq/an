@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../../../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -791,6 +791,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  :data:`CAUSE_TOLERANCE`) and sits within the audio-visual sync window</span>
 <span class="sd">  (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and</span>
 <span class="sd">  lip-sync consistency are not built.</span>
+<span class="sd">- ``cue_event``: a shot sound cue timed by a hold event (``at: {when: musket,</span>
+<span class="sd">  event: land}``) names an event the compiled shot has (error, listing the</span>
+<span class="sd">  item's events, else an ``info`` line with its second).</span>
 <span class="sd">- ``light`` (catalogue D1): under the scene's one ``meta.light``, a member whose</span>
 <span class="sd">  art declares ``metadata.shaded_side`` (or ``overrides.shaded_side``) is shaded</span>
 <span class="sd">  on the side facing away from it, read where that side faces on screen as the</span>
@@ -828,6 +831,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"GRAVITY"</span><span class="p">,</span>
     <span class="s2">"gravity_of"</span><span class="p">,</span>
     <span class="s2">"CAUSALITY"</span><span class="p">,</span>
+    <span class="s2">"CUE_EVENT"</span><span class="p">,</span>
     <span class="s2">"av_offset_fault"</span><span class="p">,</span>
     <span class="s2">"airborne_faults"</span><span class="p">,</span>
     <span class="s2">"Move"</span><span class="p">,</span>
@@ -2650,12 +2654,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAnchorError</span><span class="p">,</span> <span class="n">crossing_in_document</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAnchorError</span><span class="p">,</span> <span class="n">anchor_in_document</span>
 
     <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">:</span>
         <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/sounds/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">cause_t</span> <span class="o">=</span> <span class="n">crossing_in_document</span><span class="p">(</span>
+            <span class="n">cause_t</span> <span class="o">=</span> <span class="n">anchor_in_document</span><span class="p">(</span>
                 <span class="n">doc</span><span class="p">,</span>
                 <span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="p">,</span>
                 <span class="n">shot_id</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -2670,21 +2674,25 @@ window.runMermaid = runMermaid;</script>
         <span class="n">fault</span> <span class="o">=</span> <span class="n">av_offset_fault</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">),</span> <span class="n">cause_t</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">fault</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">axis</span>
         <span class="n">delta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">)</span> <span class="o">-</span> <span class="n">cause_t</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="s2">"error"</span> <span class="k">if</span> <span class="n">fault</span> <span class="o">==</span> <span class="s2">"before_cause"</span> <span class="k">else</span> <span class="s2">"warning"</span><span class="p">,</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">/at"</span><span class="p">,</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">!r}</span><span class="s2"> at </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s is </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'ahead of'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">delta</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'behind'</span><span class="si">}</span><span class="s2"> its cause (</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2"> "</span>
-            <span class="sa">f</span><span class="s2">"reaches </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">cause_t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s)"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'ahead of'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">delta</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'behind'</span><span class="si">}</span><span class="s2"> its cause (</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"at </span><span class="si">{</span><span class="n">cause_t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s)"</span>
             <span class="o">+</span> <span class="p">(</span>
                 <span class="s2">": an effect cannot precede its cause. "</span>
                 <span class="k">if</span> <span class="n">fault</span> <span class="o">==</span> <span class="s2">"before_cause"</span>
                 <span class="k">else</span> <span class="sa">f</span><span class="s2">": outside the </span><span class="si">{</span><span class="n">AV_AHEAD_S</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms ahead / "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">AV_BEHIND_S</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms behind window viewers accept. "</span>
             <span class="p">)</span>
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">"Move the cue to </span><span class="si">{</span><span class="n">cause_t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s, or anchor it with `at: </span><span class="se">{{</span><span class="s2">when: ..., reaches: ...</span><span class="se">}}</span><span class="s2">`."</span><span class="p">,</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">"Move the cue to </span><span class="si">{</span><span class="n">cause_t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s, or anchor it to its cause: `at: "</span>
+            <span class="o">+</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">{{</span><span class="s2">when: </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2">, event: </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">event</span><span class="si">}</span><span class="se">}}</span><span class="s2">`."</span>
+                <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="s2">"{when: ..., reaches: ...}`."</span>
+            <span class="p">),</span>
         <span class="p">)</span>
 
 
@@ -2692,6 +2700,44 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"causality"</span><span class="p">,</span>
     <span class="n">check_causality</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"a sound cue that names its visible cause is not ahead of it, and is within the audio-visual sync window (catalogue B7)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_cue_event</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``cue_event`` check: each shot cue timed by a hold event</span>
+<span class="sd">    (``at: {when: musket, event: land}``) names one the shot has; it says when."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CueAnchor</span>
+
+    <span class="n">cues</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">sounds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cues</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAnchorError</span><span class="p">,</span> <span class="n">event_in_document</span>
+
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">:</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/sounds/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/at"</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">event_in_document</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">SoundAnchorError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"info"</span><span class="p">,</span>
+            <span class="n">where</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">!r}</span><span class="s2"> sounds at </span><span class="si">{</span><span class="n">t</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">offset</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s (</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="n">CUE_EVENT</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"cue_event"</span><span class="p">,</span>
+    <span class="n">check_cue_event</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"a sound cue timed by a hold event (`at: {when: item, event: land}`) names an event the shot has"</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -2982,6 +3028,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">MOTION_STYLE</span><span class="p">,</span>
     <span class="n">GRAVITY</span><span class="p">,</span>
     <span class="n">CAUSALITY</span><span class="p">,</span>
+    <span class="n">CUE_EVENT</span><span class="p">,</span>
     <span class="n">LIGHT</span><span class="p">,</span>
 <span class="p">)</span>
 

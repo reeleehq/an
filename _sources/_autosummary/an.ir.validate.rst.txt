@@ -16,6 +16,7 @@ an.ir.validate
       SCREEN_DIRECTION_TOLERANCE_PX
       DIALOGUE_OVERRUN_TOLERANCE_S
       POST_SYNTHESIS_CHECKS
+      LATE_HIT_S
    
    .. rubric:: Functions
 

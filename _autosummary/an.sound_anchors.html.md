@@ -14,8 +14,18 @@ when the film is laid out:
   parallax and a crawl’s tilt ([`an.stage.timeline.screen_position()`](an.stage.timeline.html.md#an.stage.timeline.screen_position)),
   sampled at every film frame and interpolated between the two that straddle
   it; plus `offset`;
+- `at: {when: musket, event: land}` — the instant an item’s hold event
+  happens in the compiled shot (the hold report’s `events`: `grasp`,
+  `place`, `contact`, `release`, `land`, `bounce`, `rest`; and a
+  `topple`’s, [`an.stage.topple`](an.stage.topple.html.md#module-an.stage.topple)), `nth` picking the n-th; plus
+  `offset`. A swap’s clink lands on the frame the sabre reaches the socket,
+  wherever the timing of the reach moves it;
 - `until: {cue: scratch, offset: 0.12}` — the cue ends at that cue’s start
   plus `offset` (its `duration` is derived).
+
+A cue’s second is where its sound’s **sync point** goes (`sync` in its
+`sound.json`, [`an.sounds.set_sync()`](an.sounds.html.md#an.sounds.set_sync): a clip whose clink comes 0.78 s
+after a scrape is placed 0.78 s early), so an anchored hit sounds on its frame.
 
 It runs on the in-memory settled copy of the scene (as the measured shot
 lengths do, [`an.measurements`](an.measurements.html.md#module-an.measurements)): `scene.md` keeps the anchor, never the
@@ -26,9 +36,11 @@ draws) refuses before any browser launches.
 
 ### Functions
 
-| [`crossing_in_document`](#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)      | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document.   |
-|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| [`resolve_cue_anchors`](#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...) | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                     |
+| [`anchor_in_document`](#an.sound_anchors.anchor_in_document)(doc, anchor, \*, shot_id, ...)   | Shot-local seconds of `anchor` (an event, or a crossing), before its `offset`.                                   |
+|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| [`crossing_in_document`](#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)          | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document. |
+| [`event_in_document`](#an.sound_anchors.event_in_document)(doc, anchor, \*, shot_id, where)  | Shot-local seconds of `anchor`'s hold event (the `nth` `event` of item `when`) in a compiled stage document.     |
+| [`resolve_cue_anchors`](#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...)     | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                   |
 
 ### Exceptions
 
@@ -41,9 +53,24 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A cue’s anchor cannot be resolved: the message says which and why.
 
+### an.sound_anchors.anchor_in_document(doc, anchor, , shot_id, fps, duration, where)
+
+Shot-local seconds of `anchor` (an event, or a crossing), before its `offset`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.sound_anchors.crossing_in_document(doc, anchor, , shot_id, fps, duration, where)
 
 Shot-local seconds at which `anchor.when`’s centre first reaches `anchor.reaches`, in a compiled stage document.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.sound_anchors.event_in_document(doc, anchor, , shot_id, where)
+
+Shot-local seconds of `anchor`’s hold event (the `nth` `event` of
+item `when`) in a compiled stage document.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)

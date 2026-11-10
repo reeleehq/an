@@ -1,0 +1,28 @@
+an.stage.rigid
+==============
+
+.. automodule:: an.stage.rigid
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_BOUNCE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      stable_angles
+      drop_track
+      inertia
+      pivot_fall
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DropTrack
+      PivotFall
+   

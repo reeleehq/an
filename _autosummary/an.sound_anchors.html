@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.joints.html">an.ir.joints</a></li>
@@ -512,6 +513,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rigid.html">an.stage.rigid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
@@ -523,6 +525,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.topple.html">an.stage.topple</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.world.html">an.stage.world</a></li>
 </ul>
@@ -653,9 +656,18 @@ very document the stage renders (<code class="docutils literal notranslate"><spa
 parallax and a crawl’s tilt (<a class="reference internal" href="an.stage.timeline.html#an.stage.timeline.screen_position" title="an.stage.timeline.screen_position"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.timeline.screen_position()</span></code></a>),
 sampled at every film frame and interpolated between the two that straddle
 it; plus <code class="docutils literal notranslate"><span class="pre">offset</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">at:</span> <span class="pre">{when:</span> <span class="pre">musket,</span> <span class="pre">event:</span> <span class="pre">land}</span></code> — the instant an item’s hold event
+happens in the compiled shot (the hold report’s <code class="docutils literal notranslate"><span class="pre">events</span></code>: <code class="docutils literal notranslate"><span class="pre">grasp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">place</span></code>, <code class="docutils literal notranslate"><span class="pre">contact</span></code>, <code class="docutils literal notranslate"><span class="pre">release</span></code>, <code class="docutils literal notranslate"><span class="pre">land</span></code>, <code class="docutils literal notranslate"><span class="pre">bounce</span></code>, <code class="docutils literal notranslate"><span class="pre">rest</span></code>; and a
+<code class="docutils literal notranslate"><span class="pre">topple</span></code>’s, <a class="reference internal" href="an.stage.topple.html#module-an.stage.topple" title="an.stage.topple"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.topple</span></code></a>), <code class="docutils literal notranslate"><span class="pre">nth</span></code> picking the n-th; plus
+<code class="docutils literal notranslate"><span class="pre">offset</span></code>. A swap’s clink lands on the frame the sabre reaches the socket,
+wherever the timing of the reach moves it;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">until:</span> <span class="pre">{cue:</span> <span class="pre">scratch,</span> <span class="pre">offset:</span> <span class="pre">0.12}</span></code> — the cue ends at that cue’s start
 plus <code class="docutils literal notranslate"><span class="pre">offset</span></code> (its <code class="docutils literal notranslate"><span class="pre">duration</span></code> is derived).</p></li>
 </ul>
+<p>A cue’s second is where its sound’s <strong>sync point</strong> goes (<code class="docutils literal notranslate"><span class="pre">sync</span></code> in its
+<code class="docutils literal notranslate"><span class="pre">sound.json</span></code>, <a class="reference internal" href="an.sounds.html#an.sounds.set_sync" title="an.sounds.set_sync"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.sounds.set_sync()</span></code></a>: a clip whose clink comes 0.78 s
+after a scrape is placed 0.78 s early), so an anchored hit sounds on its frame.</p>
 <p>It runs on the in-memory settled copy of the scene (as the measured shot
 lengths do, <a class="reference internal" href="an.measurements.html#module-an.measurements" title="an.measurements"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.measurements</span></code></a>): <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> keeps the anchor, never the
 second. Each resolved cue is reported as an <code class="docutils literal notranslate"><span class="pre">info</span></code> finding — “scratch at
@@ -665,8 +677,14 @@ draws) refuses before any browser launches.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.crossing_in_document" title="an.sound_anchors.crossing_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crossing_in_document</span></code></a>(doc, anchor, *, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.anchor_in_document" title="an.sound_anchors.anchor_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">anchor_in_document</span></code></a>(doc, anchor, *, shot_id, ...)</p></td>
+<td><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> (an event, or a crossing), before its <code class="docutils literal notranslate"><span class="pre">offset</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.crossing_in_document" title="an.sound_anchors.crossing_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crossing_in_document</span></code></a>(doc, anchor, *, ...)</p></td>
 <td><p>Shot-local seconds at which <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code>'s centre first reaches <code class="docutils literal notranslate"><span class="pre">anchor.reaches</span></code>, in a compiled stage document.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.event_in_document" title="an.sound_anchors.event_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event_in_document</span></code></a>(doc, anchor, *, shot_id, where)</p></td>
+<td><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code>'s hold event (the <code class="docutils literal notranslate"><span class="pre">nth</span></code> <code class="docutils literal notranslate"><span class="pre">event</span></code> of item <code class="docutils literal notranslate"><span class="pre">when</span></code>) in a compiled stage document.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.resolve_cue_anchors" title="an.sound_anchors.resolve_cue_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_cue_anchors</span></code></a>(scene, ctx, renderers, ...)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code> (a copy) with every anchored <code class="docutils literal notranslate"><span class="pre">at</span></code> resolved to seconds and every <code class="docutils literal notranslate"><span class="pre">until</span></code> to a duration.</p></td>
@@ -691,9 +709,32 @@ draws) refuses before any browser launches.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.sound_anchors.anchor_in_document">
+<span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">anchor_in_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#anchor_in_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.anchor_in_document" title="Link to this definition">#</a></dt>
+<dd><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> (an event, or a crossing), before its <code class="docutils literal notranslate"><span class="pre">offset</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.sound_anchors.crossing_in_document">
 <span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">crossing_in_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#crossing_in_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.crossing_in_document" title="Link to this definition">#</a></dt>
 <dd><p>Shot-local seconds at which <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code>’s centre first reaches <code class="docutils literal notranslate"><span class="pre">anchor.reaches</span></code>, in a compiled stage document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_anchors.event_in_document">
+<span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">event_in_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#event_in_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.event_in_document" title="Link to this definition">#</a></dt>
+<dd><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code>’s hold event (the <code class="docutils literal notranslate"><span class="pre">nth</span></code> <code class="docutils literal notranslate"><span class="pre">event</span></code> of
+item <code class="docutils literal notranslate"><span class="pre">when</span></code>) in a compiled stage document.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
@@ -768,7 +809,9 @@ film_starts: each shot’s start in film time (a <code class="docutils literal n
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.SoundAnchorError"><code class="docutils literal notranslate"><span class="pre">SoundAnchorError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.anchor_in_document"><code class="docutils literal notranslate"><span class="pre">anchor_in_document()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.crossing_in_document"><code class="docutils literal notranslate"><span class="pre">crossing_in_document()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.event_in_document"><code class="docutils literal notranslate"><span class="pre">event_in_document()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.resolve_cue_anchors"><code class="docutils literal notranslate"><span class="pre">resolve_cue_anchors()</span></code></a></li>
 </ul>
   </nav></div>

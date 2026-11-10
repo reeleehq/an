@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.joints.html">an.ir.joints</a></li>
@@ -512,6 +513,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rigid.html">an.stage.rigid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
@@ -523,6 +525,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.topple.html">an.stage.topple</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.world.html">an.stage.world</a></li>
 </ul>
@@ -655,7 +658,7 @@ item’s world pose at that instant (<code class="docutils literal notranslate">
 transform in the new holder’s frame is computed so the picture is continuous,
 so there is never a slide or a jump. What makes the change look <em>handled</em> is
 that the hand first goes where the item is:</p>
-<ul>
+<ul class="simple">
 <li><p><strong>Reach and retract.</strong> A gesture drives its hand’s point (an end effector:
 <code class="docutils literal notranslate"><span class="pre">stu&#64;hand_r</span></code>, <code class="docutils literal notranslate"><span class="pre">stu/arm_r</span></code>) along a minimum-jerk path from where the shot
 would have it to the goal (the item’s grip; for a <code class="docutils literal notranslate"><span class="pre">place</span></code>, the point that
@@ -677,13 +680,15 @@ turns from how it is carried to how it will rest (a wrist), so it arrives
 aligned with a socket’s frame or lying on the ground at its rest angle, its
 lowest INK point at floor height (the texture’s alpha, not its box, so a
 carved part with a transparent margin does not float).</p></li>
-<li><p><strong>Release.</strong> A parabola under gravity (the shot’s or the style pack’s, else
-<a class="reference internal" href="#an.stage.hold.DFLT_FALL_GRAVITY" title="an.stage.hold.DFLT_FALL_GRAVITY"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_FALL_GRAVITY</span></code></a>) from the velocity the hand gave it, turning to its</p>
-<blockquote>
-<div><p>rest angle on the way down, landing on the ground exactly; <code class="docutils literal notranslate"><span class="pre">onto:</span>
-<span class="pre">ground&#64;x</span></code> solves the throw that lands there on an arc <code class="docutils literal notranslate"><span class="pre">arc</span></code> px high.</p>
-</div></blockquote>
-</li>
+<li><p><strong>Release.</strong> A rigid fall under gravity (the shot’s or the style pack’s,
+else <a class="reference internal" href="#an.stage.hold.DFLT_FALL_GRAVITY" title="an.stage.hold.DFLT_FALL_GRAVITY"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_FALL_GRAVITY</span></code></a>; <a class="reference internal" href="an.stage.rigid.html#an.stage.rigid.drop_track" title="an.stage.rigid.drop_track"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.rigid.drop_track()</span></code></a>): a
+parabola from where it was let go (never rising, unless tossed: <code class="docutils literal notranslate"><span class="pre">arc</span></code> &gt;
+0), spinning at a constant rate, one end touching the floor first, a tip
+onto its side about that end, a small bounce (<code class="docutils literal notranslate"><span class="pre">bounce</span></code>), at rest on the
+side it fell nearest to (or at <code class="docutils literal notranslate"><span class="pre">rotation</span></code>); <code class="docutils literal notranslate"><span class="pre">onto:</span> <span class="pre">ground&#64;x</span></code> solves the
+horizontal speed that lands it there. Let go already touching the floor (a
+long item carried low), it falls over that end where it is, and the report
+warns. The report records when it lands and rests (<code class="docutils literal notranslate"><span class="pre">events</span></code>).</p></li>
 </ul>
 <p><strong>Draw order.</strong> While a body holds an item, the item is PAINTED just after
 its holder’s part (an#537): a <code class="docutils literal notranslate"><span class="pre">paint_after</span></code> channel on the item’s entity node
@@ -733,28 +738,34 @@ holders, what <code class="docutils literal notranslate"><span class="pre">an</s
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.HOLD_PLAN_PASSES" title="an.stage.hold.HOLD_PLAN_PASSES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HOLD_PLAN_PASSES</span></code></a></p></td>
 <td><p>How many times the gestures are planned (each from the solve the previous plan made).</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.HOLD_EVENTS" title="an.stage.hold.HOLD_EVENTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HOLD_EVENTS</span></code></a></p></td>
+<td><p>a hand takes the item (<code class="docutils literal notranslate"><span class="pre">grasp</span></code>, a swap's take included), the item arrives where it is put (<code class="docutils literal notranslate"><span class="pre">place</span></code>, a swap's give included), it is let go (<code class="docutils literal notranslate"><span class="pre">release</span></code>), it first touches the floor (<code class="docutils literal notranslate"><span class="pre">land</span></code>), each bounce lands (<code class="docutils literal notranslate"><span class="pre">bounce</span></code>), it stops moving (<code class="docutils literal notranslate"><span class="pre">rest</span></code>); <code class="docutils literal notranslate"><span class="pre">contact</span></code> is any of <code class="docutils literal notranslate"><span class="pre">grasp</span></code> and <code class="docutils literal notranslate"><span class="pre">place</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.declares_holds" title="an.stage.hold.declares_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declares_holds</span></code></a>(shot)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.hold_events" title="an.stage.hold.hold_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hold_events</span></code></a>(gestures, falls)</p></td>
+<td><p>The hold report's <code class="docutils literal notranslate"><span class="pre">events</span></code>: <code class="docutils literal notranslate"><span class="pre">[{event,</span> <span class="pre">item,</span> <span class="pre">at,</span> <span class="pre">by|onto}]</span></code> in time order, from the gestures' contacts and the falls (seconds, shot-local).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.declares_holds" title="an.stage.hold.declares_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declares_holds</span></code></a>(shot)</p></td>
 <td><p>Whether <code class="docutils literal notranslate"><span class="pre">shot</span></code> has a hold verb or an item <code class="docutils literal notranslate"><span class="pre">held_by</span></code> something.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.hold_declarations" title="an.stage.hold.hold_declarations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hold_declarations</span></code></a>(shot, *[, play_extent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.hold_declarations" title="an.stage.hold.hold_declarations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hold_declarations</span></code></a>(shot, *[, play_extent])</p></td>
 <td><p>The hold verbs of <code class="docutils literal notranslate"><span class="pre">shot</span></code> flattened to shot time, its <code class="docutils literal notranslate"><span class="pre">held_by</span></code> overrides, the holder points they name and who moves a hand.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.solve_holds" title="an.stage.hold.solve_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_holds</span></code></a>(state, doc, puppet, decl, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.solve_holds" title="an.stage.hold.solve_holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_holds</span></code></a>(state, doc, puppet, decl, ...)</p></td>
 <td><p>Plan and solve a shot's holds: the final run, the items' channels <code class="docutils literal notranslate"><span class="pre">{(path,</span> <span class="pre">prop):</span> <span class="pre">(values,</span> <span class="pre">as</span> <span class="pre">the</span> <span class="pre">document</span> <span class="pre">shows</span> <span class="pre">them)}</span></code>, the keys of each held item's <code class="docutils literal notranslate"><span class="pre">paint_after</span></code> channel (<a class="reference internal" href="#an.stage.hold.paint_hosts" title="an.stage.hold.paint_hosts"><code class="xref py py-func docutils literal notranslate"><span class="pre">paint_hosts()</span></code></a>), and the report.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.ink_box" title="an.stage.hold.ink_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ink_box</span></code></a>(doc, node, mall)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.ink_box" title="an.stage.hold.ink_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ink_box</span></code></a>(doc, node, mall)</p></td>
 <td><p>The box round a node's ink (<a class="reference internal" href="#an.stage.hold.ink_points" title="an.stage.hold.ink_points"><code class="xref py py-func docutils literal notranslate"><span class="pre">ink_points()</span></code></a>), in its own frame.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.ink_points" title="an.stage.hold.ink_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ink_points</span></code></a>(doc, node, mall)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.ink_points" title="an.stage.hold.ink_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ink_points</span></code></a>(doc, node, mall)</p></td>
 <td><p>A node's drawn ink as points in its own frame: the corners of the box its art is fitted into, or, for a raster the store can read, the convex hull of its painted pixels inside that box (so the lowest point of a part turned any way is the lowest painted pixel, not a corner of its margin).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stage.hold.paint_hosts" title="an.stage.hold.paint_hosts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint_hosts</span></code></a>(holders, times, *[, lead])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stage.hold.paint_hosts" title="an.stage.hold.paint_hosts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paint_hosts</span></code></a>(holders, times, *[, lead])</p></td>
 <td><p>The keys of an item's <code class="docutils literal notranslate"><span class="pre">paint_after</span></code> channel (an#537) from its holders <code class="docutils literal notranslate"><span class="pre">[(frame,</span> <span class="pre">holder)]</span></code> in the order they changed: the part it paints just after (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>: its staged place, when no body holds it), at each change; at one frame the last change stands.</p></td>
 </tr>
 </tbody>
@@ -814,6 +825,21 @@ aimed at someone, continuing the shot before it).</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.stage.hold.HOLD_EVENTS">
+<span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">HOLD_EVENTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('grasp',</span> <span class="pre">'place',</span> <span class="pre">'release',</span> <span class="pre">'land',</span> <span class="pre">'bounce',</span> <span class="pre">'rest')</span></span><a class="headerlink" href="#an.stage.hold.HOLD_EVENTS" title="Link to this definition">#</a></dt>
+<dd><p>a hand
+takes the item (<code class="docutils literal notranslate"><span class="pre">grasp</span></code>, a swap’s take included), the item arrives where
+it is put (<code class="docutils literal notranslate"><span class="pre">place</span></code>, a swap’s give included), it is let go (<code class="docutils literal notranslate"><span class="pre">release</span></code>),
+it first touches the floor (<code class="docutils literal notranslate"><span class="pre">land</span></code>), each bounce lands (<code class="docutils literal notranslate"><span class="pre">bounce</span></code>), it
+stops moving (<code class="docutils literal notranslate"><span class="pre">rest</span></code>); <code class="docutils literal notranslate"><span class="pre">contact</span></code> is any of <code class="docutils literal notranslate"><span class="pre">grasp</span></code> and <code class="docutils literal notranslate"><span class="pre">place</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The visible events of a hold, as a sound cue or a check names them</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.stage.hold.HOLD_PLAN_PASSES">
 <span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">HOLD_PLAN_PASSES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.stage.hold.HOLD_PLAN_PASSES" title="Link to this definition">#</a></dt>
 <dd><p>How many times the gestures are planned (each from the solve the previous
@@ -822,7 +848,7 @@ plan made).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.stage.hold.HOLD_VERSION">
-<span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">HOLD_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'2'</span></span><a class="headerlink" href="#an.stage.hold.HOLD_VERSION" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">HOLD_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'3'</span></span><a class="headerlink" href="#an.stage.hold.HOLD_VERSION" title="Link to this definition">#</a></dt>
 <dd><p>bump it
 when the same declarations can compile to other keys.</p>
 <dl class="field-list simple">
@@ -914,6 +940,22 @@ the holder points they name and who moves a hand.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.stage.hold.HoldDeclarations" title="an.stage.hold.HoldDeclarations"><code class="xref py py-class docutils literal notranslate"><span class="pre">HoldDeclarations</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stage.hold.hold_events">
+<span class="sig-prename descclassname"><span class="pre">an.stage.hold.</span></span><span class="sig-name descname"><span class="pre">hold_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gestures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">falls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stage/hold.html#hold_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stage.hold.hold_events" title="Link to this definition">#</a></dt>
+<dd><p>The hold report’s <code class="docutils literal notranslate"><span class="pre">events</span></code>: <code class="docutils literal notranslate"><span class="pre">[{event,</span> <span class="pre">item,</span> <span class="pre">at,</span> <span class="pre">by|onto}]</span></code> in time
+order, from the gestures’ contacts and the falls (seconds, shot-local).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hold_events</span><span class="p">([],</span> <span class="p">[{</span><span class="s2">"item"</span><span class="p">:</span> <span class="s2">"cup"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"lands"</span><span class="p">:</span> <span class="mf">1.3</span><span class="p">,</span> <span class="s2">"rests"</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s2">"bounces"</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.45</span><span class="p">]}])</span>
+<span class="go">[{'event': 'release', 'item': 'cup', 'at': 1.0}, {'event': 'land', 'item': 'cup', 'at': 1.3}, {'event': 'bounce', 'item': 'cup', 'at': 1.45}, {'event': 'rest', 'item': 'cup', 'at': 1.5}]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1045,6 +1087,7 @@ held item’s <code class="docutils literal notranslate"><span class="pre">paint
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.DFLT_FALL_GRAVITY"><code class="docutils literal notranslate"><span class="pre">DFLT_FALL_GRAVITY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.GRASP_TOLERANCE_PX"><code class="docutils literal notranslate"><span class="pre">GRASP_TOLERANCE_PX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLDS_REPORT"><code class="docutils literal notranslate"><span class="pre">HOLDS_REPORT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLD_EVENTS"><code class="docutils literal notranslate"><span class="pre">HOLD_EVENTS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLD_PLAN_PASSES"><code class="docutils literal notranslate"><span class="pre">HOLD_PLAN_PASSES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HOLD_VERSION"><code class="docutils literal notranslate"><span class="pre">HOLD_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.HoldDeclarations"><code class="docutils literal notranslate"><span class="pre">HoldDeclarations</span></code></a><ul class="nav section-nav flex-column">
@@ -1056,6 +1099,7 @@ held item’s <code class="docutils literal notranslate"><span class="pre">paint
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.ON_OVERRIDE"><code class="docutils literal notranslate"><span class="pre">ON_OVERRIDE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.declares_holds"><code class="docutils literal notranslate"><span class="pre">declares_holds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.hold_declarations"><code class="docutils literal notranslate"><span class="pre">hold_declarations()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.hold_events"><code class="docutils literal notranslate"><span class="pre">hold_events()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.ink_box"><code class="docutils literal notranslate"><span class="pre">ink_box()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.ink_points"><code class="docutils literal notranslate"><span class="pre">ink_points()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stage.hold.paint_hosts"><code class="docutils literal notranslate"><span class="pre">paint_hosts()</span></code></a></li>

@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="topple.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.stage.topple &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=b6d552dc"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/stage/topple';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.394" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../stage.html" class="nav-link">an.stage</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.stage.topple</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.stage.topple</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The ``topple`` compile pass: rigid bodies falling over, one knocking the next (:mod:`an.ir.topple`).</span>
+
+<span class="sd">Runs after the ``solve`` pass (order :data:`TOPPLE_ORDER`), on the document as</span>
+<span class="sd">the solve and the hold layer left it, so a figurine falls with the sabre its</span>
+<span class="sd">hand holds. For each ``topple`` action, in the order they start:</span>
+
+<span class="sd">1. **The body** is the entity's drawn ink at the instant it starts (every</span>
+<span class="sd">   drawn node under it, plus every item a part of it holds then, per the hold</span>
+<span class="sd">   report), as points on the stage. Its centre of mass is the centroid of</span>
+<span class="sd">   their convex hull; its moment of inertia comes from the hull</span>
+<span class="sd">   (:func:`an.stage.rigid.inertia`).</span>
+<span class="sd">2. **The pivot** is its lowest point on the side it falls ``toward``.</span>
+<span class="sd">3. **The fall** is :func:`an.stage.rigid.pivot_fall` from ``push`` (or, when</span>
+<span class="sd">   ``after`` names the topple that knocks it, from that body's speed where it</span>
+<span class="sd">   first touches this one), until another point of it reaches the floor (then</span>
+<span class="sd">   a small bounce, :data:`an.stage.rigid.DFLT_BOUNCE`) or ``point`` reaches</span>
+<span class="sd">   ``until`` (it stays there: nothing is cheated, so a target off the circle</span>
+<span class="sd">   ``point`` sweeps is a :class:`ToppleError` saying how far to move the body).</span>
+<span class="sd">4. **The keys**: every frame from its start, the body's entity node and the</span>
+<span class="sd">   items it holds are turned about the pivot by the fall's angle, written as a</span>
+<span class="sd">   ``__topple__&lt;entity&gt;`` clip after the solve's (the last clip of a track</span>
+<span class="sd">   wins its channels).</span>
+
+<span class="sd">The report, ``meta.extensions.topple``, lists each topple and its ``events``</span>
+<span class="sd">(``topple``, ``hit``, ``land``, ``pin``, ``bounce``, ``rest``), which a sound</span>
+<span class="sd">cue can be timed by (``at: {when: cam, event: land}``, :mod:`an.sound_anchors`).</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutCompileError</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"TOPPLE_EXTENSION"</span><span class="p">,</span> <span class="s2">"TOPPLE_ORDER"</span><span class="p">,</span> <span class="s2">"ToppleError"</span><span class="p">,</span> <span class="s2">"topple_pass"</span><span class="p">]</span>
+
+<span class="c1">#: Where the pass runs: after ``solve`` (525), before the camera follows (550).</span>
+<span class="n">TOPPLE_ORDER</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">535</span>
+<span class="c1">#: The key of the report in the compiled document's ``meta.extensions``.</span>
+<span class="n">TOPPLE_EXTENSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"topple"</span>
+<span class="c1">#: The clip prefix of the keys a topple writes.</span>
+<span class="n">TOPPLE_CLIP_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"__topple__"</span>
+<span class="c1">#: A point within this many px of the lowest is on the floor with it.</span>
+<span class="n">FOOT_BAND_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="c1">#: How far (px) ``point`` may pass from ``until`` and still be on it.</span>
+<span class="n">PIN_TOLERANCE_PX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="c1">#: Steps per second when looking for the instant one body first touches another.</span>
+<span class="n">CONTACT_HZ</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">480.0</span>
+
+<span class="n">Point</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ToppleError">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.topple.html#an.stage.topple.ToppleError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ToppleError</span><span class="p">(</span><span class="n">CutoutCompileError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A topple that cannot happen as written: the message says why and what to change."""</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rot_about</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Point</span><span class="p">:</span>
+    <span class="n">s</span><span class="p">,</span> <span class="n">co</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">co</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">-</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">co</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_centroid</span><span class="p">(</span><span class="n">hull</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Point</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Point</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The area centroid of a convex polygon (its vertices' mean when degenerate)."""</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">cx</span> <span class="o">=</span> <span class="n">cy</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">hull</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">hull</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">hull</span><span class="p">[</span><span class="mi">0</span><span class="p">]]):</span>
+        <span class="n">cross</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">*</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">y0</span>
+        <span class="n">area</span> <span class="o">+=</span> <span class="n">cross</span>
+        <span class="n">cx</span> <span class="o">+=</span> <span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cross</span>
+        <span class="n">cy</span> <span class="o">+=</span> <span class="p">(</span><span class="n">y0</span> <span class="o">+</span> <span class="n">y1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cross</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">area</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">hull</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">cx</span> <span class="o">/</span> <span class="p">(</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">area</span><span class="p">),</span> <span class="n">cy</span> <span class="o">/</span> <span class="p">(</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">area</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_inside</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">hull</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Point</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``p`` is inside the convex polygon ``hull`` (either winding)."""</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">hull</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">hull</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">hull</span><span class="p">[</span><span class="mi">0</span><span class="p">]]):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">sign</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="k">elif</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">sign</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_touch</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span> <span class="n">b</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Point</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Point</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A point where convex polygons ``a`` and ``b`` overlap (a vertex of one inside the other), else ``None``."""</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_inside</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">p</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">b</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_inside</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">p</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_affine</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``path``'s node-to-stage affine ``(a, b, c, d, x, y)`` at ``pose`` (before the camera)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">screen_position</span>
+
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">Point</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Point</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">camera</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">h</span><span class="p">)</span>
+
+    <span class="n">o</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">ey</span> <span class="o">=</span> <span class="n">at</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span> <span class="n">at</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span> <span class="n">at</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ex</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ey</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ey</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nodes_under</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(path, node)`` of entity ``root`` and every node under it (:func:`an.stage.tree.walk_document`)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk_document</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">walk_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">root</span> <span class="ow">or</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">root</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ink</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The drawn ink of ``path`` and everything under it, as stage points at ``pose``."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">ink_points</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span>
+
+    <span class="n">pts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">_nodes_under</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">sub</span> <span class="o">==</span> <span class="n">path</span> <span class="ow">or</span> <span class="n">sub</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">width</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">height</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">_affine</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">pose</span><span class="p">)</span>
+        <span class="n">pts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_apply</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ink_points</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pts</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_point</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Point</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A stage point: ``world@x,y``, or ``path@u,v`` (fractions of that node's drawing)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">_local_box</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span>
+
+    <span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">at</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> is not a point: say `path@u,v` (fractions of that "</span>
+            <span class="s2">"node's drawing, 0,0 its top left) or `world@x,y`"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"world"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_nodes_under</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">name</span><span class="p">),</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> names </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, which the shot does not draw"</span>
+        <span class="p">)</span>
+    <span class="n">drawn</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_nodes_under</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">drawn</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">node</span> <span class="o">=</span> <span class="n">drawn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">_local_box</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_apply</span><span class="p">(</span><span class="n">_affine</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pose</span><span class="p">),</span> <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="n">w</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">v</span> <span class="o">*</span> <span class="n">h</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_decompose</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_decompose</span> <span class="k">as</span> <span class="n">dec</span>
+
+    <span class="k">return</span> <span class="n">dec</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flat_topples</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"topple"</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="topple_pass">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.topple.html#an.stage.topple.topple_pass">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">topple_pass</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``topple`` compile pass (order :data:`TOPPLE_ORDER`); a no-op for a shot with no ``topple``."""</span>
+    <span class="n">shot</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">shot</span>
+    <span class="n">topples</span> <span class="o">=</span> <span class="n">_flat_topples</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">topples</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">gravity_vector</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">_assemble_document</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_FALL_GRAVITY</span><span class="p">,</span> <span class="n">_gravity</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.rigid</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">DFLT_BOUNCE</span><span class="p">,</span>
+        <span class="n">MAX_BOUNCES</span><span class="p">,</span>
+        <span class="n">MIN_ROCK</span><span class="p">,</span>
+        <span class="n">_hull</span><span class="p">,</span>
+        <span class="n">inertia</span><span class="p">,</span>
+        <span class="n">pivot_fall</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_compose</span><span class="p">,</span> <span class="n">_invert</span><span class="p">,</span> <span class="n">frame_times</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span><span class="p">,</span> <span class="n">timeline_from_scene</span>
+
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">_assemble_document</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="s2">"#000000"</span><span class="p">)</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">step_hz</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># Gravity is the falls' (shot, else style pack, else the hold layer's</span>
+    <span class="c1"># default). The floor is each body's own foot line, not `solve.ground`: in</span>
+    <span class="c1"># a 2.5D set a body standing farther back falls onto its own line.</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">_gravity</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">style_pack</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">DFLT_FALL_GRAVITY</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">holders</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">meta_extensions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"solve"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"holds"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"holders"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="p">)</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_w</span> <span class="ow">in</span> <span class="n">topples</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="p">}</span>
+    <span class="n">bodies</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">body</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_w</span> <span class="ow">in</span> <span class="n">topples</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">where</span> <span class="ow">in</span> <span class="n">topples</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">bodies</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> topples more than once: give each topple an `id:`"</span>
+            <span class="p">)</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">where</span> <span class="ow">in</span> <span class="n">topples</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">after</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">named</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: `after: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">after</span><span class="si">}</span><span class="s2">` names no topple of this shot (their ids: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">named</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+    <span class="n">pose_cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pose</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pose_cache</span><span class="p">:</span>
+            <span class="n">pose_cache</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pose_cache</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">carried</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The items a part of ``body`` holds at ``t`` (per the hold report)."""</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">timeline_</span> <span class="ow">in</span> <span class="n">holders</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">holder</span> <span class="ow">in</span> <span class="n">timeline_</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">at</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">:</span>
+                    <span class="n">current</span> <span class="o">=</span> <span class="n">holder</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">current</span> <span class="o">==</span> <span class="n">body</span> <span class="ow">or</span> <span class="n">current</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="n">body</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">,</span> <span class="n">body</span> <span class="o">+</span> <span class="s2">"@"</span><span class="p">))</span>
+            <span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="n">report</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">events</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">plans</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># topple id or body -&gt; its fall</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">topples</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">progressed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">pending</span><span class="p">):</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">t_start</span><span class="p">,</span> <span class="n">where</span> <span class="o">=</span> <span class="n">entry</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">knocker</span> <span class="o">=</span> <span class="n">plans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">after</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">knocker</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">hit</span> <span class="o">=</span> <span class="n">knocker</span><span class="p">[</span><span class="s2">"hits"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">hit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">after</span><span class="si">!r}</span><span class="s2">'s </span><span class="si">{</span><span class="n">knocker</span><span class="p">[</span><span class="s1">'body'</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> never touches "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> as it falls (it comes within </span><span class="si">{</span><span class="n">knocker</span><span class="p">[</span><span class="s1">'near'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px): "</span>
+                        <span class="sa">f</span><span class="s2">"move </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> into its path, or start it with `start:` and a `push`"</span>
+                    <span class="p">)</span>
+                <span class="n">t_start</span><span class="p">,</span> <span class="n">omega</span> <span class="o">=</span> <span class="n">hit</span><span class="p">[</span><span class="s2">"at"</span><span class="p">],</span> <span class="n">a</span><span class="o">.</span><span class="n">knock</span> <span class="o">*</span> <span class="n">hit</span><span class="p">[</span><span class="s2">"speed"</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">omega</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">push</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">toward</span> <span class="o">==</span> <span class="s2">"right"</span> <span class="k">else</span> <span class="o">-</span><span class="mf">1.0</span>
+            <span class="n">omega</span> <span class="o">=</span> <span class="n">sign</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">omega</span><span class="p">)</span>
+            <span class="n">p0</span> <span class="o">=</span> <span class="n">pose</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="n">carried</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">t_start</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="n">later</span> <span class="o">=</span> <span class="p">[</span><span class="n">at</span> <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">_h</span> <span class="ow">in</span> <span class="n">holders</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">())</span> <span class="k">if</span> <span class="n">at</span> <span class="o">&gt;</span> <span class="n">t_start</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">later</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2"> is held by </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> when it topples at "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">t_start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s, and its holder changes again at </span><span class="si">{</span><span class="n">later</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s: "</span>
+                        <span class="s2">"the hold layer does not see the topple yet, so an item a toppled "</span>
+                        <span class="s2">"body holds stays with it to the end of the shot (move the later "</span>
+                        <span class="s2">"gesture before the topple, or into the next shot)"</span>
+                    <span class="p">)</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">_ink</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">p0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="n">pts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_ink</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">p0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pts</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> draws nothing to topple"</span><span class="p">)</span>
+            <span class="n">hull</span> <span class="o">=</span> <span class="n">_hull</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+            <span class="n">com</span> <span class="o">=</span> <span class="n">_centroid</span><span class="p">(</span><span class="n">hull</span><span class="p">)</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span><span class="p">)</span>
+            <span class="n">feet</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">low</span> <span class="o">-</span> <span class="n">FOOT_BAND_PX</span><span class="p">]</span>
+            <span class="n">pivot</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">feet</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1"># It falls onto the floor it stands on (in a 2.5D set, the line of its own feet).</span>
+            <span class="n">floor</span> <span class="o">=</span> <span class="n">low</span>
+            <span class="n">i_cm</span> <span class="o">=</span> <span class="n">inertia</span><span class="p">([(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">com</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">com</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span><span class="p">])</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">com</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">com</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Its centre is inside its feet: it tips over only if it turns</span>
+                <span class="c1"># far enough to bring the centre over the foot.</span>
+                <span class="n">rise</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>  <span class="c1"># how far the centre must rise (r[1] &lt; 0: above)</span>
+                <span class="n">need</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">rise</span> <span class="o">/</span> <span class="p">(</span><span class="n">i_cm</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">omega</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">need</span> <span class="o">*</span> <span class="mf">1.02</span><span class="p">:</span>
+                    <span class="n">how</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"`knock:` at least </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">knock</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">need</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.05</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">max</span><span class="p">(</span><span class="mf">1e-9</span><span class="p">,</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">omega</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
+                        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                        <span class="k">else</span> <span class="sa">f</span><span class="s2">"`push:` at least </span><span class="si">{</span><span class="n">need</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.05</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> rocks back onto its feet: it starts at "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">omega</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> rad/s, and tipping over its </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">toward</span><span class="si">}</span><span class="s2"> foot takes "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">need</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> (its centre is </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px inside that foot). Give it </span><span class="si">{</span><span class="n">how</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+            <span class="c1"># The points that can come down onto the floor: not the feet it stands on.</span>
+            <span class="n">others</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span> <span class="k">if</span> <span class="n">floor</span> <span class="o">-</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">FOOT_BAND_PX</span><span class="p">]</span>
+            <span class="n">pin</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">until</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: `until` needs the `point` of the body that reaches it"</span>
+                    <span class="p">)</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="n">_point</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">point</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="n">_point</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">until</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
+                <span class="n">r_q</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">r_t</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">r_q</span> <span class="o">-</span> <span class="n">r_t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PIN_TOLERANCE_PX</span><span class="p">:</span>
+                    <span class="n">dy</span> <span class="o">=</span> <span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">r_q</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">point</span><span class="si">!r}</span><span class="s2"> sweeps a circle of radius </span><span class="si">{</span><span class="n">r_q</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px about "</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2">'s foot, and </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">until</span><span class="si">!r}</span><span class="s2"> is </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px "</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'above'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'below'</span><span class="si">}</span><span class="s2"> that foot: it can never reach it. "</span>
+                            <span class="s2">"Lower the target, or topple a taller body"</span>
+                        <span class="p">)</span>
+                    <span class="n">root</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r_q</span> <span class="o">*</span> <span class="n">r_q</span> <span class="o">-</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+                    <span class="n">shifts</span> <span class="o">=</span> <span class="p">[</span><span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">root</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">root</span><span class="p">]</span>
+                    <span class="n">dx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">shifts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">abs</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">point</span><span class="si">!r}</span><span class="s2"> passes </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">r_q</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r_t</span><span class="p">)</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'short of'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r_q</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">r_t</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'beyond'</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">until</span><span class="si">!r}</span><span class="s2"> as </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> falls "</span>
+                        <span class="sa">f</span><span class="s2">"(it sweeps </span><span class="si">{</span><span class="n">r_q</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px about its foot, the target is </span><span class="si">{</span><span class="n">r_t</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px away). "</span>
+                        <span class="sa">f</span><span class="s2">"Move </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">!r}</span><span class="s2"> about </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px to the </span><span class="si">{</span><span class="s1">'right'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'left'</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                <span class="n">want</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span>
+                    <span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">want</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">want</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">want</span> <span class="o">*</span> <span class="n">sign</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">until</span><span class="si">!r}</span><span class="s2"> is behind </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">point</span><span class="si">!r}</span><span class="s2"> for a fall to the "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">toward</span><span class="si">}</span><span class="s2">: topple `toward: </span><span class="si">{</span><span class="s1">'left'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">sign</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'right'</span><span class="si">}</span><span class="s2">`"</span>
+                    <span class="p">)</span>
+                <span class="n">pin</span> <span class="o">=</span> <span class="p">(</span><span class="n">want</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">floor_gap</span><span class="p">(</span>
+                <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">others</span><span class="o">=</span><span class="n">others</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="n">pivot</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span>
+            <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="nb">min</span><span class="p">(</span><span class="n">floor</span> <span class="o">-</span> <span class="n">_rot_about</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">angle</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">others</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">others</span>
+                    <span class="k">else</span> <span class="mf">1.0</span>
+                <span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="n">angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="n">pin</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="n">gap</span> <span class="o">=</span> <span class="n">floor_gap</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">gap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">gap</span><span class="p">,</span> <span class="n">sign</span> <span class="o">*</span> <span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">angle</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">gap</span>
+
+            <span class="n">fall</span> <span class="o">=</span> <span class="n">pivot_fall</span><span class="p">(</span>
+                <span class="n">com</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">gravity</span><span class="o">=</span><span class="n">g</span><span class="p">,</span> <span class="n">omega</span><span class="o">=</span><span class="n">omega</span><span class="p">,</span> <span class="n">inertia_cm</span><span class="o">=</span><span class="n">i_cm</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span>
+            <span class="p">)</span>
+            <span class="n">segments</span> <span class="o">=</span> <span class="p">[(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">fall</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+            <span class="n">end_t</span> <span class="o">=</span> <span class="n">t_start</span> <span class="o">+</span> <span class="n">fall</span><span class="o">.</span><span class="n">duration</span>
+            <span class="n">end_angle</span> <span class="o">=</span> <span class="n">fall</span><span class="o">.</span><span class="n">turn</span><span class="p">(</span><span class="n">fall</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+            <span class="n">pinned</span> <span class="o">=</span> <span class="n">pin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">end_angle</span> <span class="o">-</span> <span class="n">pin</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1e-3</span>
+            <span class="n">kind</span> <span class="o">=</span> <span class="s2">"pin"</span> <span class="k">if</span> <span class="n">pinned</span> <span class="k">else</span> <span class="s2">"land"</span>
+            <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"event"</span><span class="p">:</span> <span class="s2">"topple"</span><span class="p">,</span> <span class="s2">"item"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+            <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"event"</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span> <span class="s2">"item"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">end_t</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+            <span class="n">bounces</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pinned</span> <span class="ow">and</span> <span class="n">fall</span><span class="o">.</span><span class="n">stopped</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">DFLT_BOUNCE</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">bounce</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">a</span><span class="o">.</span><span class="n">bounce</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="o">-</span><span class="n">e</span> <span class="o">*</span> <span class="n">fall</span><span class="o">.</span><span class="n">omega_end</span>
+                <span class="n">com_end</span> <span class="o">=</span> <span class="n">_rot_about</span><span class="p">(</span><span class="n">com</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">end_angle</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MAX_BOUNCES</span><span class="p">):</span>
+                    <span class="c1"># Its far end bounces up about the foot and falls back.</span>
+                    <span class="n">rock</span> <span class="o">=</span> <span class="n">pivot_fall</span><span class="p">(</span>
+                        <span class="n">com_end</span><span class="p">,</span>
+                        <span class="n">pivot</span><span class="p">,</span>
+                        <span class="n">gravity</span><span class="o">=</span><span class="n">g</span><span class="p">,</span>
+                        <span class="n">omega</span><span class="o">=</span><span class="n">w</span><span class="p">,</span>
+                        <span class="n">inertia_cm</span><span class="o">=</span><span class="n">i_cm</span><span class="p">,</span>
+                        <span class="n">stop</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ang</span><span class="p">:</span> <span class="mf">1e-9</span> <span class="o">-</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">ang</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">rock</span><span class="o">.</span><span class="n">stopped</span> <span class="ow">or</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rock</span><span class="o">.</span><span class="n">turns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">MIN_ROCK</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">end_t</span><span class="p">,</span> <span class="n">rock</span><span class="p">,</span> <span class="n">end_angle</span><span class="p">))</span>
+                    <span class="n">end_t</span> <span class="o">+=</span> <span class="n">rock</span><span class="o">.</span><span class="n">duration</span>
+                    <span class="n">bounces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end_t</span><span class="p">)</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="o">-</span><span class="n">e</span> <span class="o">*</span> <span class="n">rock</span><span class="o">.</span><span class="n">omega_end</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bounces</span><span class="p">:</span>
+                <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"event"</span><span class="p">:</span> <span class="s2">"bounce"</span><span class="p">,</span> <span class="s2">"item"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+            <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"event"</span><span class="p">:</span> <span class="s2">"rest"</span><span class="p">,</span> <span class="s2">"item"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">end_t</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">angle_at</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">segments</span><span class="o">=</span><span class="n">segments</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">end_angle</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">segments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="mf">0.0</span>
+                <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">turn</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">final</span>
+
+            <span class="c1"># Who it touches on the way down (for the topples it knocks).</span>
+            <span class="n">hits</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">near</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">victims</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">body</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_w</span> <span class="ow">in</span> <span class="n">topples</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">after</span> <span class="o">==</span> <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">victims</span><span class="p">:</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">fall</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">CONTACT_HZ</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">victims</span><span class="p">:</span>
+                    <span class="n">other</span> <span class="o">=</span> <span class="n">_hull</span><span class="p">(</span><span class="n">_ink</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">p0</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">u</span> <span class="o">=</span> <span class="n">fall</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">n</span> <span class="o">/</span> <span class="n">steps</span>
+                        <span class="n">ang</span> <span class="o">=</span> <span class="n">fall</span><span class="o">.</span><span class="n">turn</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+                        <span class="n">moved</span> <span class="o">=</span> <span class="p">[</span><span class="n">_rot_about</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">ang</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">hull</span><span class="p">]</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="n">_touch</span><span class="p">(</span><span class="n">moved</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+                        <span class="n">near</span><span class="p">[</span><span class="n">body</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                            <span class="n">near</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span>
+                            <span class="nb">min</span><span class="p">(</span>
+                                <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">moved</span>
+                                <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">other</span>
+                            <span class="p">),</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">du</span> <span class="o">=</span> <span class="n">fall</span><span class="o">.</span><span class="n">duration</span> <span class="o">/</span> <span class="n">steps</span>
+                            <span class="n">w_now</span> <span class="o">=</span> <span class="p">(</span><span class="n">ang</span> <span class="o">-</span> <span class="n">fall</span><span class="o">.</span><span class="n">turn</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">u</span> <span class="o">-</span> <span class="n">du</span><span class="p">)))</span> <span class="o">/</span> <span class="n">du</span>
+                            <span class="n">speed</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">w_now</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span>
+                                <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="p">)</span>
+                            <span class="c1"># Its own turn rate: the knocker's tip speed over the struck body's height.</span>
+                            <span class="n">height</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                                <span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">other</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">other</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="n">hits</span><span class="p">[</span><span class="n">body</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"at"</span><span class="p">:</span> <span class="n">t_start</span> <span class="o">+</span> <span class="n">u</span><span class="p">,</span> <span class="s2">"speed"</span><span class="p">:</span> <span class="n">speed</span> <span class="o">/</span> <span class="n">height</span><span class="p">}</span>
+                            <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="p">{</span>
+                                    <span class="s2">"event"</span><span class="p">:</span> <span class="s2">"hit"</span><span class="p">,</span>
+                                    <span class="s2">"item"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+                                    <span class="s2">"at"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">t_start</span> <span class="o">+</span> <span class="n">u</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                                    <span class="s2">"on"</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span>
+                                <span class="p">}</span>
+                            <span class="p">)</span>
+                            <span class="k">break</span>
+            <span class="n">plans</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"body"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="s2">"hits"</span><span class="p">:</span> <span class="n">hits</span><span class="p">,</span> <span class="s2">"near"</span><span class="p">:</span> <span class="n">near</span><span class="p">}</span>
+            <span class="c1"># The keys: the entity and what it carries, turned about the pivot.</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+                <span class="n">AnimationClipJSON</span><span class="p">,</span>
+                <span class="n">ChannelJSON</span><span class="p">,</span>
+                <span class="n">KeyframeJSON</span><span class="p">,</span>
+                <span class="n">PlacedClipJSON</span><span class="p">,</span>
+                <span class="n">TrackJSON</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">channels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">]:</span>
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">path</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">p</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">)</span>
+                <span class="p">}</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                    <span class="n">n</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_nodes_under</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">path</span>
+                <span class="p">)</span>
+                <span class="n">piv</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">pivot_x</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">pivot_y</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">transform</span>
+                    <span class="k">else</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">prev_rot</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="c1"># A key at its start (the pose it has then), then one per frame.</span>
+                <span class="k">for</span> <span class="n">tk</span> <span class="ow">in</span> <span class="p">[</span><span class="n">t_start</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">t_start</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)]:</span>
+                    <span class="n">ang</span> <span class="o">=</span> <span class="n">angle_at</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+                    <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ang</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">c</span><span class="p">,</span>
+                        <span class="n">s</span><span class="p">,</span>
+                        <span class="o">-</span><span class="n">s</span><span class="p">,</span>
+                        <span class="n">c</span><span class="p">,</span>
+                        <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span> <span class="o">*</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s</span> <span class="o">*</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">s</span> <span class="o">*</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span> <span class="o">*</span> <span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="n">world</span> <span class="o">=</span> <span class="n">_compose</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">_affine</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pose</span><span class="p">(</span><span class="n">tk</span><span class="p">)))</span>
+                    <span class="n">par</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">_affine</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">pose</span><span class="p">(</span><span class="n">tk</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">parent</span>
+                        <span class="k">else</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">local</span> <span class="o">=</span> <span class="n">_compose</span><span class="p">(</span><span class="n">_invert</span><span class="p">(</span><span class="n">par</span><span class="p">),</span> <span class="n">world</span><span class="p">)</span>
+                    <span class="n">theta</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">mirrored</span> <span class="o">=</span> <span class="n">_decompose</span><span class="p">(</span><span class="n">local</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">prev_rot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">theta</span> <span class="o">=</span> <span class="n">prev_rot</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="n">prev_rot</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+                    <span class="n">prev_rot</span> <span class="o">=</span> <span class="n">theta</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">local</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">piv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">local</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">piv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">local</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">local</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">piv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">local</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">piv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">local</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+                        <span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span>
+                        <span class="p">(</span><span class="s2">"rotation"</span><span class="p">,</span> <span class="n">theta</span><span class="p">),</span>
+                        <span class="p">(</span><span class="s2">"scale_x"</span><span class="p">,</span> <span class="o">-</span><span class="n">sx</span> <span class="k">if</span> <span class="n">mirrored</span> <span class="k">else</span> <span class="n">sx</span><span class="p">),</span>
+                        <span class="p">(</span><span class="s2">"scale_y"</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span>
+                    <span class="p">):</span>
+                        <span class="n">values</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">tk</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">keys</span><span class="p">:</span>
+                        <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">ChannelJSON</span><span class="p">(</span>
+                                <span class="n">target</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+                                <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
+                                <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
+                                    <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">keys</span>
+                                <span class="p">],</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TOPPLE_CLIP_PREFIX</span><span class="si">}{</span><span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">}</span><span class="s2">"</span>
+            <span class="c1"># Placed from its start: before it, the body and what it carries move as they did.</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">)</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">animations</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">channels</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">]}):</span>
+                <span class="n">placed</span> <span class="o">=</span> <span class="n">PlacedClipJSON</span><span class="p">(</span>
+                    <span class="n">animation_id</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">t_start</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span>
+                <span class="p">)</span>
+                <span class="n">track</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">tr</span> <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">tracks</span> <span class="k">if</span> <span class="n">tr</span><span class="o">.</span><span class="n">target_root</span> <span class="o">==</span> <span class="n">root</span><span class="p">),</span> <span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">track</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">state</span><span class="o">.</span><span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TrackJSON</span><span class="p">(</span><span class="n">target_root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="n">clips</span><span class="o">=</span><span class="p">[</span><span class="n">placed</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">track</span><span class="o">.</span><span class="n">clips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"body"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="p">,</span>
+                    <span class="s2">"where"</span><span class="p">:</span> <span class="n">where</span><span class="p">,</span>
+                    <span class="s2">"start"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                    <span class="s2">"pivot"</span><span class="p">:</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">pivot</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">pivot</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)],</span>
+                    <span class="s2">"angle"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">end_angle</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="s2">"ends"</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
+                    <span class="s2">"carries"</span><span class="p">:</span> <span class="n">items</span><span class="p">,</span>
+                    <span class="o">**</span><span class="p">({</span><span class="s2">"after"</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">after</span><span class="p">}</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">after</span> <span class="k">else</span> <span class="p">{}),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="n">pending</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">progressed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">progressed</span><span class="p">:</span>
+            <span class="n">stuck</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">body</span><span class="si">}</span><span class="s2"> (after </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">after</span><span class="si">}</span><span class="s2">)"</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">_t</span><span class="p">,</span> <span class="n">_w</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ToppleError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"topples that wait on each other and never start: </span><span class="si">{</span><span class="n">stuck</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">meta_extensions</span><span class="p">[</span><span class="n">TOPPLE_EXTENSION</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"topples"</span><span class="p">:</span> <span class="n">report</span><span class="p">,</span>
+        <span class="s2">"events"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="s2">"at"</span><span class="p">]),</span>
+    <span class="p">}</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

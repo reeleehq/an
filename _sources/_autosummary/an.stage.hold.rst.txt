@@ -15,11 +15,13 @@ an.stage.hold
       GRASP_TOLERANCE_PX
       DFLT_FALL_GRAVITY
       HOLD_PLAN_PASSES
+      HOLD_EVENTS
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      hold_events
       declares_holds
       hold_declarations
       solve_holds

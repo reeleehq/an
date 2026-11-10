@@ -1,4 +1,4 @@
-> built 2026-11-09 07:26 UTC from 39797f4 (main) · an 0.1.393. Details: build_info.json
+> built 2026-11-10 14:18 UTC from 0396c79 (main) · an 0.1.394. Details: build_info.json
 
 # index.html.md
 
@@ -15312,7 +15312,7 @@ A command’s text with the exit status it asks the CLI to end with.
 * **Return type:**
   [*CommandReport*](_autosummary/an.cli_status.html.md#an.cli_status.CommandReport)
 
-### an.cli_status.EXIT_POLICY *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bench': 'failed: refused arguments (an#559)', 'bench-compare': 'failed: --strict and a bad answer (an#559)', 'bench-mutants': 'failed: a survivor, an unknown name, rot; 130 interrupted', 'cache gc': 'refuses', 'cache info': '0', 'check': '0: every backend is optional to some project; the render refuses', 'credits': '0: the inventory; the gate is \`validate --strict-assets\`', 'init': 'refuses', 'iterate': 'failed: the instruction was not applied (an#480)', 'library checkout': 'refuses', 'library find': '0: no match is an answer', 'library kit': 'refuses', 'library promote': 'refuses', 'library publish': 'refuses; an unknown licence is recorded on purpose: 0', 'library reindex': 'refuses', 'library retire': 'refuses', 'library sheet': 'refuses', 'library show': 'refuses', 'library vocabulary': '0', 'music add-library': 'failed: a title no mirror served (an#470); refuses: bad arguments', 'music use': 'refuses', 'preview': 'refuses', 'probe': 'refuses', 'props contract': '0', 'props validate': 'failed: a FAILED report (an#480)', 'render': 'failed: an error finding, though the mp4 exists (an#559)', 'sounds add': 'refuses', 'sync': 'refuses: a scene file that is not there; drift is a warning', 'validate': 'failed: a FAILED report (an#480)', 'voices audition': 'refuses (VoiceDesignError)', 'voices cast': 'refuses (VoiceDesignError)', 'voices choose': 'refuses (VoiceDesignError)', 'voices design': 'refuses (VoiceDesignError)', 'voices import': 'refuses (RecordedVoicesError)', 'voices list': '0: no voices is an answer', 'voices reroll': 'failed: no dialogue line matches (an#559)', 'voices rescore': 'failed: no dialogue line matches (an#559)', 'world from-shot': 'refuses', 'world show': 'refuses'}*
+### an.cli_status.EXIT_POLICY *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bench': 'failed: refused arguments (an#559)', 'bench-compare': 'failed: --strict and a bad answer (an#559)', 'bench-mutants': 'failed: a survivor, an unknown name, rot; 130 interrupted', 'cache gc': 'refuses', 'cache info': '0', 'check': '0: every backend is optional to some project; the render refuses', 'credits': '0: the inventory; the gate is \`validate --strict-assets\`', 'init': 'refuses', 'iterate': 'failed: the instruction was not applied (an#480)', 'library checkout': 'refuses', 'library find': '0: no match is an answer', 'library kit': 'refuses', 'library promote': 'refuses', 'library publish': 'refuses; an unknown licence is recorded on purpose: 0', 'library reindex': 'refuses', 'library retire': 'refuses', 'library sheet': 'refuses', 'library show': 'refuses', 'library vocabulary': '0', 'music add-library': 'failed: a title no mirror served (an#470); refuses: bad arguments', 'music use': 'refuses', 'preview': 'refuses', 'probe': 'refuses', 'props contract': '0', 'props validate': 'failed: a FAILED report (an#480)', 'render': 'failed: an error finding, though the mp4 exists (an#559)', 'sounds add': 'refuses', 'sounds sync': 'refuses', 'sync': 'refuses: a scene file that is not there; drift is a warning', 'validate': 'failed: a FAILED report (an#480)', 'voices audition': 'refuses (VoiceDesignError)', 'voices cast': 'refuses (VoiceDesignError)', 'voices choose': 'refuses (VoiceDesignError)', 'voices design': 'refuses (VoiceDesignError)', 'voices import': 'refuses (RecordedVoicesError)', 'voices list': '0: no voices is an answer', 'voices reroll': 'failed: no dialogue line matches (an#559)', 'voices rescore': 'failed: no dialogue line matches (an#559)', 'world from-shot': 'refuses', 'world show': 'refuses'}*
 
 How each core command ends when it fails. A new command must take a line
 here (`tests/test_cli_exit_status.py` holds the list complete), so “it prints a
@@ -20567,6 +20567,54 @@ False
   [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
 
 
+# _autosummary/an.ir.events.html.md
+
+# an.ir.events
+
+The visible events a compiled shot records, by name: what a sound cue’s `event` may say (an#804).
+
+One vocabulary for every source: the hold layer ([`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)) and the
+`topple` pass ([`an.stage.topple`](_autosummary/an.stage.topple.html.md#module-an.stage.topple)) emit these names into their reports’
+`events` lists, [`an.ir.schema.CueAnchor`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor) validates an `event` against
+them, and [`an.sound_anchors`](_autosummary/an.sound_anchors.html.md#module-an.sound_anchors) resolves one.
+
+```pycon
+>>> sorted(EVENTS)[:3], ALIASES["contact"]
+(['bounce', 'grasp', 'hit'], ('grasp', 'place'))
+```
+
+### Module Attributes
+
+| [`EVENTS`](_autosummary/an.ir.events.html.md#an.ir.events.EVENTS)   | Each event an item or a body can have, and what it means.   |
+|-----------------------------------------------------------|-------------------------------------------------------------|
+| [`ALIASES`](_autosummary/an.ir.events.html.md#an.ir.events.ALIASES)  | Names that stand for several events.                        |
+
+### Functions
+
+| [`event_names`](_autosummary/an.ir.events.html.md#an.ir.events.event_names)()   | Every name an `event` may say, for a message.   |
+|------------------------------------------------------------------|-------------------------------------------------|
+
+### an.ir.events.ALIASES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]]* *= {'contact': ('grasp', 'place')}*
+
+Names that stand for several events.
+
+### an.ir.events.EVENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'bounce': 'a bounce or a rock comes back down', 'grasp': "a hand takes the item (a swap's take included)", 'hit': 'a falling body first touches another (the report names it: \`on\`)', 'land': 'it first touches its floor (a dropped item, a toppled body)', 'pin': "a toppled body's point reaches its target and stays", 'place': "the item arrives where it is put (a swap's give included)", 'release': 'the item is let go', 'rest': 'it stops moving', 'topple': 'a body starts to fall over'}*
+
+Each event an item or a body can have, and what it means.
+
+### an.ir.events.event_names()
+
+Every name an `event` may say, for a message.
+
+```pycon
+>>> event_names().startswith("grasp, place, release")
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
 # _autosummary/an.ir.frames.html.md
 
 # an.ir.frames
@@ -21031,21 +21079,21 @@ shelf needs them without saying character), registered when [`an.ir`](_autosumma
 
 ### Functions
 
-| [`grasp`](_autosummary/an.ir.holds.html.md#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                               |
-|-------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| [`place`](_autosummary/an.ir.holds.html.md#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                 |
-| [`release`](_autosummary/an.ir.holds.html.md#an.ir.holds.release)(item, \*[, at, onto, arc, rotation])         | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).      |
-| [`handover`](_autosummary/an.ir.holds.html.md#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                             |
-| [`swap`](_autosummary/an.ir.holds.html.md#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place. |
+| [`grasp`](_autosummary/an.ir.holds.html.md#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                                                              |
+|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| [`place`](_autosummary/an.ir.holds.html.md#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                                                |
+| [`release`](_autosummary/an.ir.holds.html.md#an.ir.holds.release)(item, \*[, at, onto, arc, rotation, ...])    | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first). |
+| [`handover`](_autosummary/an.ir.holds.html.md#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                                                            |
+| [`swap`](_autosummary/an.ir.holds.html.md#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place.                                |
 
 ### Classes
 
-| [`GraspAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.GraspAction)(\*[, name, kind, reach, retract, ...])   | `by` (a body's point: a hand) reaches `item`'s grip and takes it.                                                                                                                                       |
-|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`PlaceAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.PlaceAction)(\*[, name, kind, by, rotation, ...])     | The hand holding `item` puts it `onto` a target and lets it go.                                                                                                                                         |
-| [`ReleaseAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.ReleaseAction)(\*[, name, kind, at, onto, ...])       | The hand holding `item` lets it go at `at`: it falls with the velocity it had onto the ground, or is tossed `onto: ground@x` on an arc `arc` px high, and lands at `rotation` (default: as in `place`). |
-| [`HandoverAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.HandoverAction)(\*[, name, kind, by, meet, ...])      | The hand holding `item` gives it to `to` (a hand, or a socket).                                                                                                                                         |
-| [`SwapAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.SwapAction)(\*[, name, kind, lag, rotation, ...])     | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                              |
+| [`GraspAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.GraspAction)(\*[, name, kind, reach, retract, ...])   | `by` (a body's point: a hand) reaches `item`'s grip and takes it.                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PlaceAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.PlaceAction)(\*[, name, kind, by, rotation, ...])     | The hand holding `item` puts it `onto` a target and lets it go.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`ReleaseAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.ReleaseAction)(\*[, name, kind, at, onto, ...])       | The hand holding `item` lets it go at `at`: it falls (never rising) onto the ground, `onto: ground@x` nudged to land there, or tossed up first when `arc` (px above the hand) is positive; it lands one end first, tips onto its side at `rotation` (default: the side of it it falls nearest to) and bounces a little (`bounce`: the coefficient of restitution, default [`an.stage.rigid.DFLT_BOUNCE`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DFLT_BOUNCE); 0 lands dead). |
+| [`HandoverAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.HandoverAction)(\*[, name, kind, by, meet, ...])      | The hand holding `item` gives it to `to` (a hand, or a socket).                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`SwapAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.SwapAction)(\*[, name, kind, lag, rotation, ...])     | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                                                                                                                                                                                                                                                                                                                       |
 
 ### an.ir.holds.DFLT_LEAN_DEG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 60.0*
 
@@ -21072,9 +21120,11 @@ How long the hand takes to come back to where the shot has it (s).
 In a `swap`, how long after the taking hand starts the giving hand starts
 (s): it arrives a beat after the socket is empty.
 
-### an.ir.holds.DFLT_TOSS_ARC *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 40.0*
+### an.ir.holds.DFLT_TOSS_ARC *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.0*
 
-How high a toss rises above the higher of its two ends (scene px).
+How high a toss rises above the higher of its two ends (scene px). `0`:
+it is let fall, never thrown up (a let-go item does not rise; a positive
+`arc` is a throw).
 
 ### an.ir.holds.GESTURE_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('grasp', 'place', 'handover')*
 
@@ -21162,13 +21212,16 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.holds.ReleaseAction(, name=None, kind='release', item, at=0.0, onto=None, arc=40.0, rotation=None, \*\*extra_data)
+### *class* an.ir.holds.ReleaseAction(, name=None, kind='release', item, at=0.0, onto=None, arc=0.0, rotation=None, bounce=None, \*\*extra_data)
 
 Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
-The hand holding `item` lets it go at `at`: it falls with the
-velocity it had onto the ground, or is tossed `onto: ground@x` on an
-arc `arc` px high, and lands at `rotation` (default: as in `place`).
+The hand holding `item` lets it go at `at`: it falls (never rising)
+onto the ground, `onto: ground@x` nudged to land there, or tossed up
+first when `arc` (px above the hand) is positive; it lands one end
+first, tips onto its side at `rotation` (default: the side of it it falls nearest to) and
+bounces a little (`bounce`: the coefficient of restitution, default
+[`an.stage.rigid.DFLT_BOUNCE`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DFLT_BOUNCE); 0 lands dead).
 
 ```pycon
 >>> ReleaseAction(item="cup", at=1.0).onto is None
@@ -21239,13 +21292,15 @@ The hand holding `item` puts it `onto` a target.
 * **Return type:**
   [`PlaceAction`](_autosummary/an.ir.holds.html.md#an.ir.holds.PlaceAction)
 
-### an.ir.holds.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+### an.ir.holds.release(item, , at=0.0, onto=None, arc=0.0, rotation=None, bounce=None)
 
-Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).
 
 ```pycon
 >>> release("musket", onto="ground@-620", arc=60).arc
 60.0
+>>> release("musket", onto="ground@-620").arc   # let fall: no rise
+0.0
 ```
 
 * **Return type:**
@@ -21311,9 +21366,10 @@ authoring-time DSL to canonical-form actions.
 | [`grasp`](_autosummary/an.ir.html.md#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                                                                                                                                                 |
 | [`reframe`](_autosummary/an.ir.html.md#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])     | `target` changes to frame `to` at `at` seconds into the action.                                                                                                                                    |
 | [`place`](_autosummary/an.ir.html.md#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                                                                                                                                                   |
-| [`release`](_autosummary/an.ir.html.md#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                                                                                                                                        |
+| [`release`](_autosummary/an.ir.html.md#an.ir.release)(item, \*[, at, onto, arc, rotation, ...])  | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).                                                                                                    |
 | [`handover`](_autosummary/an.ir.html.md#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                                                                                                                                               |
 | [`swap`](_autosummary/an.ir.html.md#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.                                                                                                                                   |
+| [`topple`](_autosummary/an.ir.html.md#an.ir.topple)(body, \*\*kw)                               | `body` falls over (see `ToppleAction` for the fields).                                                                                                                                             |
 
 ### Classes
 
@@ -22431,13 +22487,15 @@ True
 * **Return type:**
   [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
-### an.ir.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+### an.ir.release(item, , at=0.0, onto=None, arc=0.0, rotation=None, bounce=None)
 
-Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).
 
 ```pycon
 >>> release("musket", onto="ground@-620", arc=60).arc
 60.0
+>>> release("musket", onto="ground@-620").arc   # let fall: no rise
+0.0
 ```
 
 * **Return type:**
@@ -22518,6 +22576,18 @@ does not flip.
 
 * **Return type:**
   `SyncResult`
+
+### an.ir.topple(body, \*\*kw)
+
+`body` falls over (see `ToppleAction` for the fields).
+
+```pycon
+>>> topple("cam", toward="right", push=1.0).push
+1.0
+```
+
+* **Return type:**
+  `ToppleAction`
 
 ### an.ir.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
@@ -22613,17 +22683,18 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](_autosummary/an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                         |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`camera`](_autosummary/an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                 |
-| [`compose`](_autosummary/an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                      |
-| [`frames`](_autosummary/an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).    |
-| [`holds`](_autosummary/an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4). |
-| [`joints`](_autosummary/an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).       |
-| [`schema`](_autosummary/an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                       |
-| [`validate`](_autosummary/an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                      |
-| [`world`](_autosummary/an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).             |
-| [`world_from_shot`](_autosummary/an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                |
+| [`assets`](_autosummary/an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                                |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [`camera`](_autosummary/an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                        |
+| [`compose`](_autosummary/an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                             |
+| [`events`](_autosummary/an.ir.events.html.md#module-an.ir.events)                   | The visible events a compiled shot records, by name: what a sound cue's `event` may say (an#804). |
+| [`frames`](_autosummary/an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).           |
+| [`holds`](_autosummary/an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4).        |
+| [`joints`](_autosummary/an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).              |
+| [`schema`](_autosummary/an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                              |
+| [`validate`](_autosummary/an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                             |
+| [`world`](_autosummary/an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).                    |
+| [`world_from_shot`](_autosummary/an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                       |
 
 
 # _autosummary/an.ir.joints.html.md
@@ -22908,7 +22979,7 @@ True
 | [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, ...])     | One camera pose at one time — the explicit door behind the named moves.                                                                                                                                                                                                                  |
 | [`CameraShake`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                                                                                                                                                  |
 | [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                                                                                                                                     |
-| [`CueAnchor`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor)(\*, when, reaches[, offset, shot])       | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.                                                                                                                                                                                          |
+| [`CueAnchor`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueAnchor)(\*, when[, reaches, event, nth, ...])    | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column, or when an item's hold event happens.                                                                                                                                                    |
 | [`CueUntil`](_autosummary/an.ir.schema.html.md#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                                                                                                                                                  |
 | [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                                                                                                                                           |
 | [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                                                                                                                                             |
@@ -23281,29 +23352,52 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
 
-### *class* an.ir.schema.CueAnchor(, when, reaches, offset=0.0, shot=None, \*\*extra_data)
+### *class* an.ir.schema.CueAnchor(, when, reaches=None, event=None, nth=1, offset=0.0, shot=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
-A sound cue’s time, taken from the picture (an#317): when a node reaches a frame row or column.
+A sound cue’s time, taken from the picture (an#317): when a node reaches
+a frame row or column, or when an item’s hold event happens.
 
-`when` is a node path in a stage shot (`crawl/line_7`: a text block’s
-unit, a prop, a plane); `reaches` is `{"y": px}` or `{"x": px}` in
-the frame’s pixels (0 at the top or left), crossed in either direction by
-the node’s on-screen centre — the camera, parallax and a crawl’s tilt
-included. Resolved when the film is laid out, never written back into the
-scene: a layout change moves the sound with the picture. `offset` is
+**A crossing:** `when` is a node path in a stage shot (`crawl/line_7`:
+a text block’s unit, a prop, a plane); `reaches` is `{"y": px}` or
+`{"x": px}` in the frame’s pixels (0 at the top or left), crossed in
+either direction by the node’s on-screen centre — the camera, parallax and
+a crawl’s tilt included.
+
+**A hold event:** `when` is an item (an entity a hold verb moves, or a
+body a `topple` moves) and `event` what happens to it, as the compiled
+shot’s hold report records it ([`an.stage.hold.HOLD_EVENTS`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_EVENTS)):
+`grasp` (a hand takes it), `place` (it arrives where it is put),
+`contact` (either), `release` (let go), `land` (it first touches the
+floor), `bounce`, `rest`; `nth` picks the n-th such event (1: the
+first). The swap’s clink is `{when: sabre, event: place}`; the drop’s
+thud `{when: musket, event: land}`.
+
+Resolved when the film is laid out, never written back into the scene: a
+layout or timing change moves the sound with the picture. `offset` is
 added after. `shot` names the shot to look in, for a cue in
 `meta.sounds` (default: the first shot that has the node).
 
 ```pycon
 >>> CueAnchor(when="crawl/line_7", reaches={"y": 840}).axis
 ('y', 840.0)
+>>> CueAnchor(when="musket", event="land").describe()
+'musket land'
+>>> CueAnchor(when="musket", event="land").model_dump()
+{'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}
 ```
 
 #### *property* axis *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
-`(axis, pixels)`.
+`(axis, pixels)` of a crossing.
+
+#### describe()
+
+The anchor in words, for a finding: `crawl/line_7 reached y=840`, `musket land`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
@@ -24790,6 +24884,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`SCREEN_DIRECTION_TOLERANCE_PX`](_autosummary/an.ir.validate.html.md#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX) | Two entities closer than this on screen have no left/right order to flip.                                                                                                                                                                                                                                                                                    |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](_autosummary/an.ir.validate.html.md#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S)  | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](_autosummary/an.ir.validate.html.md#an.ir.validate.POST_SYNTHESIS_CHECKS)         | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](_autosummary/an.ir.validate.html.md#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
+| [`LATE_HIT_S`](_autosummary/an.ir.validate.html.md#an.ir.validate.LATE_HIT_S)                    | A hit this far (s) into its file, cued by its first sample, sounds late enough to be seen (ITU-R BT.1359's 125 ms sound-behind window).                                                                                                                                                                                                                      |
 
 ### Functions
 
@@ -24851,6 +24946,11 @@ a frame at 60 fps.
 
 * **Type:**
   Slack before a line counts as running past its shot
+
+### an.ir.validate.LATE_HIT_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.125*
+
+A hit this far (s) into its file, cued by its first sample, sounds late
+enough to be seen (ITU-R BT.1359’s 125 ms sound-behind window).
 
 ### an.ir.validate.POST_SYNTHESIS_CHECKS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('dialogue_fits', 'dialogue_in_dissolve', 'cutout.hidden_mouth_while_speaking')*
 
@@ -36127,7 +36227,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions, closing_transition}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "stage" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.camera.follow', kind='field', version='1', name='shot.camera.follow', title='', description='a camera that follows an entity', usage="camera.follow (optional): {target: <entity id or node path>, axes: x|y|xy, lag: <seconds, optional: the camera trails the target with this time constant>} — the camera tracks the target, keeping it where it stood at the shot's start (a walk across a long set); planes parallax with it. Instead of a move or keys (hold is fine); a shake layers on top.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera.shake', kind='field', version='1', name='shot.camera.shake', title='', description='a jolt of the frame inside the shot', usage='camera.shake (optional): jolts of the frame layered on the move or keys — [{at: s, duration: 0.4, amplitude: 0.015, frequency: 24, decay: true, seed: 0}], amplitude a fraction of the frame height; for an impact, a slam, an explosion. The frame is at rest before \`at\` and after the end; shakes may not overlap or run past the shot.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, perspective, pivot_x, pivot_y, plane_fade_end, plane_fade_start, rotation, rotation_rad, rotation_x, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. On a text block, 'text' swaps a replacement set's string ('texts', unit 'block'; the value is a key) and 'value' is a counter block's number ('counter'; set or tween a number, lowered at compile to the strings the frames show). Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha / trim_end / perspective, '#ffffff' for tint, 0.0 for the rest. rotation_x / perspective / plane_fade_start / plane_fade_end tilt the node's plane away from the camera (radians, frame heights, plane px), and then pivot_y slides its content along the plane. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve" | "wipe", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. \\'wipe\\' overlaps the same way, but a hard edge sweeps across the frame in direction (\\'left\\', \\'right\\', \\'up\\' or \\'down\\': the way the edge travels). A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.closing_transition', kind='field', version='1', name='meta.closing_transition', title='', description='how the film ends', usage="meta.closing_transition (optional): how the film ENDS — {kind: 'fade', duration: seconds, color: '#rrggbb'}: the last shot's last duration fades to color (its final frame IS the color) and the sound fades with it; the film's length is unchanged. Omitted (or 'cut') = it ends on its last frame. A dissolve is refused.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -36256,8 +36356,18 @@ when the film is laid out:
   parallax and a crawl’s tilt ([`an.stage.timeline.screen_position()`](_autosummary/an.stage.timeline.html.md#an.stage.timeline.screen_position)),
   sampled at every film frame and interpolated between the two that straddle
   it; plus `offset`;
+- `at: {when: musket, event: land}` — the instant an item’s hold event
+  happens in the compiled shot (the hold report’s `events`: `grasp`,
+  `place`, `contact`, `release`, `land`, `bounce`, `rest`; and a
+  `topple`’s, [`an.stage.topple`](_autosummary/an.stage.topple.html.md#module-an.stage.topple)), `nth` picking the n-th; plus
+  `offset`. A swap’s clink lands on the frame the sabre reaches the socket,
+  wherever the timing of the reach moves it;
 - `until: {cue: scratch, offset: 0.12}` — the cue ends at that cue’s start
   plus `offset` (its `duration` is derived).
+
+A cue’s second is where its sound’s **sync point** goes (`sync` in its
+`sound.json`, [`an.sounds.set_sync()`](_autosummary/an.sounds.html.md#an.sounds.set_sync): a clip whose clink comes 0.78 s
+after a scrape is placed 0.78 s early), so an anchored hit sounds on its frame.
 
 It runs on the in-memory settled copy of the scene (as the measured shot
 lengths do, [`an.measurements`](_autosummary/an.measurements.html.md#module-an.measurements)): `scene.md` keeps the anchor, never the
@@ -36268,9 +36378,11 @@ draws) refuses before any browser launches.
 
 ### Functions
 
-| [`crossing_in_document`](_autosummary/an.sound_anchors.html.md#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)      | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document.   |
-|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| [`resolve_cue_anchors`](_autosummary/an.sound_anchors.html.md#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...) | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                     |
+| [`anchor_in_document`](_autosummary/an.sound_anchors.html.md#an.sound_anchors.anchor_in_document)(doc, anchor, \*, shot_id, ...)   | Shot-local seconds of `anchor` (an event, or a crossing), before its `offset`.                                   |
+|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| [`crossing_in_document`](_autosummary/an.sound_anchors.html.md#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)          | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document. |
+| [`event_in_document`](_autosummary/an.sound_anchors.html.md#an.sound_anchors.event_in_document)(doc, anchor, \*, shot_id, where)  | Shot-local seconds of `anchor`'s hold event (the `nth` `event` of item `when`) in a compiled stage document.     |
+| [`resolve_cue_anchors`](_autosummary/an.sound_anchors.html.md#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...)     | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                   |
 
 ### Exceptions
 
@@ -36283,9 +36395,24 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A cue’s anchor cannot be resolved: the message says which and why.
 
+### an.sound_anchors.anchor_in_document(doc, anchor, , shot_id, fps, duration, where)
+
+Shot-local seconds of `anchor` (an event, or a crossing), before its `offset`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.sound_anchors.crossing_in_document(doc, anchor, , shot_id, fps, duration, where)
 
 Shot-local seconds at which `anchor.when`’s centre first reaches `anchor.reaches`, in a compiled stage document.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.sound_anchors.event_in_document(doc, anchor, , shot_id, where)
+
+Shot-local seconds of `anchor`’s hold event (the `nth` `event` of
+item `when`) in a compiled stage document.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
@@ -36619,6 +36746,8 @@ numpy, seeded, so the same call writes the same bytes.
 | [`add_sound`](_autosummary/an.sounds.html.md#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.                                                                                                                                                                |
 |-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`get_sound`](_autosummary/an.sounds.html.md#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.                                                                                                                                                               |
+| [`measure_sync`](_autosummary/an.sounds.html.md#an.sounds.measure_sync)(data)                                 | Seconds from the start of WAV `data` to its hit: the first `SYNC_WINDOW_S` window within `SYNC_PEAK_DB` dB of the loudest one.                                                                                                      |
+| [`set_sync`](_autosummary/an.sounds.html.md#an.sounds.set_sync)(store, key[, seconds])                    | Record `key`'s sync point: `"auto"` measures it ([`measure_sync()`](_autosummary/an.sounds.html.md#an.sounds.measure_sync)), a number states it, `None` clears it (its first sample is the event again).                                      |
 | [`synth_bed`](_autosummary/an.sounds.html.md#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end.                                                                                                                                                            |
 | [`synth_hit`](_autosummary/an.sounds.html.md#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.                                                                                                                                                             |
 | [`synth_tone`](_autosummary/an.sounds.html.md#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.                                                                                                                                                                  |
@@ -36642,7 +36771,7 @@ The provenance of everything [`synth_tone()`](_autosummary/an.sounds.html.md#an.
 [`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
 numbers, so no third party’s work is in it.
 
-### *class* an.sounds.SoundAsset(, source, sha256, sample_rate, channels, duration, description='', \*\*extra_data)
+### *class* an.sounds.SoundAsset(, source, sha256, sample_rate, channels, duration, description='', sync=None, \*\*extra_data)
 
 Bases: `BaseModel`
 
@@ -36660,6 +36789,13 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### sha256 *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Digest of `audio.wav` as it entered the project; checked on every read.
+
+#### sync *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Seconds from the first sample to the instant the sound IS its event (a
+hit’s transient, the clink after a scrape): a cue’s `at` puts THIS
+instant there (an#317 follow-up; [`measure_sync()`](_autosummary/an.sounds.html.md#an.sounds.measure_sync), [`set_sync()`](_autosummary/an.sounds.html.md#an.sounds.set_sync)).
+`None`: its first sample is the event, as before.
 
 ### *exception* an.sounds.SoundError
 
@@ -36689,6 +36825,34 @@ bytes under the same key are an asset nobody recorded.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
+### an.sounds.measure_sync(data)
+
+Seconds from the start of WAV `data` to its hit: the first
+`SYNC_WINDOW_S` window within `SYNC_PEAK_DB` dB of the loudest
+one. A clip with silence or a lead-in before its transient is late by this
+much when it is cued by its first sample.
+
+```pycon
+>>> import numpy as np
+>>> lead = np.zeros(int(0.3 * 44100))
+>>> hit, _ = wav_samples(synth_hit(0.2))
+>>> round(measure_sync(_wav_bytes(np.concatenate([lead, hit]), sample_rate=44100)), 2)
+0.3
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.sounds.set_sync(store, key, seconds='auto')
+
+Record `key`’s sync point: `"auto"` measures it
+([`measure_sync()`](_autosummary/an.sounds.html.md#an.sounds.measure_sync)), a number states it, `None` clears it (its first
+sample is the event again). Only `sound.json` changes: the bytes, and the
+licence recorded against them, stay as they were.
+
+* **Return type:**
+  [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)
 
 ### an.sounds.synth_bed(duration, , chord=(220.0, 277.18, 329.63), pulse_hz=2.0, sample_rate=44100, amplitude=0.3)
 
@@ -36787,6 +36951,7 @@ CLI by `an.tools._dispatch_namespaces`.
 
 | [`add`](_autosummary/an.sounds_cli.html.md#an.sounds_cli.add)(project_dir, key, url[, license, start, ...])   | Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:<sound_id>), with its provenance.   |
 |------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`sync`](_autosummary/an.sounds_cli.html.md#an.sounds_cli.sync)(project_dir, key[, at])                        | Record where a sound's hit is, so a cue puts the hit (not the file's first sample) at its `at`.                                         |
 
 ### an.sounds_cli.add(project_dir, key, url, license='', start=0.0, duration=0.0, fade_out=0.0, provider='', author='', description='')
 
@@ -36809,6 +36974,21 @@ fade_out: seconds of fade at the end of the cut
 provider: override the provider the page reports (default: youtube, or the host)
 author: override the author the page reports (default: its channel)
 description: what the sound is, for the store
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.sounds_cli.sync(project_dir, key, at='auto')
+
+Record where a sound’s hit is, so a cue puts the hit (not the file’s first sample) at its `at`.
+
+A clip whose clink comes after a scrape, or after silence, is heard late by
+that lead-in when it is cued by its first sample; `an validate` warns when
+a cued hit is 125 ms or more into its file. Only sound.json changes.
+
+project_dir: the an project
+key: the sound’s key in the project’s sounds store
+at: seconds into the file, “auto” to measure it (the first 10 ms within 6 dB of the loudest), or “none” to clear it
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -37597,7 +37777,7 @@ The field kinds `runtime.js` implements (its `FIELD_KINDS` table; a test
 pins the two). A declared space using any other kind cannot be drawn by the
 stage, so the compiler refuses it instead of the browser failing mid-render.
 
-### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='solve', run=<function \_solve_pass>, order=525, compiler='stage', builds=None, description='joints kept at every frame: the bodies the joints move (ADR 0008, an#512)', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera_dolly', run=<function \_camera_dolly_pass>, order=575, compiler='stage', builds=None, description="a dollying camera's keys, one per frame (an#478)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='boil', run=<function \_boil_pass>, order=750, compiler='stage', builds=None, description="a boiling path's drawings (an#443)", replace=False), CompilePass(name='paint_keys', run=<function \_paint_keys_pass>, order=800, compiler='stage', builds=None, description="a world's changing paint order, as z_index keys (an#634)", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
+### an.stage.compile.STAGE_COMPILE_PASSES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[CompilePass](_autosummary/an.genres.registry.html.md#an.genres.registry.CompilePass), ...]* *= (CompilePass(name='scene', run=<function \_scene_pass>, order=100, compiler='stage', builds=None, description='the scene tree, overlay, grain, vocabulary', replace=False), CompilePass(name='counters', run=<function \_counters_pass>, order=195, compiler='stage', builds=None, description='counter text blocks: \`value\` -> a set of strings (an#342)', replace=False), CompilePass(name='actions', run=<function \_actions_pass>, order=200, compiler='stage', builds=None, description='authored actions -> clips', replace=False), CompilePass(name='solve', run=<function \_solve_pass>, order=525, compiler='stage', builds=None, description='joints kept at every frame: the bodies the joints move (ADR 0008, an#512)', replace=False), CompilePass(name='topple', run=<function \_topple_pass>, order=535, compiler='stage', builds=None, description='rigid bodies falling over about their foot, one knocking the next (an.ir.topple)', replace=False), CompilePass(name='camera_follow', run=<function \_camera_follow_pass>, order=550, compiler='stage', builds=None, description="a following camera's keys, from the compiled motion (an#445)", replace=False), CompilePass(name='camera_dolly', run=<function \_camera_dolly_pass>, order=575, compiler='stage', builds=None, description="a dollying camera's keys, one per frame (an#478)", replace=False), CompilePass(name='camera', run=<function \_camera_pass>, order=600, compiler='stage', builds=None, description='the camera onto the scene root', replace=False), CompilePass(name='parallax', run=<function \_parallax_pass>, order=700, compiler='stage', builds=None, description="planes' parallax", replace=False), CompilePass(name='boil', run=<function \_boil_pass>, order=750, compiler='stage', builds=None, description="a boiling path's drawings (an#443)", replace=False), CompilePass(name='paint_keys', run=<function \_paint_keys_pass>, order=800, compiler='stage', builds=None, description="a world's changing paint order, as z_index keys (an#634)", replace=False), CompilePass(name='checks', run=<function \_checks_pass>, order=900, compiler='stage', builds=None, description='targets, easings, stand-ins', replace=False))*
 
 The STAGE’s own compile passes, in order. A genre adds passes between them by
 registering [`an.genres.CompilePass`](_autosummary/an.genres.html.md#an.genres.CompilePass) objects for the `"stage"`
@@ -38857,10 +39037,15 @@ that the hand first goes where the item is:
   aligned with a socket’s frame or lying on the ground at its rest angle, its
   lowest INK point at floor height (the texture’s alpha, not its box, so a
   carved part with a transparent margin does not float).
-- **Release.** A parabola under gravity (the shot’s or the style pack’s, else
-  [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)) from the velocity the hand gave it, turning to its
-  > rest angle on the way down, landing on the ground exactly; `onto:
-  > ground@x` solves the throw that lands there on an arc `arc` px high.
+- **Release.** A rigid fall under gravity (the shot’s or the style pack’s,
+  else [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY); [`an.stage.rigid.drop_track()`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.drop_track)): a
+  parabola from where it was let go (never rising, unless tossed: `arc` >
+  0), spinning at a constant rate, one end touching the floor first, a tip
+  onto its side about that end, a small bounce (`bounce`), at rest on the
+  side it fell nearest to (or at `rotation`); `onto: ground@x` solves the
+  horizontal speed that lands it there. Let go already touching the floor (a
+  long item carried low), it falls over that end where it is, and the report
+  warns. The report records when it lands and rests (`events`).
 
 **Draw order.** While a body holds an item, the item is PAINTED just after
 its holder’s part (an#537): a `paint_after` channel on the item’s entity node
@@ -38892,19 +39077,21 @@ False
 
 ### Module Attributes
 
-| [`HOLD_VERSION`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                   |
-|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`HOLDS_REPORT`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                      |
-| [`ON_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                 |
-| [`AIM_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it). |
-| [`GRASP_TOLERANCE_PX`](_autosummary/an.stage.hold.html.md#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                    |
-| [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                     |
-| [`HOLD_PLAN_PASSES`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                           |
+| [`HOLD_VERSION`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                                                                                                                                                                |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HOLDS_REPORT`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                                                                                                                                                                   |
+| [`ON_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                                                                                                                                                              |
+| [`AIM_OVERRIDE`](_autosummary/an.stage.hold.html.md#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it).                                                                                                                                              |
+| [`GRASP_TOLERANCE_PX`](_autosummary/an.stage.hold.html.md#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                                                                                                                                                                 |
+| [`DFLT_FALL_GRAVITY`](_autosummary/an.stage.hold.html.md#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                                                                                                                                                                  |
+| [`HOLD_PLAN_PASSES`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                                                                                                                                                                        |
+| [`HOLD_EVENTS`](_autosummary/an.stage.hold.html.md#an.stage.hold.HOLD_EVENTS)        | a hand takes the item (`grasp`, a swap's take included), the item arrives where it is put (`place`, a swap's give included), it is let go (`release`), it first touches the floor (`land`), each bounce lands (`bounce`), it stops moving (`rest`); `contact` is any of `grasp` and `place`. |
 
 ### Functions
 
-| [`declares_holds`](_autosummary/an.stage.hold.html.md#an.stage.hold.declares_holds)(shot)                       | Whether `shot` has a hold verb or an item `held_by` something.                                                                                                                                                                                                                                   |
+| [`hold_events`](_autosummary/an.stage.hold.html.md#an.stage.hold.hold_events)(gestures, falls)               | The hold report's `events`: `[{event, item, at, by|onto}]` in time order, from the gestures' contacts and the falls (seconds, shot-local).                                                                                                                                                       |
 |---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`declares_holds`](_autosummary/an.stage.hold.html.md#an.stage.hold.declares_holds)(shot)                       | Whether `shot` has a hold verb or an item `held_by` something.                                                                                                                                                                                                                                   |
 | [`hold_declarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.hold_declarations)(shot, \*[, play_extent]) | The hold verbs of `shot` flattened to shot time, its `held_by` overrides, the holder points they name and who moves a hand.                                                                                                                                                                      |
 | [`solve_holds`](_autosummary/an.stage.hold.html.md#an.stage.hold.solve_holds)(state, doc, puppet, decl, ...) | Plan and solve a shot's holds: the final run, the items' channels `{(path, prop): (values, as the document shows them)}`, the keys of each held item's `paint_after` channel ([`paint_hosts()`](_autosummary/an.stage.hold.html.md#an.stage.hold.paint_hosts)), and the report.                                   |
 | [`ink_box`](_autosummary/an.stage.hold.html.md#an.stage.hold.ink_box)(doc, node, mall)                   | The box round a node's ink ([`ink_points()`](_autosummary/an.stage.hold.html.md#an.stage.hold.ink_points)), in its own frame.                                                                                                                                                                                    |
@@ -38944,12 +39131,23 @@ A reach that ends farther than this from its goal did not arrive (scene px).
 
 The key of the hold report inside `meta.extensions.solve`.
 
+### an.stage.hold.HOLD_EVENTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('grasp', 'place', 'release', 'land', 'bounce', 'rest')*
+
+a hand
+takes the item (`grasp`, a swap’s take included), the item arrives where
+it is put (`place`, a swap’s give included), it is let go (`release`),
+it first touches the floor (`land`), each bounce lands (`bounce`), it
+stops moving (`rest`); `contact` is any of `grasp` and `place`.
+
+* **Type:**
+  The visible events of a hold, as a sound cue or a check names them
+
 ### an.stage.hold.HOLD_PLAN_PASSES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 How many times the gestures are planned (each from the solve the previous
 plan made).
 
-### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
 
 bump it
 when the same declarations can compile to other keys.
@@ -39020,6 +39218,19 @@ the holder points they name and who moves a hand.
 
 * **Return type:**
   [`HoldDeclarations`](_autosummary/an.stage.hold.html.md#an.stage.hold.HoldDeclarations)
+
+### an.stage.hold.hold_events(gestures, falls)
+
+The hold report’s `events`: `[{event, item, at, by|onto}]` in time
+order, from the gestures’ contacts and the falls (seconds, shot-local).
+
+```pycon
+>>> hold_events([], [{"item": "cup", "at": 1.0, "lands": 1.3, "rests": 1.5, "bounces": [1.45]}])
+[{'event': 'release', 'item': 'cup', 'at': 1.0}, {'event': 'land', 'item': 'cup', 'at': 1.3}, {'event': 'bounce', 'item': 'cup', 'at': 1.45}, {'event': 'rest', 'item': 'cup', 'at': 1.5}]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.stage.hold.ink_box(doc, node, mall)
 
@@ -39151,38 +39362,40 @@ is not.
 
 ### Modules
 
-| [`cache_key`](_autosummary/an.stage.cache_key.html.md#module-an.stage.cache_key)           | What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).                                                           |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| [`canvas_capture`](_autosummary/an.stage.canvas_capture.html.md#module-an.stage.canvas_capture) | The canvas capture path: frames read from the page, not photographed off the screen.                                                        |
-| [`compile`](_autosummary/an.stage.compile.html.md#module-an.stage.compile)               | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                    |
-| [`counters`](_autosummary/an.stage.counters.html.md#module-an.stage.counters)             | A counter, lowered at compile: a number that reads as text (an#342, T2 of an#331).                                                          |
-| [`easing`](_autosummary/an.stage.easing.html.md#module-an.stage.easing)                 | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing). |
-| [`environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments)     | Environments: a stage made of planes, at declared depths.                                                                                   |
-| [`fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                       |
-| [`gradients`](_autosummary/an.stage.gradients.html.md#module-an.stage.gradients)           | Gradient fills on the stage: a [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) drawn as an inline SVG texture.  |
-| [`hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)                     | The hold layer: what carries each item, frame by frame, and the hands that move it (an#502, catalogue A4).                                  |
-| [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                  |
-| [`path_wobble`](_autosummary/an.stage.path_wobble.html.md#module-an.stage.path_wobble)       | A hand-drawn wobble for stroked paths, applied at compile time (an#161).                                                                    |
-| [`paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths)                   | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                                                                     |
-| [`preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview)               | Live preview server: render a project's current scene in a browser, reloading on edit.                                                      |
-| [`prop_validate`](_autosummary/an.stage.prop_validate.html.md#module-an.stage.prop_validate)   | Check a prop's asset folder offline, and say what a prop must be (an#340).                                                                  |
-| [`props`](_autosummary/an.stage.props.html.md#module-an.stage.props)                   | Props: a rig whose art is not a person.                                                                                                     |
-| [`raster`](_autosummary/an.stage.raster.html.md#module-an.stage.raster)                 | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                                                                     |
-| [`render`](_autosummary/an.stage.render.html.md#module-an.stage.render)                 | The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.                                              |
-| [`rig`](_autosummary/an.stage.rig.html.md#module-an.stage.rig)                       | The rig model the stage draws: bones, slots, skins and attachments.                                                                         |
-| [`runtime`](_autosummary/an.stage.runtime.html.md#module-an.stage.runtime)               | Cutout JS runtime — see README.md in this directory.                                                                                        |
-| [`runtime_files`](_autosummary/an.stage.runtime_files.html.md#module-an.stage.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                 |
-| [`serialize`](_autosummary/an.stage.serialize.html.md#module-an.stage.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                      |
-| [`snapshot`](_autosummary/an.stage.snapshot.html.md#module-an.stage.snapshot)             | Rasterise art files to PNG in the browser the stage already uses (an#347).                                                                  |
-| [`solve`](_autosummary/an.stage.solve.html.md#module-an.stage.solve)                   | The `solve` compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).                                                         |
-| [`support`](_autosummary/an.stage.support.html.md#module-an.stage.support)               | Supports: what a body rests on, and how far it is from resting there (an#519, catalogue A1).                                                |
-| [`surface`](_autosummary/an.stage.surface.html.md#module-an.stage.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                        |
-| [`surface_line`](_autosummary/an.stage.surface_line.html.md#module-an.stage.surface_line)     | Surface lines: what a thing stands on, as a line on the stage (an#519).                                                                     |
-| [`text`](_autosummary/an.stage.text.html.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                |
-| [`text_layout`](_autosummary/an.stage.text_layout.html.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                     |
-| [`timeline`](_autosummary/an.stage.timeline.html.md#module-an.stage.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                               |
-| [`tree`](_autosummary/an.stage.tree.html.md#module-an.stage.tree)                     | The scene tree's paths: the ONE Python statement of how `runtime.js` indexes nodes (an#343).                                                |
-| [`world`](_autosummary/an.stage.world.html.md#module-an.stage.world)                   | The stage's side of the scene world (ADR 0009): measuring a member's extent, and lowering a whole scene for the compiler.                   |
+| [`cache_key`](_autosummary/an.stage.cache_key.html.md#module-an.stage.cache_key)           | What a cut-out shot render reads: the keyer behind its shot-cache key (ADR 0004).                                                                         |
+|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`canvas_capture`](_autosummary/an.stage.canvas_capture.html.md#module-an.stage.canvas_capture) | The canvas capture path: frames read from the page, not photographed off the screen.                                                                      |
+| [`compile`](_autosummary/an.stage.compile.html.md#module-an.stage.compile)               | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                                  |
+| [`counters`](_autosummary/an.stage.counters.html.md#module-an.stage.counters)             | A counter, lowered at compile: a number that reads as text (an#342, T2 of an#331).                                                                        |
+| [`easing`](_autosummary/an.stage.easing.html.md#module-an.stage.easing)                 | The stage engine's easing vocabulary — a view of [`an.timing.easing`](_autosummary/an.timing.easing.html.md#module-an.timing.easing).               |
+| [`environments`](_autosummary/an.stage.environments.html.md#module-an.stage.environments)     | Environments: a stage made of planes, at declared depths.                                                                                                 |
+| [`fidelity`](_autosummary/an.stage.fidelity.html.md#module-an.stage.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                                     |
+| [`gradients`](_autosummary/an.stage.gradients.html.md#module-an.stage.gradients)           | Gradient fills on the stage: a [`Gradient`](_autosummary/an.paint.html.md#an.paint.Gradient) drawn as an inline SVG texture.                |
+| [`hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)                     | The hold layer: what carries each item, frame by frame, and the hands that move it (an#502, catalogue A4).                                                |
+| [`path_geometry`](_autosummary/an.stage.path_geometry.html.md#module-an.stage.path_geometry)   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                                |
+| [`path_wobble`](_autosummary/an.stage.path_wobble.html.md#module-an.stage.path_wobble)       | A hand-drawn wobble for stroked paths, applied at compile time (an#161).                                                                                  |
+| [`paths`](_autosummary/an.stage.paths.html.md#module-an.stage.paths)                   | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                                                                                   |
+| [`preview`](_autosummary/an.stage.preview.html.md#module-an.stage.preview)               | Live preview server: render a project's current scene in a browser, reloading on edit.                                                                    |
+| [`prop_validate`](_autosummary/an.stage.prop_validate.html.md#module-an.stage.prop_validate)   | Check a prop's asset folder offline, and say what a prop must be (an#340).                                                                                |
+| [`props`](_autosummary/an.stage.props.html.md#module-an.stage.props)                   | Props: a rig whose art is not a person.                                                                                                                   |
+| [`raster`](_autosummary/an.stage.raster.html.md#module-an.stage.raster)                 | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                                                                                   |
+| [`render`](_autosummary/an.stage.render.html.md#module-an.stage.render)                 | The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.                                                            |
+| [`rig`](_autosummary/an.stage.rig.html.md#module-an.stage.rig)                       | The rig model the stage draws: bones, slots, skins and attachments.                                                                                       |
+| [`rigid`](_autosummary/an.stage.rigid.html.md#module-an.stage.rigid)                   | Rigid falls in the stage plane: a let-go item's flight, landing, tip and bounce; a body toppling about a contact.                                         |
+| [`runtime`](_autosummary/an.stage.runtime.html.md#module-an.stage.runtime)               | Cutout JS runtime — see README.md in this directory.                                                                                                      |
+| [`runtime_files`](_autosummary/an.stage.runtime_files.html.md#module-an.stage.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                               |
+| [`serialize`](_autosummary/an.stage.serialize.html.md#module-an.stage.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                                    |
+| [`snapshot`](_autosummary/an.stage.snapshot.html.md#module-an.stage.snapshot)             | Rasterise art files to PNG in the browser the stage already uses (an#347).                                                                                |
+| [`solve`](_autosummary/an.stage.solve.html.md#module-an.stage.solve)                   | The `solve` compile pass: joints kept at every frame (ADR 0008 decision 6, an#512).                                                                       |
+| [`support`](_autosummary/an.stage.support.html.md#module-an.stage.support)               | Supports: what a body rests on, and how far it is from resting there (an#519, catalogue A1).                                                              |
+| [`surface`](_autosummary/an.stage.surface.html.md#module-an.stage.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                                      |
+| [`surface_line`](_autosummary/an.stage.surface_line.html.md#module-an.stage.surface_line)     | Surface lines: what a thing stands on, as a line on the stage (an#519).                                                                                   |
+| [`text`](_autosummary/an.stage.text.html.md#module-an.stage.text)                     | Words on screen: title cards, labels, and text you can animate word by word.                                                                              |
+| [`text_layout`](_autosummary/an.stage.text_layout.html.md#module-an.stage.text_layout)       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                                   |
+| [`timeline`](_autosummary/an.stage.timeline.html.md#module-an.stage.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                                             |
+| [`topple`](_autosummary/an.stage.topple.html.md#module-an.stage.topple)                 | The `topple` compile pass: rigid bodies falling over, one knocking the next ([`an.ir.topple`](_autosummary/an.ir.html.md#an.ir.topple)). |
+| [`tree`](_autosummary/an.stage.tree.html.md#module-an.stage.tree)                     | The scene tree's paths: the ONE Python statement of how `runtime.js` indexes nodes (an#343).                                                              |
+| [`world`](_autosummary/an.stage.world.html.md#module-an.stage.world)                   | The stage's side of the scene world (ADR 0009): measuring a member's extent, and lowering a whole scene for the compiler.                                 |
 
 
 # _autosummary/an.stage.path_geometry.html.md
@@ -41901,6 +42114,187 @@ node the builder made.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+
+# _autosummary/an.stage.rigid.html.md
+
+# an.stage.rigid
+
+Rigid falls in the stage plane: a let-go item’s flight, landing, tip and bounce; a body toppling about a contact.
+
+Two motions, both of a rigid drawing under gravity (stage px, `y` down, an
+angle turning `+x` toward `+y`, clockwise on screen), shared by the hold
+layer’s `release` ([`an.stage.hold`](_autosummary/an.stage.hold.html.md#module-an.stage.hold)) and the `topple` pass
+([`an.stage.topple`](_autosummary/an.stage.topple.html.md#module-an.stage.topple)):
+
+- **A drop** ([`drop_track()`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.drop_track)): the item’s centre flies a parabola from
+  where it was let go, spinning at a CONSTANT rate (a body in the air has no
+  torque on it), until its lowest point touches the floor slightly short of
+  its rest angle; it then **tips** about that point onto its resting side
+  (rotation about a fixed contact under gravity, the impact’s angular momentum
+  carried over), **bounces** a little (`bounce`, a coefficient of
+  restitution) and comes to rest. A flat landing bounces straight up instead.
+  Nothing eases into its rest pose: the old release’s smooth-step rotation was
+  what made a dropped musket read as floating.
+- **A pivot fall** ([`pivot_fall()`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.pivot_fall)): a body turning about a fixed contact
+  point under gravity from an angular velocity, until a `stop` function of
+  its turn says it hit something (the floor, another body, a target).
+
+Pure functions over points; no stage types. The item is a cloud of points
+(its ink) about its centre of mass, at a reference pose; a pose is
+`(cx, cy, turn)` with `turn` the rotation from that reference.
+
+```pycon
+>>> rod = [(-50.0, 0.0), (50.0, 0.0)]
+>>> round(inertia(rod), 1)    # a uniform rod of length 100: L**2 / 12
+833.3
+```
+
+### Module Attributes
+
+| [`DFLT_BOUNCE`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DFLT_BOUNCE)   | the share of its speed it keeps when it bounces (a clatter, not a rubber ball).   |
+|----------------------------------------------------------------|-----------------------------------------------------------------------------------|
+
+### Functions
+
+| [`stable_angles`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.stable_angles)(points)                         | The angles a rigid drawing can lie at on a floor: each side of its ink's convex hull turned to be the bottom, where its centre (the origin of `points`) stands over that side with at least `LIE_MIN` to tip before it falls off.                                                                    |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`drop_track`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.drop_track)(points, \*\*kw)                    | The motion of a rigid item let go (`_drop_once()` has the parameters); a toss `toss_x` is aimed so that the item comes to REST, after the tip onto its side, centred on that `x`.                                                                                                                    |
+| [`inertia`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.inertia)(points)                               | Moment of inertia per unit mass about the centre (px²), from ink points on the drawing's outline: a third of their mean squared distance (a uniform rod's `L²/12`, a square's `a²/6`).                                                                                                               |
+| [`pivot_fall`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.pivot_fall)(centre, pivot, \*, gravity[, ...]) | A body whose centre is at `centre` turning about `pivot` under `gravity` (px/s², down), from angular velocity `omega` (rad/s, clockwise positive), until `stop(turn)` changes sign from positive (the gap to whatever it hits; the crossing is found to a fraction of a step) or `cap` seconds pass. |
+
+### Classes
+
+| [`DropTrack`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DropTrack)(touch, rest, bounces, angle, ...)   | A let-go item's motion from the instant it is let go (`t = 0`): `pose()` gives `(cx, cy, angle, scale_x, scale_y)` at any `t`.                                                                                 |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PivotFall`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.PivotFall)(pivot, centre0, times, turns, ...)  | A body turning about a fixed `pivot`: `turn(t)` and `centre(t)` for `t` from 0 to `duration`; `omega_end` is its angular velocity when it stopped, `stopped` whether `stop` said so (else the cap or the end). |
+
+### an.stage.rigid.DFLT_BOUNCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
+
+the share of its
+speed it keeps when it bounces (a clatter, not a rubber ball).
+
+* **Type:**
+  Coefficient of restitution of a let-go item on the floor
+
+### *class* an.stage.rigid.DropTrack(touch, rest, bounces, angle, floor, \_phases, \_scale)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A let-go item’s motion from the instant it is let go (`t = 0`):
+[`pose()`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DropTrack.pose) gives `(cx, cy, angle, scale_x, scale_y)` at any `t`.
+
+`touch` is when it first touches the floor, `rest` when it stops
+moving, `bounces` when each bounce lands (all seconds from the let-go);
+`floor` the line it comes to rest on.
+
+#### angle *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The angle it comes to rest at.
+
+#### floor *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+`ground`, or the line its lowest point was
+already on (below `ground`) when it was let go touching the floor.
+
+* **Type:**
+  The floor line it lies on
+
+#### pose(t)
+
+`(cx, cy, angle, scale_x, scale_y)` `t` s after the let-go.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### *class* an.stage.rigid.PivotFall(pivot, centre0, times, turns, duration, omega_end, stopped)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A body turning about a fixed `pivot`: `turn(t)` and `centre(t)`
+for `t` from 0 to `duration`; `omega_end` is its angular velocity when
+it stopped, `stopped` whether `stop` said so (else the cap or the end).
+
+#### centre(t)
+
+Where the centre is `t` s into the fall.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+#### turn(t)
+
+The turn `t` s into the fall (linear between steps).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.stage.rigid.drop_track(points, \*\*kw)
+
+The motion of a rigid item let go (`_drop_once()` has the
+parameters); a toss `toss_x` is aimed so that the item comes to REST,
+after the tip onto its side, centred on that `x`.
+
+```pycon
+>>> rod = [(-50.0, 0.0), (50.0, 0.0), (-50.0, 4.0), (50.0, 4.0)]
+>>> tr = drop_track(rod, centre=(0.0, 0.0), velocity=(0.0, 0.0), angle=0.6,
+...                 rest_angle=0.0, ground=200.0, gravity=980.0, toss_x=120.0, arc=30.0)
+>>> round(tr.pose(tr.rest)[0], 3)
+120.0
+```
+
+* **Return type:**
+  [`DropTrack`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DropTrack)
+
+### an.stage.rigid.inertia(points)
+
+Moment of inertia per unit mass about the centre (px²), from ink points
+on the drawing’s outline: a third of their mean squared distance (a uniform
+rod’s `L²/12`, a square’s `a²/6`).
+
+```pycon
+>>> round(inertia([(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)]), 3)  # a 2x2 square
+0.667
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.stage.rigid.pivot_fall(centre, pivot, , gravity, omega=0.0, inertia_cm=1.0, stop=None, cap=4.0)
+
+A body whose centre is at `centre` turning about `pivot` under
+`gravity` (px/s², down), from angular velocity `omega` (rad/s,
+clockwise positive), until `stop(turn)` changes sign from positive (the
+gap to whatever it hits; the crossing is found to a fraction of a step) or
+`cap` seconds pass.
+
+The equation is the rigid pendulum’s, inverted: `I_p θ'' = g r_x` with
+`r` from the pivot to the centre and `I_p = I_cm + |r|²`.
+
+```pycon
+>>> f = pivot_fall((0.0, -100.0), (0.0, 0.0), gravity=980.0, omega=0.5,
+...                inertia_cm=833.3, stop=lambda a: math.pi / 2 - a)
+>>> f.stopped, round(f.turn(f.duration), 3), 0.8 < f.duration < 1.2
+(True, 1.571, True)
+```
+
+* **Return type:**
+  [`PivotFall`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.PivotFall)
+
+### an.stage.rigid.stable_angles(points)
+
+The angles a rigid drawing can lie at on a floor: each side of its ink’s
+convex hull turned to be the bottom, where its centre (the origin of
+`points`) stands over that side with at least `LIE_MIN` to tip
+before it falls off. Radians in `(-pi, pi]`.
+
+```pycon
+>>> sorted(round(a, 3) for a in stable_angles([(-50.0, -2.0), (50.0, -2.0), (50.0, 2.0), (-50.0, 2.0)]))
+[0.0, 3.142]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 
 # _autosummary/an.stage.runtime.html.md
@@ -44775,6 +45169,78 @@ itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.stage.topple.html.md
+
+# an.stage.topple
+
+The `topple` compile pass: rigid bodies falling over, one knocking the next ([`an.ir.topple`](_autosummary/an.ir.html.md#an.ir.topple)).
+
+Runs after the `solve` pass (order [`TOPPLE_ORDER`](_autosummary/an.stage.topple.html.md#an.stage.topple.TOPPLE_ORDER)), on the document as
+the solve and the hold layer left it, so a figurine falls with the sabre its
+hand holds. For each `topple` action, in the order they start:
+
+1. **The body** is the entity’s drawn ink at the instant it starts (every
+   drawn node under it, plus every item a part of it holds then, per the hold
+   report), as points on the stage. Its centre of mass is the centroid of
+   their convex hull; its moment of inertia comes from the hull
+   ([`an.stage.rigid.inertia()`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.inertia)).
+2. **The pivot** is its lowest point on the side it falls `toward`.
+3. **The fall** is [`an.stage.rigid.pivot_fall()`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.pivot_fall) from `push` (or, when
+   `after` names the topple that knocks it, from that body’s speed where it
+   first touches this one), until another point of it reaches the floor (then
+   a small bounce, [`an.stage.rigid.DFLT_BOUNCE`](_autosummary/an.stage.rigid.html.md#an.stage.rigid.DFLT_BOUNCE)) or `point` reaches
+   `until` (it stays there: nothing is cheated, so a target off the circle
+   `point` sweeps is a [`ToppleError`](_autosummary/an.stage.topple.html.md#an.stage.topple.ToppleError) saying how far to move the body).
+4. **The keys**: every frame from its start, the body’s entity node and the
+   items it holds are turned about the pivot by the fall’s angle, written as a
+   `__topple__<entity>` clip after the solve’s (the last clip of a track
+   wins its channels).
+
+The report, `meta.extensions.topple`, lists each topple and its `events`
+(`topple`, `hit`, `land`, `pin`, `bounce`, `rest`), which a sound
+cue can be timed by (`at: {when: cam, event: land}`, [`an.sound_anchors`](_autosummary/an.sound_anchors.html.md#module-an.sound_anchors)).
+
+### Module Attributes
+
+| [`TOPPLE_ORDER`](_autosummary/an.stage.topple.html.md#an.stage.topple.TOPPLE_ORDER)     | after `solve` (525), before the camera follows (550).               |
+|-------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`TOPPLE_EXTENSION`](_autosummary/an.stage.topple.html.md#an.stage.topple.TOPPLE_EXTENSION) | The key of the report in the compiled document's `meta.extensions`. |
+
+### Functions
+
+| [`topple_pass`](_autosummary/an.stage.topple.html.md#an.stage.topple.topple_pass)(state)   | The `topple` compile pass (order [`TOPPLE_ORDER`](_autosummary/an.stage.topple.html.md#an.stage.topple.TOPPLE_ORDER)); a no-op for a shot with no `topple`.   |
+|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`ToppleError`](_autosummary/an.stage.topple.html.md#an.stage.topple.ToppleError)   | A topple that cannot happen as written: the message says why and what to change.   |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------|
+
+### an.stage.topple.TOPPLE_EXTENSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'topple'*
+
+The key of the report in the compiled document’s `meta.extensions`.
+
+### an.stage.topple.TOPPLE_ORDER *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 535*
+
+after `solve` (525), before the camera follows (550).
+
+* **Type:**
+  Where the pass runs
+
+### *exception* an.stage.topple.ToppleError
+
+Bases: [`CutoutCompileError`](_autosummary/an.stage.compile.html.md#an.stage.compile.CutoutCompileError)
+
+A topple that cannot happen as written: the message says why and what to change.
+
+### an.stage.topple.topple_pass(state)
+
+The `topple` compile pass (order [`TOPPLE_ORDER`](_autosummary/an.stage.topple.html.md#an.stage.topple.TOPPLE_ORDER)); a no-op for a shot with no `topple`.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.stage.tree.html.md
@@ -49845,6 +50311,9 @@ The core’s constraints:
   `CAUSE_TOLERANCE`) and sits within the audio-visual sync window
   > (warning). [`av_offset_fault()`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.av_offset_fault) is the pure function under it. Dialogue and
   > lip-sync consistency are not built.
+- `cue_event`: a shot sound cue timed by a hold event (`at: {when: musket,
+  event: land}`) names an event the compiled shot has (error, listing the
+  item’s events, else an `info` line with its second).
 - `light` (catalogue D1): under the scene’s one `meta.light`, a member whose
   art declares `metadata.shaded_side` (or `overrides.shaded_side`) is shaded
   on the side facing away from it, read where that side faces on screen as the
@@ -49886,7 +50355,7 @@ The core’s constraints:
 | [`Discontinuity`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Discontinuity)(target, property, at, before, ...) | A numeric channel of `target` that jumps at `at` (seconds into the shot).                                   |
 | [`ShortHold`](_autosummary/an.verify.constraints.html.md#an.verify.constraints.ShortHold)(target, property, at, value, held_s)   | A step-held value of `target`'s `property` shown for less than a frame.                                     |
 
-### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None), Constraint(name='rigidity', check=<function check_rigidity>, stage='shot', order=200.0, description='an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)', term=None), Constraint(name='motion_style', check=<function check_motion_style>, stage='shot', order=200.0, description='moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)', term=None), Constraint(name='gravity', check=<function check_gravity>, stage='shot', order=200.0, description='an entity declared airborne follows a parabola and does not hover under a style that declares gravity (catalogue B4)', term=None), Constraint(name='causality', check=<function check_causality>, stage='shot', order=200.0, description='a sound cue that names its visible cause is not ahead of it, and is within the audio-visual sync window (catalogue B7)', term=None), Constraint(name='light', check=<function check_light>, stage='shot', order=200.0, description="every member's art is shaded on the side the scene's one light implies (catalogue D1)", term=None))*
+### an.verify.constraints.CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](_autosummary/an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='continuity', check=<function check_continuity>, stage='shot', order=200.0, description='a node does not jump within a shot unless a set says so (an#508)', term=None), Constraint(name='solidity', check=<function check_solidity>, stage='shot', order=200.0, description='two solids are not drawn through each other unless one is placed after (an#509)', term=None), Constraint(name='draw_order', check=<function check_draw_order>, stage='finish', order=200.0, description='two entities are painted in the same order in every shot unless \`after\` changes (an#510)', term=None), Constraint(name='jump_cut', check=<function check_jump_cut>, stage='finish', order=200.0, description='consecutive shots of one subject differ by 30 degrees or a shot size', term=None), Constraint(name='object_permanence', check=<function check_object_permanence>, stage='finish', order=200.0, description='an entity does not vanish and return across shots, nor appear twice in one (catalogue C1)', term=None), Constraint(name='held_item', check=<function check_held_item>, stage='shot', order=200.0, description='an item declared held stays at its offset from its carrier between pick-up and release (catalogue A4)', term=None), Constraint(name='rigidity', check=<function check_rigidity>, stage='shot', order=200.0, description='an entity declared rigid keeps its proportions, one declared volume-preserving keeps its area (catalogue A5)', term=None), Constraint(name='motion_style', check=<function check_motion_style>, stage='shot', order=200.0, description='moves are as smooth, and big moves as anticipated, as the style pack declares (catalogue B2, B5)', term=None), Constraint(name='gravity', check=<function check_gravity>, stage='shot', order=200.0, description='an entity declared airborne follows a parabola and does not hover under a style that declares gravity (catalogue B4)', term=None), Constraint(name='causality', check=<function check_causality>, stage='shot', order=200.0, description='a sound cue that names its visible cause is not ahead of it, and is within the audio-visual sync window (catalogue B7)', term=None), Constraint(name='cue_event', check=<function check_cue_event>, stage='shot', order=200.0, description='a sound cue timed by a hold event (\`at: {when: item, event: land}\`) names an event the shot has', term=None), Constraint(name='light', check=<function check_light>, stage='shot', order=200.0, description="every member's art is shaded on the side the scene's one light implies (catalogue D1)", term=None))*
 
 The core’s constraints, in the order their checks run within a stage.
 
@@ -51373,20 +51842,18 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-09 07:26 UTC** from commit <a href="https://github.com/reeleehq/an/commit/39797f400cc7051617ff25edb1d9e672c9205442"><code>39797f4</code></a> on branch <code>main</code>, for **an 0.1.393** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-10 14:18 UTC** from commit <a href="https://github.com/reeleehq/an/commit/0396c79394dd0e31bfe27f12982463bdd062b697"><code>0396c79</code></a> on branch <code>main</code>, for **an 0.1.394** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.393) is ahead of the latest release on PyPI (0.1.392): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/39797f400cc7051617ff25edb1d9e672c9205442"><code>39797f400cc7051617ff25edb1d9e672c9205442</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/0396c79394dd0e31bfe27f12982463bdd062b697"><code>0396c79394dd0e31bfe27f12982463bdd062b697</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.393</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.394</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -51395,9 +51862,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42578417557">42578417557</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42830911368">42830911368</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>29892545f627c082e065c529114dee5e948e49ce</code> (in the history of the built commit) |
+| Event commit | <code>d7da8f82c6f714d312f12f78c386e4a5e243a1ba</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51422,13 +51889,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.392/">0.1.392</a>, older than the documented version (0.1.393).
+Latest release: <a href="https://pypi.org/project/an/0.1.394/">0.1.394</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 39797f400cc7051617ff25edb1d9e672c9205442
+git checkout 0396c79394dd0e31bfe27f12982463bdd062b697
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

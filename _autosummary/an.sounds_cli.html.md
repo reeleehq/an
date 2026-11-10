@@ -9,6 +9,7 @@ CLI by `an.tools._dispatch_namespaces`.
 
 | [`add`](#an.sounds_cli.add)(project_dir, key, url[, license, start, ...])   | Add a sound to the project from a URL (a YouTube page, any page yb reads) or a foley library (foley:<sound_id>), with its provenance.   |
 |------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`sync`](#an.sounds_cli.sync)(project_dir, key[, at])                        | Record where a sound's hit is, so a cue puts the hit (not the file's first sample) at its `at`.                                         |
 
 ### an.sounds_cli.add(project_dir, key, url, license='', start=0.0, duration=0.0, fade_out=0.0, provider='', author='', description='')
 
@@ -31,6 +32,21 @@ fade_out: seconds of fade at the end of the cut
 provider: override the provider the page reports (default: youtube, or the host)
 author: override the author the page reports (default: its channel)
 description: what the sound is, for the store
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.sounds_cli.sync(project_dir, key, at='auto')
+
+Record where a sound’s hit is, so a cue puts the hit (not the file’s first sample) at its `at`.
+
+A clip whose clink comes after a scrape, or after silence, is heard late by
+that lead-in when it is cued by its first sample; `an validate` warns when
+a cued hit is 125 ms or more into its file. Only sound.json changes.
+
+project_dir: the an project
+key: the sound’s key in the project’s sounds store
+at: seconds into the file, “auto” to measure it (the first 10 ms within 6 dB of the loudest), or “none” to clear it
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

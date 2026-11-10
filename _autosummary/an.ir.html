@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.joints.html">an.ir.joints</a></li>
@@ -512,6 +513,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.raster.html">an.stage.raster</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.render.html">an.stage.render</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.rig.html">an.stage.rig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.rigid.html">an.stage.rigid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime.html">an.stage.runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.runtime_files.html">an.stage.runtime_files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.serialize.html">an.stage.serialize</a></li>
@@ -523,6 +525,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text.html">an.stage.text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.text_layout.html">an.stage.text_layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.timeline.html">an.stage.timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stage.topple.html">an.stage.topple</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.tree.html">an.stage.tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stage.world.html">an.stage.world</a></li>
 </ul>
@@ -735,14 +738,17 @@ authoring-time DSL to canonical-form actions.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.place" title="an.ir.place"><code class="xref py py-obj docutils literal notranslate"><span class="pre">place</span></code></a>(item, onto, *[, by, rotation, reach, ...])</p></td>
 <td><p>The hand holding <code class="docutils literal notranslate"><span class="pre">item</span></code> puts it <code class="docutils literal notranslate"><span class="pre">onto</span></code> a target.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.release" title="an.ir.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a>(item, *[, at, onto, arc, rotation])</p></td>
-<td><p>Let <code class="docutils literal notranslate"><span class="pre">item</span></code> go at <code class="docutils literal notranslate"><span class="pre">at</span></code> (a drop, or a toss <code class="docutils literal notranslate"><span class="pre">onto:</span> <span class="pre">ground&#64;x</span></code>).</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.release" title="an.ir.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a>(item, *[, at, onto, arc, rotation, ...])</p></td>
+<td><p>Let <code class="docutils literal notranslate"><span class="pre">item</span></code> go at <code class="docutils literal notranslate"><span class="pre">at</span></code> (a drop; <code class="docutils literal notranslate"><span class="pre">onto:</span> <span class="pre">ground&#64;x</span></code> to land there; <code class="docutils literal notranslate"><span class="pre">arc</span></code> &gt; 0 to throw it up first).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.handover" title="an.ir.handover"><code class="xref py py-obj docutils literal notranslate"><span class="pre">handover</span></code></a>(item, to, *[, by, meet, reach, ...])</p></td>
 <td><p>Give <code class="docutils literal notranslate"><span class="pre">item</span></code> to <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.swap" title="an.ir.swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">swap</span></code></a>(holder, *, take, give, by[, lag, ...])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">by</span></code> takes <code class="docutils literal notranslate"><span class="pre">take</span></code> from <code class="docutils literal notranslate"><span class="pre">holder</span></code>; <code class="docutils literal notranslate"><span class="pre">give</span></code> goes there in its place.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.topple" title="an.ir.topple"><code class="xref py py-obj docutils literal notranslate"><span class="pre">topple</span></code></a>(body, **kw)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">body</span></code> falls over (see <code class="xref py py-class docutils literal notranslate"><span class="pre">ToppleAction</span></code> for the fields).</p></td>
 </tr>
 </tbody>
 </table>
@@ -2138,10 +2144,12 @@ presented as one unrelated test failing only in a full run (an#106).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.release">
-<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">release</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/holds.html#release"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.release" title="Link to this definition">#</a></dt>
-<dd><p>Let <code class="docutils literal notranslate"><span class="pre">item</span></code> go at <code class="docutils literal notranslate"><span class="pre">at</span></code> (a drop, or a toss <code class="docutils literal notranslate"><span class="pre">onto:</span> <span class="pre">ground&#64;x</span></code>).</p>
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">release</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/holds.html#release"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.release" title="Link to this definition">#</a></dt>
+<dd><p>Let <code class="docutils literal notranslate"><span class="pre">item</span></code> go at <code class="docutils literal notranslate"><span class="pre">at</span></code> (a drop; <code class="docutils literal notranslate"><span class="pre">onto:</span> <span class="pre">ground&#64;x</span></code> to land there; <code class="docutils literal notranslate"><span class="pre">arc</span></code> &gt; 0 to throw it up first).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">release</span><span class="p">(</span><span class="s2">"musket"</span><span class="p">,</span> <span class="n">onto</span><span class="o">=</span><span class="s2">"ground@-620"</span><span class="p">,</span> <span class="n">arc</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span><span class="o">.</span><span class="n">arc</span>
 <span class="go">60.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">release</span><span class="p">(</span><span class="s2">"musket"</span><span class="p">,</span> <span class="n">onto</span><span class="o">=</span><span class="s2">"ground@-620"</span><span class="p">)</span><span class="o">.</span><span class="n">arc</span>   <span class="c1"># let fall: no rise</span>
+<span class="go">0.0</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -2239,6 +2247,21 @@ does not flip.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SyncResult</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.topple">
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">topple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/topple.html#topple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.topple" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">body</span></code> falls over (see <code class="xref py py-class docutils literal notranslate"><span class="pre">ToppleAction</span></code> for the fields).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">topple</span><span class="p">(</span><span class="s2">"cam"</span><span class="p">,</span> <span class="n">toward</span><span class="o">=</span><span class="s2">"right"</span><span class="p">,</span> <span class="n">push</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">push</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToppleAction</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -2353,25 +2376,28 @@ which decides how long a dissolve’s overlap is.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.ir.compose.html#module-an.ir.compose" title="an.ir.compose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compose</span></code></a></p></td>
 <td><p>Composition combinators for authoring action trees, plus a flattener.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.ir.frames.html#module-an.ir.frames" title="an.ir.frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frames</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.events.html#module-an.ir.events" title="an.ir.events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">events</span></code></a></p></td>
+<td><p>The visible events a compiled shot records, by name: what a sound cue's <code class="docutils literal notranslate"><span class="pre">event</span></code> may say (an#804).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.frames.html#module-an.ir.frames" title="an.ir.frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frames</span></code></a></p></td>
 <td><p>Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.holds.html#module-an.ir.holds" title="an.ir.holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">holds</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.holds.html#module-an.ir.holds" title="an.ir.holds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">holds</span></code></a></p></td>
 <td><p>Holding things: <code class="docutils literal notranslate"><span class="pre">grasp</span></code>, <code class="docutils literal notranslate"><span class="pre">place</span></code>, <code class="docutils literal notranslate"><span class="pre">release</span></code>, <code class="docutils literal notranslate"><span class="pre">handover</span></code> and <code class="docutils literal notranslate"><span class="pre">swap</span></code> (an#502, catalogue A4).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.ir.joints.html#module-an.ir.joints" title="an.ir.joints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">joints</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.joints.html#module-an.ir.joints" title="an.ir.joints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">joints</span></code></a></p></td>
 <td><p>The constraint layer's verbs: <code class="docutils literal notranslate"><span class="pre">pin</span></code>, <code class="docutils literal notranslate"><span class="pre">pull</span></code>, <code class="docutils literal notranslate"><span class="pre">join</span></code> and <code class="docutils literal notranslate"><span class="pre">unjoin</span></code> (ADR 0008, an#512).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.schema.html#module-an.ir.schema" title="an.ir.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.schema.html#module-an.ir.schema" title="an.ir.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
 <td><p>Pydantic v2 models for the Scene IR.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.ir.validate.html#module-an.ir.validate" title="an.ir.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.validate.html#module-an.ir.validate" title="an.ir.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
 <td><p>Schema and semantic validation for SceneIR documents.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.world.html#module-an.ir.world" title="an.ir.world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.ir.world.html#module-an.ir.world" title="an.ir.world"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world</span></code></a></p></td>
 <td><p>One world, many shots: the scene world's geometry and its lowering (ADR 0009).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.ir.world_from_shot.html#module-an.ir.world_from_shot" title="an.ir.world_from_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_from_shot</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.world_from_shot.html#module-an.ir.world_from_shot" title="an.ir.world_from_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_from_shot</span></code></a></p></td>
 <td><p>World members from a shot placed by hand (an#514): the projection inverted.</p></td>
 </tr>
 </tbody>
@@ -2566,6 +2592,7 @@ which decides how long a dissolve’s overlap is.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.stagger"><code class="docutils literal notranslate"><span class="pre">stagger()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.swap"><code class="docutils literal notranslate"><span class="pre">swap()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.sync"><code class="docutils literal notranslate"><span class="pre">sync()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.topple"><code class="docutils literal notranslate"><span class="pre">topple()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.tween"><code class="docutils literal notranslate"><span class="pre">tween()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.unjoin"><code class="docutils literal notranslate"><span class="pre">unjoin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate_schema"><code class="docutils literal notranslate"><span class="pre">validate_schema()</span></code></a></li>

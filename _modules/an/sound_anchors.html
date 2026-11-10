@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -726,8 +726,18 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  parallax and a crawl's tilt (:func:`an.stage.timeline.screen_position`),</span>
 <span class="sd">  sampled at every film frame and interpolated between the two that straddle</span>
 <span class="sd">  it; plus ``offset``;</span>
+<span class="sd">- ``at: {when: musket, event: land}`` — the instant an item's hold event</span>
+<span class="sd">  happens in the compiled shot (the hold report's ``events``: ``grasp``,</span>
+<span class="sd">  ``place``, ``contact``, ``release``, ``land``, ``bounce``, ``rest``; and a</span>
+<span class="sd">  ``topple``'s, :mod:`an.stage.topple`), ``nth`` picking the n-th; plus</span>
+<span class="sd">  ``offset``. A swap's clink lands on the frame the sabre reaches the socket,</span>
+<span class="sd">  wherever the timing of the reach moves it;</span>
 <span class="sd">- ``until: {cue: scratch, offset: 0.12}`` — the cue ends at that cue's start</span>
 <span class="sd">  plus ``offset`` (its ``duration`` is derived).</span>
+
+<span class="sd">A cue's second is where its sound's **sync point** goes (``sync`` in its</span>
+<span class="sd">``sound.json``, :func:`an.sounds.set_sync`: a clip whose clink comes 0.78 s</span>
+<span class="sd">after a scrape is placed 0.78 s early), so an anchored hit sounds on its frame.</span>
 
 <span class="sd">It runs on the in-memory settled copy of the scene (as the measured shot</span>
 <span class="sd">lengths do, :mod:`an.measurements`): ``scene.md`` keeps the anchor, never the</span>
@@ -746,7 +756,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">SoundCue</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Finding</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SoundAnchorError"</span><span class="p">,</span> <span class="s2">"crossing_in_document"</span><span class="p">,</span> <span class="s2">"resolve_cue_anchors"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"SoundAnchorError"</span><span class="p">,</span>
+    <span class="s2">"anchor_in_document"</span><span class="p">,</span>
+    <span class="s2">"crossing_in_document"</span><span class="p">,</span>
+    <span class="s2">"event_in_document"</span><span class="p">,</span>
+    <span class="s2">"resolve_cue_anchors"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="c1">#: The kind a resolved cue's finding is filed under in the render report.</span>
 <span class="n">SOUND_FINDING_KIND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"sound"</span>
@@ -828,11 +844,87 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">document_events</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Every event a compiled stage document records, in time order: by</span>
+<span class="sd">    convention, the ``events`` list of any report in ``meta.extensions``, at</span>
+<span class="sd">    its top or one level down (the hold layer's is ``solve.holds.events``,</span>
+<span class="sd">    the topple pass's ``topple.events``), so a new source registers nothing here."""</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"extensions"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">events</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">take</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"events"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">events</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">report</span><span class="p">[</span><span class="s2">"events"</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"at"</span> <span class="ow">in</span> <span class="n">e</span>
+            <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">report</span> <span class="ow">in</span> <span class="n">ext</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">take</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">take</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="s2">"at"</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="event_in_document">
+<a class="viewcode-back" href="../../_autosummary/an.sound_anchors.html#an.sound_anchors.event_in_document">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">event_in_document</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor``'s hold event (the ``nth`` ``event`` of</span>
+<span class="sd">    item ``when``) in a compiled stage document."""</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">document_events</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">events</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2"> records no hold or topple events, so "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">!r}</span><span class="s2"> cannot be found (an event anchor needs a "</span>
+            <span class="s2">"grasp, place, release, swap or topple in the shot)"</span>
+        <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALIASES</span>
+
+    <span class="n">names</span> <span class="o">=</span> <span class="n">ALIASES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">event</span><span class="p">,))</span>
+    <span class="n">mine</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"item"</span><span class="p">)</span> <span class="o">==</span> <span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="p">]</span>
+    <span class="n">matching</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">mine</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"event"</span><span class="p">]</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matching</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">nth</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">matching</span><span class="p">[</span><span class="n">anchor</span><span class="o">.</span><span class="n">nth</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s2">"at"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">mine</span><span class="p">:</span>
+        <span class="n">have</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'event'</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'at'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">mine</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"the events of </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">!r}</span><span class="s2"> in shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">have</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"item"</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span><span class="p">})</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"no events of </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">!r}</span><span class="s2"> in shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2">; items with events: </span><span class="si">{</span><span class="n">items</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">!r}</span><span class="s2"> does not happen (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">matching</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">event</span><span class="si">}</span><span class="s2"> event(s), #</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">nth</span><span class="si">}</span><span class="s2"> asked): </span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="anchor_in_document">
+<a class="viewcode-back" href="../../_autosummary/an.sound_anchors.html#an.sound_anchors.anchor_in_document">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">anchor_in_document</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor`` (an event, or a crossing), before its ``offset``."""</span>
+    <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">event_in_document</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">shot_id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">crossing_in_document</span><span class="p">(</span>
+        <span class="n">doc</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">shot_id</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span>
+    <span class="p">)</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_crossing</span><span class="p">(</span>
     <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
-    <span class="k">return</span> <span class="n">crossing_in_document</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor``: its event, or when ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
+    <span class="k">return</span> <span class="n">anchor_in_document</span><span class="p">(</span>
         <span class="n">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderer</span><span class="p">),</span>
         <span class="n">anchor</span><span class="p">,</span>
         <span class="n">shot_id</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -853,7 +945,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"meta.sounds anchor names shot </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">shot</span><span class="si">!r}</span><span class="s2">; the shots are </span><span class="si">{</span><span class="n">ids</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">shot</span><span class="p">)</span>
-    <span class="n">root</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">root</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">i</span>
@@ -915,13 +1007,12 @@ window.runMermaid = runMermaid;</script>
             <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">shot_index</span><span class="p">],</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderers</span><span class="p">[</span><span class="n">shot_index</span><span class="p">],</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">path</span>
         <span class="p">)</span>
         <span class="n">t</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">local</span> <span class="o">+</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span> <span class="o">+</span> <span class="p">(</span><span class="n">film_starts</span><span class="p">[</span><span class="n">shot_index</span><span class="p">]</span> <span class="k">if</span> <span class="n">film</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">))</span>
-        <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">axis</span>
         <span class="n">findings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">Finding</span><span class="p">(</span>
                 <span class="n">severity</span><span class="o">=</span><span class="s2">"info"</span><span class="p">,</span>
                 <span class="n">ir_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/at"</span><span class="p">,</span>
                 <span class="n">description</span><span class="o">=</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s (</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2"> reached </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s (</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
                     <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">offset</span><span class="si">:</span><span class="s2">+g</span><span class="si">}</span><span class="s2"> s"</span> <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
                     <span class="o">+</span> <span class="s2">")"</span>
                 <span class="p">),</span>

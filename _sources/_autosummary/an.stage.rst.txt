@@ -40,6 +40,7 @@ an.stage
    raster
    render
    rig
+   rigid
    runtime
    runtime_files
    serialize
@@ -51,5 +52,6 @@ an.stage
    text
    text_layout
    timeline
+   topple
    tree
    world

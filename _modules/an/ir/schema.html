@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=7d5cc211"></script>
+    <script src="../../../_static/documentation_options.js?v=b6d552dc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.393" />
+  <meta name="docsearch:version" content="0.1.394" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2891,39 +2891,99 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="CueAnchor">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.CueAnchor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CueAnchor</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.</span>
+<span class="w">    </span><span class="sd">"""A sound cue's time, taken from the picture (an#317): when a node reaches</span>
+<span class="sd">    a frame row or column, or when an item's hold event happens.</span>
 
-<span class="sd">    ``when`` is a node path in a stage shot (``crawl/line_7``: a text block's</span>
-<span class="sd">    unit, a prop, a plane); ``reaches`` is ``{"y": px}`` or ``{"x": px}`` in</span>
-<span class="sd">    the frame's pixels (0 at the top or left), crossed in either direction by</span>
-<span class="sd">    the node's on-screen centre — the camera, parallax and a crawl's tilt</span>
-<span class="sd">    included. Resolved when the film is laid out, never written back into the</span>
-<span class="sd">    scene: a layout change moves the sound with the picture. ``offset`` is</span>
+<span class="sd">    **A crossing:** ``when`` is a node path in a stage shot (``crawl/line_7``:</span>
+<span class="sd">    a text block's unit, a prop, a plane); ``reaches`` is ``{"y": px}`` or</span>
+<span class="sd">    ``{"x": px}`` in the frame's pixels (0 at the top or left), crossed in</span>
+<span class="sd">    either direction by the node's on-screen centre — the camera, parallax and</span>
+<span class="sd">    a crawl's tilt included.</span>
+
+<span class="sd">    **A hold event:** ``when`` is an item (an entity a hold verb moves, or a</span>
+<span class="sd">    body a ``topple`` moves) and ``event`` what happens to it, as the compiled</span>
+<span class="sd">    shot's hold report records it (:data:`an.stage.hold.HOLD_EVENTS`):</span>
+<span class="sd">    ``grasp`` (a hand takes it), ``place`` (it arrives where it is put),</span>
+<span class="sd">    ``contact`` (either), ``release`` (let go), ``land`` (it first touches the</span>
+<span class="sd">    floor), ``bounce``, ``rest``; ``nth`` picks the n-th such event (1: the</span>
+<span class="sd">    first). The swap's clink is ``{when: sabre, event: place}``; the drop's</span>
+<span class="sd">    thud ``{when: musket, event: land}``.</span>
+
+<span class="sd">    Resolved when the film is laid out, never written back into the scene: a</span>
+<span class="sd">    layout or timing change moves the sound with the picture. ``offset`` is</span>
 <span class="sd">    added after. ``shot`` names the shot to look in, for a cue in</span>
 <span class="sd">    ``meta.sounds`` (default: the first shot that has the node).</span>
 
 <span class="sd">    &gt;&gt;&gt; CueAnchor(when="crawl/line_7", reaches={"y": 840}).axis</span>
 <span class="sd">    ('y', 840.0)</span>
+<span class="sd">    &gt;&gt;&gt; CueAnchor(when="musket", event="land").describe()</span>
+<span class="sd">    'musket land'</span>
+<span class="sd">    &gt;&gt;&gt; CueAnchor(when="musket", event="land").model_dump()</span>
+<span class="sd">    {'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}</span>
 <span class="sd">    """</span>
 
     <span class="n">when</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">reaches</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">reaches</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">event</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">nth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_one_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"CueAnchor"</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaches</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaches</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.events</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALIASES</span><span class="p">,</span> <span class="n">EVENTS</span><span class="p">,</span> <span class="n">event_names</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaches</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"a cue anchor says either `reaches: {y: px}` (a node crossing a "</span>
+                <span class="sa">f</span><span class="s2">"frame row or column) or `event: &lt;</span><span class="si">{</span><span class="n">event_names</span><span class="p">()</span><span class="si">}</span><span class="s2">&gt;` (an item's "</span>
+                <span class="sa">f</span><span class="s2">"hold or topple event), not </span><span class="si">{</span><span class="s1">'both'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'neither'</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EVENTS</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ALIASES</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"`event: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="si">}</span><span class="s2">` is not an event: say one of </span><span class="si">{</span><span class="n">event_names</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaches</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaches</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaches</span><span class="p">))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)</span>
+        <span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"`reaches` names one frame axis, x or y, got </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaches</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="c1"># The fields the event form added leave no trace on a crossing (and</span>
+        <span class="c1"># `nth` none at its default): an anchor stored before reads the same.</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_omit_none</span><span class="p">(</span><span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="s2">"reaches"</span><span class="p">,</span> <span class="s2">"event"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"nth"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"nth"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">axis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""``(axis, pixels)``."""</span>
+<span class="w">        </span><span class="sd">"""``(axis, pixels)`` of a crossing."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaches</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"anchor </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">!r}</span><span class="s2"> is a hold event, not a crossing"</span>
+            <span class="p">)</span>
         <span class="p">((</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">),)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaches</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CueAnchor.describe">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.CueAnchor.describe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The anchor in words, for a finding: ``crawl/line_7 reached y=840``, ``musket land``."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nth</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" #</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nth</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nth</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="si">}{</span><span class="n">nth</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2"> reached </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span></div>
+</div>
 
 
 

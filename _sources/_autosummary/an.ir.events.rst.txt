@@ -1,0 +1,19 @@
+an.ir.events
+============
+
+.. automodule:: an.ir.events
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      EVENTS
+      ALIASES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      event_names
+   

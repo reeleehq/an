@@ -43,9 +43,10 @@ authoring-time DSL to canonical-form actions.
 | [`grasp`](#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                                                                                                                                                 |
 | [`reframe`](#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])     | `target` changes to frame `to` at `at` seconds into the action.                                                                                                                                    |
 | [`place`](#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                                                                                                                                                   |
-| [`release`](#an.ir.release)(item, \*[, at, onto, arc, rotation])       | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).                                                                                                                                        |
+| [`release`](#an.ir.release)(item, \*[, at, onto, arc, rotation, ...])  | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).                                                                                                    |
 | [`handover`](#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                                                                                                                                               |
 | [`swap`](#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.                                                                                                                                   |
+| [`topple`](#an.ir.topple)(body, \*\*kw)                               | `body` falls over (see `ToppleAction` for the fields).                                                                                                                                             |
 
 ### Classes
 
@@ -1163,13 +1164,15 @@ True
 * **Return type:**
   [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]], [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]]
 
-### an.ir.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+### an.ir.release(item, , at=0.0, onto=None, arc=0.0, rotation=None, bounce=None)
 
-Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).
 
 ```pycon
 >>> release("musket", onto="ground@-620", arc=60).arc
 60.0
+>>> release("musket", onto="ground@-620").arc   # let fall: no rise
+0.0
 ```
 
 * **Return type:**
@@ -1250,6 +1253,18 @@ does not flip.
 
 * **Return type:**
   `SyncResult`
+
+### an.ir.topple(body, \*\*kw)
+
+`body` falls over (see `ToppleAction` for the fields).
+
+```pycon
+>>> topple("cam", toward="right", push=1.0).push
+1.0
+```
+
+* **Return type:**
+  `ToppleAction`
 
 ### an.ir.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
@@ -1345,14 +1360,15 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                         |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [`camera`](an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                 |
-| [`compose`](an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                      |
-| [`frames`](an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).    |
-| [`holds`](an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4). |
-| [`joints`](an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).       |
-| [`schema`](an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                       |
-| [`validate`](an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                      |
-| [`world`](an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).             |
-| [`world_from_shot`](an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                |
+| [`assets`](an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                                |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| [`camera`](an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                        |
+| [`compose`](an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                             |
+| [`events`](an.ir.events.html.md#module-an.ir.events)                   | The visible events a compiled shot records, by name: what a sound cue's `event` may say (an#804). |
+| [`frames`](an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).           |
+| [`holds`](an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4).        |
+| [`joints`](an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).              |
+| [`schema`](an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                              |
+| [`validate`](an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                             |
+| [`world`](an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).                    |
+| [`world_from_shot`](an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                       |

@@ -8,7 +8,9 @@ an.sound\_anchors
 
    .. autosummary::
    
+      anchor_in_document
       crossing_in_document
+      event_in_document
       resolve_cue_anchors
    
    .. rubric:: Exceptions

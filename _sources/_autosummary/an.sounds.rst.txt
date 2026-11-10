@@ -16,6 +16,8 @@ an.sounds
    
       add_sound
       get_sound
+      measure_sync
+      set_sync
       synth_bed
       synth_hit
       synth_tone

@@ -36,10 +36,15 @@ that the hand first goes where the item is:
   aligned with a socket’s frame or lying on the ground at its rest angle, its
   lowest INK point at floor height (the texture’s alpha, not its box, so a
   carved part with a transparent margin does not float).
-- **Release.** A parabola under gravity (the shot’s or the style pack’s, else
-  [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)) from the velocity the hand gave it, turning to its
-  > rest angle on the way down, landing on the ground exactly; `onto:
-  > ground@x` solves the throw that lands there on an arc `arc` px high.
+- **Release.** A rigid fall under gravity (the shot’s or the style pack’s,
+  else [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY); [`an.stage.rigid.drop_track()`](an.stage.rigid.html.md#an.stage.rigid.drop_track)): a
+  parabola from where it was let go (never rising, unless tossed: `arc` >
+  0), spinning at a constant rate, one end touching the floor first, a tip
+  onto its side about that end, a small bounce (`bounce`), at rest on the
+  side it fell nearest to (or at `rotation`); `onto: ground@x` solves the
+  horizontal speed that lands it there. Let go already touching the floor (a
+  long item carried low), it falls over that end where it is, and the report
+  warns. The report records when it lands and rests (`events`).
 
 **Draw order.** While a body holds an item, the item is PAINTED just after
 its holder’s part (an#537): a `paint_after` channel on the item’s entity node
@@ -71,19 +76,21 @@ False
 
 ### Module Attributes
 
-| [`HOLD_VERSION`](#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                   |
-|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`HOLDS_REPORT`](#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                      |
-| [`ON_OVERRIDE`](#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                 |
-| [`AIM_OVERRIDE`](#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it). |
-| [`GRASP_TOLERANCE_PX`](#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                    |
-| [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                     |
-| [`HOLD_PLAN_PASSES`](#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                           |
+| [`HOLD_VERSION`](#an.stage.hold.HOLD_VERSION)       | bump it when the same declarations can compile to other keys.                                                                                                                                                                                                                                |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HOLDS_REPORT`](#an.stage.hold.HOLDS_REPORT)       | The key of the hold report inside `meta.extensions.solve`.                                                                                                                                                                                                                                   |
+| [`ON_OVERRIDE`](#an.stage.hold.ON_OVERRIDE)        | what holds an item when the shot opens (`ground`, a body's point, `world@x,y`).                                                                                                                                                                                                              |
+| [`AIM_OVERRIDE`](#an.stage.hold.AIM_OVERRIDE)       | the stage angle it is held at, as a place's `rotation` (a shot that opens on a musket already aimed at someone, continuing the shot before it).                                                                                                                                              |
+| [`GRASP_TOLERANCE_PX`](#an.stage.hold.GRASP_TOLERANCE_PX) | A reach that ends farther than this from its goal did not arrive (scene px).                                                                                                                                                                                                                 |
+| [`DFLT_FALL_GRAVITY`](#an.stage.hold.DFLT_FALL_GRAVITY)  | Gravity for a released item when neither the shot nor the style pack says (scene px / s², down the screen).                                                                                                                                                                                  |
+| [`HOLD_PLAN_PASSES`](#an.stage.hold.HOLD_PLAN_PASSES)   | How many times the gestures are planned (each from the solve the previous plan made).                                                                                                                                                                                                        |
+| [`HOLD_EVENTS`](#an.stage.hold.HOLD_EVENTS)        | a hand takes the item (`grasp`, a swap's take included), the item arrives where it is put (`place`, a swap's give included), it is let go (`release`), it first touches the floor (`land`), each bounce lands (`bounce`), it stops moving (`rest`); `contact` is any of `grasp` and `place`. |
 
 ### Functions
 
-| [`declares_holds`](#an.stage.hold.declares_holds)(shot)                       | Whether `shot` has a hold verb or an item `held_by` something.                                                                                                                                                                                                                                   |
+| [`hold_events`](#an.stage.hold.hold_events)(gestures, falls)               | The hold report's `events`: `[{event, item, at, by|onto}]` in time order, from the gestures' contacts and the falls (seconds, shot-local).                                                                                                                                                       |
 |---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`declares_holds`](#an.stage.hold.declares_holds)(shot)                       | Whether `shot` has a hold verb or an item `held_by` something.                                                                                                                                                                                                                                   |
 | [`hold_declarations`](#an.stage.hold.hold_declarations)(shot, \*[, play_extent]) | The hold verbs of `shot` flattened to shot time, its `held_by` overrides, the holder points they name and who moves a hand.                                                                                                                                                                      |
 | [`solve_holds`](#an.stage.hold.solve_holds)(state, doc, puppet, decl, ...) | Plan and solve a shot's holds: the final run, the items' channels `{(path, prop): (values, as the document shows them)}`, the keys of each held item's `paint_after` channel ([`paint_hosts()`](#an.stage.hold.paint_hosts)), and the report.                                   |
 | [`ink_box`](#an.stage.hold.ink_box)(doc, node, mall)                   | The box round a node's ink ([`ink_points()`](#an.stage.hold.ink_points)), in its own frame.                                                                                                                                                                                    |
@@ -123,12 +130,23 @@ A reach that ends farther than this from its goal did not arrive (scene px).
 
 The key of the hold report inside `meta.extensions.solve`.
 
+### an.stage.hold.HOLD_EVENTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('grasp', 'place', 'release', 'land', 'bounce', 'rest')*
+
+a hand
+takes the item (`grasp`, a swap’s take included), the item arrives where
+it is put (`place`, a swap’s give included), it is let go (`release`),
+it first touches the floor (`land`), each bounce lands (`bounce`), it
+stops moving (`rest`); `contact` is any of `grasp` and `place`.
+
+* **Type:**
+  The visible events of a hold, as a sound cue or a check names them
+
 ### an.stage.hold.HOLD_PLAN_PASSES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 How many times the gestures are planned (each from the solve the previous
 plan made).
 
-### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+### an.stage.hold.HOLD_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '3'*
 
 bump it
 when the same declarations can compile to other keys.
@@ -199,6 +217,19 @@ the holder points they name and who moves a hand.
 
 * **Return type:**
   [`HoldDeclarations`](#an.stage.hold.HoldDeclarations)
+
+### an.stage.hold.hold_events(gestures, falls)
+
+The hold report’s `events`: `[{event, item, at, by|onto}]` in time
+order, from the gestures’ contacts and the falls (seconds, shot-local).
+
+```pycon
+>>> hold_events([], [{"item": "cup", "at": 1.0, "lands": 1.3, "rests": 1.5, "bounces": [1.45]}])
+[{'event': 'release', 'item': 'cup', 'at': 1.0}, {'event': 'land', 'item': 'cup', 'at': 1.3}, {'event': 'bounce', 'item': 'cup', 'at': 1.45}, {'event': 'rest', 'item': 'cup', 'at': 1.5}]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.stage.hold.ink_box(doc, node, mall)
 

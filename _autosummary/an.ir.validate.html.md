@@ -23,6 +23,7 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`SCREEN_DIRECTION_TOLERANCE_PX`](#an.ir.validate.SCREEN_DIRECTION_TOLERANCE_PX) | Two entities closer than this on screen have no left/right order to flip.                                                                                                                                                                                                                                                                                    |
 | [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S)  | a frame at 60 fps.                                                                                                                                                                                                                                                                                                                                           |
 | [`POST_SYNTHESIS_CHECKS`](#an.ir.validate.POST_SYNTHESIS_CHECKS)         | The registered checks whose answer depends on what synthesis produced — a line's real length, hence where it starts and ends — and that `an render` therefore runs again AFTER the audio pipeline, on the timing it will mux ([`post_synthesis_findings()`](#an.ir.validate.post_synthesis_findings) runs exactly these, by name, through the registry). |
+| [`LATE_HIT_S`](#an.ir.validate.LATE_HIT_S)                    | A hit this far (s) into its file, cued by its first sample, sounds late enough to be seen (ITU-R BT.1359's 125 ms sound-behind window).                                                                                                                                                                                                                      |
 
 ### Functions
 
@@ -84,6 +85,11 @@ a frame at 60 fps.
 
 * **Type:**
   Slack before a line counts as running past its shot
+
+### an.ir.validate.LATE_HIT_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.125*
+
+A hit this far (s) into its file, cued by its first sample, sounds late
+enough to be seen (ITU-R BT.1359’s 125 ms sound-behind window).
 
 ### an.ir.validate.POST_SYNTHESIS_CHECKS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('dialogue_fits', 'dialogue_in_dissolve', 'cutout.hidden_mouth_while_speaking')*
 

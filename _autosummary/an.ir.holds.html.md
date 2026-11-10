@@ -63,21 +63,21 @@ shelf needs them without saying character), registered when [`an.ir`](an.ir.html
 
 ### Functions
 
-| [`grasp`](#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                               |
-|-------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| [`place`](#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                 |
-| [`release`](#an.ir.holds.release)(item, \*[, at, onto, arc, rotation])         | Let `item` go at `at` (a drop, or a toss `onto: ground@x`).      |
-| [`handover`](#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                             |
-| [`swap`](#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place. |
+| [`grasp`](#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                                                              |
+|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| [`place`](#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                                                |
+| [`release`](#an.ir.holds.release)(item, \*[, at, onto, arc, rotation, ...])    | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first). |
+| [`handover`](#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                                                            |
+| [`swap`](#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place.                                |
 
 ### Classes
 
-| [`GraspAction`](#an.ir.holds.GraspAction)(\*[, name, kind, reach, retract, ...])   | `by` (a body's point: a hand) reaches `item`'s grip and takes it.                                                                                                                                       |
-|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`PlaceAction`](#an.ir.holds.PlaceAction)(\*[, name, kind, by, rotation, ...])     | The hand holding `item` puts it `onto` a target and lets it go.                                                                                                                                         |
-| [`ReleaseAction`](#an.ir.holds.ReleaseAction)(\*[, name, kind, at, onto, ...])       | The hand holding `item` lets it go at `at`: it falls with the velocity it had onto the ground, or is tossed `onto: ground@x` on an arc `arc` px high, and lands at `rotation` (default: as in `place`). |
-| [`HandoverAction`](#an.ir.holds.HandoverAction)(\*[, name, kind, by, meet, ...])      | The hand holding `item` gives it to `to` (a hand, or a socket).                                                                                                                                         |
-| [`SwapAction`](#an.ir.holds.SwapAction)(\*[, name, kind, lag, rotation, ...])     | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                              |
+| [`GraspAction`](#an.ir.holds.GraspAction)(\*[, name, kind, reach, retract, ...])   | `by` (a body's point: a hand) reaches `item`'s grip and takes it.                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PlaceAction`](#an.ir.holds.PlaceAction)(\*[, name, kind, by, rotation, ...])     | The hand holding `item` puts it `onto` a target and lets it go.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`ReleaseAction`](#an.ir.holds.ReleaseAction)(\*[, name, kind, at, onto, ...])       | The hand holding `item` lets it go at `at`: it falls (never rising) onto the ground, `onto: ground@x` nudged to land there, or tossed up first when `arc` (px above the hand) is positive; it lands one end first, tips onto its side at `rotation` (default: the side of it it falls nearest to) and bounces a little (`bounce`: the coefficient of restitution, default [`an.stage.rigid.DFLT_BOUNCE`](an.stage.rigid.html.md#an.stage.rigid.DFLT_BOUNCE); 0 lands dead). |
+| [`HandoverAction`](#an.ir.holds.HandoverAction)(\*[, name, kind, by, meet, ...])      | The hand holding `item` gives it to `to` (a hand, or a socket).                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| [`SwapAction`](#an.ir.holds.SwapAction)(\*[, name, kind, lag, rotation, ...])     | `by` takes `take` from `holder` and the hand holding `give` puts that there, `lag` seconds later: a `grasp` and a `place`.                                                                                                                                                                                                                                                                                                                                                                       |
 
 ### an.ir.holds.DFLT_LEAN_DEG *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 60.0*
 
@@ -104,9 +104,11 @@ How long the hand takes to come back to where the shot has it (s).
 In a `swap`, how long after the taking hand starts the giving hand starts
 (s): it arrives a beat after the socket is empty.
 
-### an.ir.holds.DFLT_TOSS_ARC *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 40.0*
+### an.ir.holds.DFLT_TOSS_ARC *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.0*
 
-How high a toss rises above the higher of its two ends (scene px).
+How high a toss rises above the higher of its two ends (scene px). `0`:
+it is let fall, never thrown up (a let-go item does not rise; a positive
+`arc` is a throw).
 
 ### an.ir.holds.GESTURE_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('grasp', 'place', 'handover')*
 
@@ -194,13 +196,16 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.holds.ReleaseAction(, name=None, kind='release', item, at=0.0, onto=None, arc=40.0, rotation=None, \*\*extra_data)
+### *class* an.ir.holds.ReleaseAction(, name=None, kind='release', item, at=0.0, onto=None, arc=0.0, rotation=None, bounce=None, \*\*extra_data)
 
 Bases: [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
-The hand holding `item` lets it go at `at`: it falls with the
-velocity it had onto the ground, or is tossed `onto: ground@x` on an
-arc `arc` px high, and lands at `rotation` (default: as in `place`).
+The hand holding `item` lets it go at `at`: it falls (never rising)
+onto the ground, `onto: ground@x` nudged to land there, or tossed up
+first when `arc` (px above the hand) is positive; it lands one end
+first, tips onto its side at `rotation` (default: the side of it it falls nearest to) and
+bounces a little (`bounce`: the coefficient of restitution, default
+[`an.stage.rigid.DFLT_BOUNCE`](an.stage.rigid.html.md#an.stage.rigid.DFLT_BOUNCE); 0 lands dead).
 
 ```pycon
 >>> ReleaseAction(item="cup", at=1.0).onto is None
@@ -271,13 +276,15 @@ The hand holding `item` puts it `onto` a target.
 * **Return type:**
   [`PlaceAction`](#an.ir.holds.PlaceAction)
 
-### an.ir.holds.release(item, , at=0.0, onto=None, arc=40.0, rotation=None)
+### an.ir.holds.release(item, , at=0.0, onto=None, arc=0.0, rotation=None, bounce=None)
 
-Let `item` go at `at` (a drop, or a toss `onto: ground@x`).
+Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).
 
 ```pycon
 >>> release("musket", onto="ground@-620", arc=60).arc
 60.0
+>>> release("musket", onto="ground@-620").arc   # let fall: no rise
+0.0
 ```
 
 * **Return type:**

@@ -101,6 +101,7 @@
 - [an.ir.assets](_autosummary/an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
 - [an.ir.camera](_autosummary/an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](_autosummary/an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
+- [an.ir.events](_autosummary/an.ir.events.html.md): The visible events a compiled shot records, by name: what a sound cue’s &#96;event&#96; may say (an#804).
 - [an.ir.frames](_autosummary/an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
 - [an.ir.holds](_autosummary/an.ir.holds.html.md): Holding things: &#96;grasp&#96;, &#96;place&#96;, &#96;release&#96;, &#96;handover&#96; and &#96;swap&#96; (an#502, catalogue A4).
 - [an.ir.joints](_autosummary/an.ir.joints.html.md): The constraint layer’s verbs: &#96;pin&#96;, &#96;pull&#96;, &#96;join&#96; and &#96;unjoin&#96; (ADR 0008, an#512).
@@ -188,6 +189,7 @@
 - [an.stage.raster](_autosummary/an.stage.raster.html.md): Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
 - [an.stage.render](_autosummary/an.stage.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.
 - [an.stage.rig](_autosummary/an.stage.rig.html.md): The rig model the stage draws: bones, slots, skins and attachments.
+- [an.stage.rigid](_autosummary/an.stage.rigid.html.md): Rigid falls in the stage plane: a let-go item’s flight, landing, tip and bounce; a body toppling abo...
 - [an.stage.runtime](_autosummary/an.stage.runtime.html.md): Cutout JS runtime — see README.md in this directory.
 - [an.stage.runtime_files](_autosummary/an.stage.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.stage.serialize](_autosummary/an.stage.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
@@ -199,6 +201,7 @@
 - [an.stage.text](_autosummary/an.stage.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.stage.text_layout](_autosummary/an.stage.text_layout.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.stage.timeline](_autosummary/an.stage.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
+- [an.stage.topple](_autosummary/an.stage.topple.html.md): The &#96;topple&#96; compile pass: rigid bodies falling over, one knocking the next (&#96;an.ir.topple&#96;).
 - [an.stage.tree](_autosummary/an.stage.tree.html.md): The scene tree’s paths: the ONE Python statement of how &#96;runtime.js&#96; indexes nodes (an#343).
 - [an.stage.world](_autosummary/an.stage.world.html.md): The stage’s side of the scene world (ADR 0009): measuring a member’s
 - [an.stores](_autosummary/an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
@@ -242,7 +245,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-09 07:26 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-10 14:18 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

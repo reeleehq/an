@@ -9,4 +9,5 @@ an.sounds\_cli
    .. autosummary::
    
       add
+      sync
    
