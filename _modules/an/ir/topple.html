@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=b6d552dc"></script>
+    <script src="../../../_static/documentation_options.js?v=25555caf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.394" />
+  <meta name="docsearch:version" content="0.1.396" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -770,9 +770,11 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: The topple whose body knocks this one over (it starts when they touch).</span>
     <span class="n">after</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: A point of the body, or of an item it holds (``path@u,v``: fractions of</span>
-    <span class="c1">#: that node's drawing), that stops the fall where it reaches ``until``.</span>
+    <span class="c1">#: that node's drawing; or ``path@&lt;bone&gt;``, a bone or landmark of its rig),</span>
+    <span class="c1">#: that stops the fall where it reaches ``until``.</span>
     <span class="n">point</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="c1">#: Where ``point`` stops (``path@u,v`` of another body, or ``world@x,y``);</span>
+    <span class="c1">#: Where ``point`` stops (``path@u,v`` or ``path@&lt;bone&gt;`` of another body,</span>
+    <span class="c1">#: e.g. ``han/head@eye``, or ``world@x,y``);</span>
     <span class="c1">#: unset: the body falls until another of its points reaches the floor.</span>
     <span class="n">until</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: The coefficient of restitution when it hits the floor (0: dead).</span>

@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-11-10 14:18 UTC** from commit <a href="https://github.com/reeleehq/an/commit/0396c79394dd0e31bfe27f12982463bdd062b697"><code>0396c79</code></a> on branch <code>main</code>, for **an 0.1.394** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-10 14:55 UTC** from commit <a href="https://github.com/reeleehq/an/commit/ed301b0abae0e7d2d186b06b71bde335510f2392"><code>ed301b0</code></a> on branch <code>main</code>, for **an 0.1.396** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,9 +11,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/0396c79394dd0e31bfe27f12982463bdd062b697"><code>0396c79394dd0e31bfe27f12982463bdd062b697</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/ed301b0abae0e7d2d186b06b71bde335510f2392"><code>ed301b0abae0e7d2d186b06b71bde335510f2392</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.394</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.396</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42830911368">42830911368</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42837659338">42837659338</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>d7da8f82c6f714d312f12f78c386e4a5e243a1ba</code> (in the history of the built commit) |
+| Event commit | <code>0da3ba618b414d54c82eca9b4bf99416c0257143</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +49,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.394/">0.1.394</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.396/">0.1.396</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout 0396c79394dd0e31bfe27f12982463bdd062b697
+git checkout ed301b0abae0e7d2d186b06b71bde335510f2392
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
