@@ -1513,19 +1513,27 @@ def locate_point(ref: Any, scope: PointScope, *, side: str) -> Any:
 
 def _bone_carrier(rig: Any, bone: str) -> str | None:
     """The slot whose part a bone is a point of: the part drawn on that bone
-    (the one named like it, else the first in draw order, as the rig's own joints pick it), or ``None`` for a bone no
-    part sits on (a landmark such as a prop's ``grip``) or a name that is no bone.
+    (the one named like it, else the first in draw order, as the rig's own joints pick it).
+    A bone no part sits on (a landmark: a prop's ``grip``, the hand at the end of
+    a carved one-stroke forearm) is a point of the part it is carried on, which a
+    ``nesting: bones`` rig names (its anchor's ``on``); in a flat rig it is a point
+    of the entity's own frame, so ``None``, as for a name that is no bone.
 
     >>> from types import SimpleNamespace as NS
-    >>> rig = NS(anchors={"hand_r": 1, "grip": 1}, body_bone={"hand_r": "hand_r", "fist": "hand_r", "torso": "torso"})
+    >>> rig = NS(anchors={"hand_r": NS(on=None), "grip": NS(on=None), "tip": NS(on="fore")},
+    ...          body_bone={"hand_r": "hand_r", "fist": "hand_r", "torso": "torso", "fore": "fore"},
+    ...          bodies={"hand_r": "hand_r", "fist": "fist", "torso": "torso", "fore": "torso/fore"})
     >>> _bone_carrier(rig, "hand_r"), _bone_carrier(rig, "grip"), _bone_carrier(rig, "nope")
     ('hand_r', None, None)
+    >>> _bone_carrier(rig, "tip")
+    'fore'
     """
     if not bone or bone not in rig.anchors:
         return None
     slots = [slot for slot, b in rig.body_bone.items() if b == bone]  # draw order
     if not slots:
-        return None
+        on = getattr(rig.anchors[bone], "on", None)
+        return on if on in rig.bodies else None
     return bone if bone in slots else slots[0]
 
 
