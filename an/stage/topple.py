@@ -117,18 +117,10 @@ def _affine(doc: Any, path: str, pose: Any) -> tuple[float, ...]:
 
 
 def _nodes_under(doc: Any, root: str) -> list[tuple[str, Any]]:
-    """``(path, node)`` of ``root`` and every node under it, by the scene tree."""
-    out: list[tuple[str, Any]] = []
+    """``(path, node)`` of entity ``root`` and every node under it (:func:`an.stage.tree.walk_document`)."""
+    from an.stage.tree import walk_document
 
-    def walk(node: Any, path: str) -> None:
-        out.append((path, node))
-        for child in node.children or ():
-            walk(child, f"{path}/{child.name}")
-
-    for top in doc.scene.children or ():
-        if top.name == root:
-            walk(top, root)
-    return out
+    return [(p, n) for p, n in walk_document(doc) if p == root or p.startswith(root + "/")]
 
 
 def _ink(doc: Any, mall: Any, path: str, pose: Any) -> list[Point]:
@@ -198,17 +190,23 @@ def topple_pass(state: Any) -> None:
     from an.ir.schema import gravity_vector
     from an.stage.compile import _assemble_document
     from an.stage.hold import DFLT_FALL_GRAVITY, _gravity
-    from an.stage.rigid import DFLT_BOUNCE, _hull, inertia, pivot_fall
+    from an.stage.rigid import DFLT_BOUNCE, MAX_BOUNCES, MIN_ROCK, _hull, inertia, pivot_fall
     from an.stage.solve import _compose, _invert, frame_times
     from an.stage.timeline import evaluate_timeline, timeline_from_scene
 
     doc = _assemble_document(state, background="#000000")
     timeline = timeline_from_scene(doc)
     times = frame_times(shot.duration, fps=state.fps, step_hz=None)
+    # Gravity is the falls' (shot, else style pack, else the hold layer's
+    # default). The floor is each body's own foot line, not `solve.ground`: in
+    # a 2.5D set a body standing farther back falls onto its own line.
     g = (_gravity(shot, state.style_pack) or (0.0, DFLT_FALL_GRAVITY))[1]
-    ground = shot.solve.ground if shot.solve is not None else None
     holders = (state.meta_extensions.get("solve") or {}).get("holds", {}).get("holders", {})
     named = {a.id: a for a, _t, _w in topples if a.id}
+    bodies = [a.body for a, _t, _w in topples]
+    for a, _t, where in topples:
+        if bodies.count(a.body) > 1 and not a.id:
+            raise ToppleError(f"{where}: {a.body!r} topples more than once: give each topple an `id:`")
     for a, _t, where in topples:
         if a.after is not None and a.after not in named:
             raise ToppleError(
@@ -260,6 +258,16 @@ def topple_pass(state: Any) -> None:
             omega = sign * abs(omega)
             p0 = pose(t_start)
             items = carried(a.body, t_start)
+            for item in items:
+                later = [at for at, _h in holders.get(item, ()) if at > t_start + 1e-6]
+                if later:
+                    raise ToppleError(
+                        f"{where}: {item!r} is held by {a.body!r} when it topples at "
+                        f"{t_start:.2f} s, and its holder changes again at {later[0]:.2f} s: "
+                        "the hold layer does not see the topple yet, so an item a toppled "
+                        "body holds stays with it to the end of the shot (move the later "
+                        "gesture before the topple, or into the next shot)"
+                    )
             pts = _ink(doc, state.mall, a.body, p0)
             for item in items:
                 pts.extend(_ink(doc, state.mall, item, p0))
@@ -351,13 +359,13 @@ def topple_pass(state: Any) -> None:
                 e = DFLT_BOUNCE if a.bounce is None else a.bounce
                 w = -e * fall.omega_end
                 com_end = _rot_about(com, pivot, end_angle)
-                for _ in range(3):
+                for _ in range(MAX_BOUNCES):
                     # Its far end bounces up about the foot and falls back.
                     rock = pivot_fall(
                         com_end, pivot, gravity=g, omega=w, inertia_cm=i_cm,
                         stop=lambda ang: 1e-9 - sign * ang,
                     )
-                    if not rock.stopped or max(abs(x) for x in rock.turns) < math.radians(1.0):
+                    if not rock.stopped or max(abs(x) for x in rock.turns) < MIN_ROCK:
                         break
                     segments.append((end_t, rock, end_angle))
                     end_t += rock.duration

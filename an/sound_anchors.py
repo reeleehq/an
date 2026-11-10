@@ -125,16 +125,23 @@ def crossing_in_document(
 
 
 def document_events(doc: Any) -> list[dict[str, Any]]:
-    """Every hold and topple event a compiled stage document records, in time order."""
+    """Every event a compiled stage document records, in time order: by
+    convention, the ``events`` list of any report in ``meta.extensions``, at
+    its top or one level down (the hold layer's is ``solve.holds.events``,
+    the topple pass's ``topple.events``), so a new source registers nothing here."""
     ext = getattr(getattr(doc, "meta", None), "extensions", None) or {}
-    holds = (ext.get("solve") or {}).get("holds") or {}
-    topple = ext.get("topple") or {}
-    events = [*(holds.get("events") or ()), *(topple.get("events") or ())]
+    events: list[dict[str, Any]] = []
+
+    def take(report: Any) -> None:
+        if isinstance(report, dict) and isinstance(report.get("events"), list):
+            events.extend(e for e in report["events"] if isinstance(e, dict) and "at" in e)
+
+    for report in ext.values():
+        take(report)
+        if isinstance(report, dict):
+            for sub in report.values():
+                take(sub)
     return sorted(events, key=lambda e: e["at"])
-
-
-#: The events ``contact`` stands for.
-CONTACT_EVENTS: tuple[str, ...] = ("grasp", "place")
 
 
 def event_in_document(doc: Any, anchor: CueAnchor, *, shot_id: str, where: str) -> float:
@@ -147,7 +154,9 @@ def event_in_document(doc: Any, anchor: CueAnchor, *, shot_id: str, where: str) 
             f"{anchor.describe()!r} cannot be found (an event anchor needs a "
             "grasp, place, release, swap or topple in the shot)"
         )
-    names = CONTACT_EVENTS if anchor.event == "contact" else (anchor.event,)
+    from an.ir.events import ALIASES
+
+    names = ALIASES.get(anchor.event, (anchor.event,))
     mine = [e for e in events if e.get("item") == anchor.when]
     matching = [e for e in mine if e["event"] in names]
     if len(matching) >= anchor.nth:

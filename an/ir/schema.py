@@ -2095,12 +2095,16 @@ class CueAnchor(_IRModel):
 
     @model_validator(mode="after")
     def _one_axis(self) -> "CueAnchor":
+        from an.ir.events import ALIASES, EVENTS, event_names
+
         if (self.reaches is None) == (self.event is None):
             raise ValueError(
                 "a cue anchor says either `reaches: {y: px}` (a node crossing a "
-                "frame row or column) or `event: <grasp|place|contact|release|land|"
-                f"bounce|rest>` (an item's hold event), not {'both' if self.event else 'neither'}"
+                f"frame row or column) or `event: <{event_names()}>` (an item's "
+                f"hold or topple event), not {'both' if self.event else 'neither'}"
             )
+        if self.event is not None and self.event not in EVENTS and self.event not in ALIASES:
+            raise ValueError(f"`event: {self.event}` is not an event: say one of {event_names()}")
         if self.reaches is not None and (
             len(self.reaches) != 1 or next(iter(self.reaches)) not in ("x", "y")
         ):

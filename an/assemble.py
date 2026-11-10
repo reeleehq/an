@@ -936,17 +936,26 @@ def _cue_placement(
     ...                    path=Path("c.wav"), asset_duration=1.5, sync=0.78)
     >>> p.at, round(p.skip, 2), round(p.play, 2)
     (0.0, 0.28, 1.22)
+    >>> p = _cue_placement(SoundCue(sound="clink", at=12.0, duration=0.5), at=12.0, container_end=20.0,
+    ...                    path=Path("c.wav"), asset_duration=1.5, sync=0.78)
+    >>> round(p.at, 2), round(p.play, 2)   # 0.5 s after the hit, so 1.28 s of file
+    (11.22, 1.28)
     """
-    skip = 0.0
+    skip = lead = 0.0
     if sync and not cue.loop:
         at -= sync
+        lead = sync  # a duration is counted from the hit, so it plays this much longer
         if at < 0.0:
             skip, at = -at, 0.0
         asset_duration = max(0.0, asset_duration - skip)
     if cue.duration is not None:
         # A cue that does not loop cannot sound longer than its asset: its
         # fade-out must land on audio that exists.
-        play = cue.duration if cue.loop else min(cue.duration, asset_duration)
+        play = (
+            cue.duration
+            if cue.loop
+            else min(cue.duration + lead - skip, asset_duration)
+        )
     elif cue.loop:
         play = max(0.0, container_end - at)
     else:

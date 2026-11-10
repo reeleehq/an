@@ -387,6 +387,8 @@ def test_a_release_onto_x_with_no_arc_never_rises(tmp_path):
     land = _event(doc, "land")["at"]
     ys = [_stage(doc, "stick", t)[1] for t in _times(2.0, land)]
     assert all(b >= a - 1e-6 for a, b in zip(ys, ys[1:]))
+    # ... and it does come to rest there (review of an#804: the x was ignored).
+    assert _stage(doc, "stick", 4.0)[0] == pytest.approx(-20.0, abs=1e-3)
 
 
 def test_a_held_item_turns_round_with_its_carrier(tmp_path):

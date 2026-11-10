@@ -1404,7 +1404,7 @@
    "id": "action.release",
    "kind": "action",
    "name": "release",
-   "version": "1",
+   "version": "2",
    "title": "",
    "description": "let a held item go: it falls, or is tossed, onto the ground",
    "levels": [
@@ -1412,7 +1412,7 @@
    ],
    "params": {
     "additionalProperties": true,
-    "description": "The hand holding ``item`` lets it go at ``at``: it falls (never rising)\nonto the ground, ``onto: ground@x`` nudged to land there, or tossed up\nfirst when ``arc`` (px above the hand) is positive; it lands one end\nfirst, tips onto its side at ``rotation`` (default: as in ``place``) and\nbounces a little (``bounce``: the coefficient of restitution, default\n:data:`an.stage.rigid.DFLT_BOUNCE`; 0 lands dead).\n\n>>> ReleaseAction(item=\"cup\", at=1.0).onto is None\nTrue",
+    "description": "The hand holding ``item`` lets it go at ``at``: it falls (never rising)\nonto the ground, ``onto: ground@x`` nudged to land there, or tossed up\nfirst when ``arc`` (px above the hand) is positive; it lands one end\nfirst, tips onto its side at ``rotation`` (default: the side of it it falls nearest to) and\nbounces a little (``bounce``: the coefficient of restitution, default\n:data:`an.stage.rigid.DFLT_BOUNCE`; 0 lands dead).\n\n>>> ReleaseAction(item=\"cup\", at=1.0).onto is None\nTrue",
     "properties": {
      "name": {
       "anyOf": [

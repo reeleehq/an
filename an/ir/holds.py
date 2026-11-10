@@ -169,7 +169,7 @@ class ReleaseAction(ExtensionAction):
     """The hand holding ``item`` lets it go at ``at``: it falls (never rising)
     onto the ground, ``onto: ground@x`` nudged to land there, or tossed up
     first when ``arc`` (px above the hand) is positive; it lands one end
-    first, tips onto its side at ``rotation`` (default: as in ``place``) and
+    first, tips onto its side at ``rotation`` (default: the side of it it falls nearest to) and
     bounces a little (``bounce``: the coefficient of restitution, default
     :data:`an.stage.rigid.DFLT_BOUNCE`; 0 lands dead).
 
@@ -478,6 +478,9 @@ def _register_hold_kinds() -> None:
         ActionKind(
             "release",
             ReleaseAction,
+            # 2 (an#804): a rigid fall that never rises unless `arc` > 0 (the
+            # default arc was 40 px: every release onto ground@x tossed it up).
+            version="2",
             duration=lambda a, _extent: 0.0,
             flatten=_flatten_release,
             read_md=_read_md(ReleaseAction),

@@ -359,6 +359,8 @@ def _drop_once(
         dy = y_touch - cy0
         disc = vy * vy + 2.0 * g * dy
         air = (-vy + math.sqrt(disc)) / g if disc >= 0 and dy > 0 else 0.0
+    if not tossed and toss_x is not None and air > 0:
+        vx = (toss_x - cx0) / air  # let fall, nudged sideways to land at toss_x
     air = max(0.0, air)
     spin = (touch_angle - angle) / air if air > 0 else 0.0
     phases: list[tuple[float, float, Callable[[float], tuple[float, float, float]]]] = []

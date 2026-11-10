@@ -1928,7 +1928,8 @@ def _transition(
             m = _compose(_translate(0.0, gap), current)
             rests.append((k, _lin_of(m)))
             return _State("rest", m=m), m
-        # Let go short of the floor: it falls the rest of the way.
+        # Let go short of the floor: it falls the rest of the way, at the
+        # angle a place lays it at (its rest angle), and does not bounce.
         return _fall(
             ctx,
             run,
@@ -1942,6 +1943,8 @@ def _transition(
             arc=0.0,
             entity=g.hand.entity,
             inherit=False,
+            bounce=0.0,
+            keep_rest=True,
         )
     # drop
     a = ev.release
@@ -1984,6 +1987,7 @@ def _fall(
     entity: str | None,
     inherit: bool,
     bounce: float | None = None,
+    keep_rest: bool = False,
 ) -> tuple[_State, Affine]:
     """The item leaves every holder at frame ``k``: a rigid fall onto the ground
     (:func:`an.stage.rigid.drop_track`): a parabola spinning at a constant
@@ -2023,7 +2027,7 @@ def _fall(
         centre=c0,
         velocity=v0,
         angle=lin0[0],
-        rest_angle=theta1 if rotation is not None else None,
+        rest_angle=theta1 if rotation is not None or keep_rest else None,
         ground=ground,
         gravity=gy,
         scale=((lin0[1], lin0[2]), (sx1, sy1)),
@@ -2686,7 +2690,7 @@ def _nearest_support(
 #: it is put (``place``, a swap's give included), it is let go (``release``),
 #: it first touches the floor (``land``), each bounce lands (``bounce``), it
 #: stops moving (``rest``); ``contact`` is any of ``grasp`` and ``place``.
-HOLD_EVENTS: tuple[str, ...] = ("grasp", "place", "release", "land", "bounce", "rest", "contact")
+HOLD_EVENTS: tuple[str, ...] = ("grasp", "place", "release", "land", "bounce", "rest")  # names from an.ir.events.EVENTS
 
 
 def hold_events(
