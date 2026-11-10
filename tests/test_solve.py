@@ -375,6 +375,35 @@ def test_a_bone_named_on_an_entity_with_several_roots_is_a_point_of_its_part(tmp
     assert report["joints"][-1]["bodies"] == "puppet@fore — wheel@grip"  # as written
 
 
+def test_a_landmark_bone_on_a_nested_rig_with_several_roots_is_a_point_of_its_carrier(tmp_path):
+    """A bone no part sits on (a carved one-stroke forearm's hand, `stu@hand_r`)
+    is a point of the part it is carried on when the rig nests by bones: it
+    needs no `puppet/<part>`, and it names what `puppet/fore@hand` names. In a
+    flat rig (the test above) it stays a point of the entity, with no part to
+    choose."""
+    _project(tmp_path, nesting="bones")
+    desc_path = tmp_path / "p" / "joint_pin" / "assets" / "props" / "arm" / "prop.json"
+    desc = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc["bones"].append({"name": "base", "x": 40.0, "y": 380.0})
+    desc["slots"].append(
+        {"name": "base", "bone": "base", "draw_order": 0, "attachment": "base"}
+    )
+    desc["skins"]["default"]["slots"]["base"] = {
+        "base": {"path": "parts/torso.svg", "anchor": [0.5, 1.0]}
+    }
+    desc_path.write_text(json.dumps(desc), encoding="utf-8")
+    project = load(tmp_path / "p" / "joint_pin")
+    named = _compile(project, _shot(project, actions=[pin("puppet@hand", "wheel@grip")]))
+    on_part = _compile(
+        project,
+        _shot(project, actions=[pin("puppet/torso/upper/fore@hand", "wheel@grip")]),
+    )
+    assert named.animations, "the pin moved nothing"
+    assert {k: v.model_dump() for k, v in named.animations.items()} == {
+        k: v.model_dump() for k, v in on_part.animations.items()
+    }
+
+
 def test_a_rejoin_across_a_gap_is_a_snap(tmp_path):
     project = _project(tmp_path)
     shot = _shot(
