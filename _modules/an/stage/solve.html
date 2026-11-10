@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=25555caf"></script>
+    <script src="../../../_static/documentation_options.js?v=812dd8b6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.396" />
+  <meta name="docsearch:version" content="0.1.397" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2269,19 +2269,27 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_bone_carrier</span><span class="p">(</span><span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">bone</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The slot whose part a bone is a point of: the part drawn on that bone</span>
-<span class="sd">    (the one named like it, else the first in draw order, as the rig's own joints pick it), or ``None`` for a bone no</span>
-<span class="sd">    part sits on (a landmark such as a prop's ``grip``) or a name that is no bone.</span>
+<span class="sd">    (the one named like it, else the first in draw order, as the rig's own joints pick it).</span>
+<span class="sd">    A bone no part sits on (a landmark: a prop's ``grip``, the hand at the end of</span>
+<span class="sd">    a carved one-stroke forearm) is a point of the part it is carried on, which a</span>
+<span class="sd">    ``nesting: bones`` rig names (its anchor's ``on``); in a flat rig it is a point</span>
+<span class="sd">    of the entity's own frame, so ``None``, as for a name that is no bone.</span>
 
 <span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
-<span class="sd">    &gt;&gt;&gt; rig = NS(anchors={"hand_r": 1, "grip": 1}, body_bone={"hand_r": "hand_r", "fist": "hand_r", "torso": "torso"})</span>
+<span class="sd">    &gt;&gt;&gt; rig = NS(anchors={"hand_r": NS(on=None), "grip": NS(on=None), "tip": NS(on="fore")},</span>
+<span class="sd">    ...          body_bone={"hand_r": "hand_r", "fist": "hand_r", "torso": "torso", "fore": "fore"},</span>
+<span class="sd">    ...          bodies={"hand_r": "hand_r", "fist": "fist", "torso": "torso", "fore": "torso/fore"})</span>
 <span class="sd">    &gt;&gt;&gt; _bone_carrier(rig, "hand_r"), _bone_carrier(rig, "grip"), _bone_carrier(rig, "nope")</span>
 <span class="sd">    ('hand_r', None, None)</span>
+<span class="sd">    &gt;&gt;&gt; _bone_carrier(rig, "tip")</span>
+<span class="sd">    'fore'</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">bone</span> <span class="ow">or</span> <span class="n">bone</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">slots</span> <span class="o">=</span> <span class="p">[</span><span class="n">slot</span> <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">body_bone</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="n">bone</span><span class="p">]</span>  <span class="c1"># draw order</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">slots</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">on</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rig</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">bone</span><span class="p">],</span> <span class="s2">"on"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">on</span> <span class="k">if</span> <span class="n">on</span> <span class="ow">in</span> <span class="n">rig</span><span class="o">.</span><span class="n">bodies</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">bone</span> <span class="k">if</span> <span class="n">bone</span> <span class="ow">in</span> <span class="n">slots</span> <span class="k">else</span> <span class="n">slots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 
