@@ -141,19 +141,30 @@ def _ink(doc: Any, mall: Any, path: str, pose: Any) -> list[Point]:
     return pts
 
 
-def _point(doc: Any, ref: str, pose: Any, *, where: str) -> Point:
-    """A stage point: ``world@x,y``, or ``path@u,v`` (fractions of that node's drawing)."""
+def _point(doc: Any, ref: str, pose: Any, *, where: str, scope: Any = None) -> Point:
+    """A stage point: ``world@x,y``, ``path@u,v`` (fractions of that node's drawing),
+    or ``path@<name>``, a bone or landmark of its rig (a figurine's ``eye``), as
+    the solve's one resolver reads it (:func:`an.stage.solve.locate_point`, given
+    ``scope``)."""
     from an.stage.hold import _local_box
-    from an.stage.solve import _apply
+    from an.stage.solve import NodePoint, _apply, _numbers, locate_point
 
     name, _, at = ref.partition("@")
-    try:
-        u, v = (float(s) for s in at.split(","))
-    except ValueError:
-        raise ToppleError(
-            f"{where}: {ref!r} is not a point: say `path@u,v` (fractions of that "
-            "node's drawing, 0,0 its top left) or `world@x,y`"
-        ) from None
+    xy = _numbers(at) if at else None
+    if xy is None:
+        if name == "world" or not at or scope is None:
+            raise ToppleError(
+                f"{where}: {ref!r} is not a point: say `path@u,v` (fractions of that "
+                "node's drawing, 0,0 its top left), `path@<bone>` (a bone or landmark "
+                "of its rig) or `world@x,y`"
+            )
+        found = locate_point(ref, scope, side="b")
+        if isinstance(found, str):
+            raise ToppleError(f"{where}: {found}")
+        if not isinstance(found, NodePoint):
+            return (float(found.u), float(found.v))
+        return _apply(_affine(doc, found.node, pose), found.on_node(scope.rest))
+    u, v = xy
     if name == "world":
         return (u, v)
     node = next(
@@ -172,6 +183,14 @@ def _point(doc: Any, ref: str, pose: Any, *, where: str) -> Point:
         name, node = drawn[0]
     left, top, w, h = _local_box(node)
     return _apply(_affine(doc, name, pose), (left + u * w, top + v * h))
+
+
+def _scope(doc: Any, shot: Any, mall: Any) -> Any:
+    """The solve's point resolver's view of the compiled shot (:class:`an.stage.solve.PointScope`)."""
+    from an.stage.solve import _node_index
+    from an.stage.support import _Reader
+
+    return _Reader(doc, shot, mall or {}, _node_index(doc)).scope
 
 
 def _decompose(m: Sequence[float]) -> tuple[float, float, float, bool]:
@@ -331,8 +350,9 @@ def topple_pass(state: Any) -> None:
                     raise ToppleError(
                         f"{where}: `until` needs the `point` of the body that reaches it"
                     )
-                q = _point(doc, a.point, p0, where=where)
-                target = _point(doc, a.until, p0, where=where)
+                scope = _scope(doc, shot, state.mall)
+                q = _point(doc, a.point, p0, where=where, scope=scope)
+                target = _point(doc, a.until, p0, where=where, scope=scope)
                 r_q = math.hypot(q[0] - pivot[0], q[1] - pivot[1])
                 r_t = math.hypot(target[0] - pivot[0], target[1] - pivot[1])
                 if abs(r_q - r_t) > PIN_TOLERANCE_PX:

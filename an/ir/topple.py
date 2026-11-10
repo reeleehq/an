@@ -56,9 +56,11 @@ class ToppleAction(ExtensionAction):
     #: The topple whose body knocks this one over (it starts when they touch).
     after: str | None = None
     #: A point of the body, or of an item it holds (``path@u,v``: fractions of
-    #: that node's drawing), that stops the fall where it reaches ``until``.
+    #: that node's drawing; or ``path@<bone>``, a bone or landmark of its rig),
+    #: that stops the fall where it reaches ``until``.
     point: str | None = None
-    #: Where ``point`` stops (``path@u,v`` of another body, or ``world@x,y``);
+    #: Where ``point`` stops (``path@u,v`` or ``path@<bone>`` of another body,
+    #: e.g. ``han/head@eye``, or ``world@x,y``);
     #: unset: the body falls until another of its points reaches the floor.
     until: str | None = None
     #: The coefficient of restitution when it hits the floor (0: dead).

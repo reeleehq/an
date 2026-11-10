@@ -123,3 +123,39 @@ def test_a_point_stops_on_its_target_or_the_body_is_told_where_to_stand(tmp_path
             f"point: 'a@1.0,0.0', until: 'world@{target[0] + 30:.3f},{target[1]:.3f}'}}",
             stick=False,
         )
+
+
+def _hand_after(doc, entity, x, t):
+    """Where ``entity``'s ``hand`` bone (250 units above its foot at ``x``) is at ``t``: turned about its right foot."""
+    pivot = (x + 40.0 * K, FLOOR)
+    hand = (x, FLOOR - 250.0 * K)
+    a = evaluate_timeline(timeline_from_scene(doc), t)[(entity, "rotation")]
+    dx, dy = hand[0] - pivot[0], hand[1] - pivot[1]
+    return (
+        pivot[0] + math.cos(a) * dx - math.sin(a) * dy,
+        pivot[1] + math.sin(a) * dx + math.cos(a) * dy,
+    )
+
+
+def test_a_point_and_its_target_may_be_bones_of_the_rigs(tmp_path):
+    # `a@hand` is a bone no part is drawn on (a landmark), as a figurine's eye is:
+    # 250 units above the foot. Standing b at x -100 + 80K puts its own hand on
+    # the circle a's hand sweeps about a's right foot (x -100 + 40K).
+    b_at = -100.0 + 80.0 * K
+    doc = _compile(
+        tmp_path,
+        "- {kind: topple, body: a, toward: right, push: 3.0, start: 0.5, "
+        "point: 'a@hand', until: 'b@hand'}",
+        b_at=b_at,
+        stick=False,
+    )
+    assert ("pin", "a") in _events(doc)
+    assert _hand_after(doc, "a", -100.0, 3.9) == pytest.approx((b_at, FLOOR - 250.0 * K), abs=1.0)
+    with pytest.raises(ToppleError, match=r"'nose' is not a bone of 'a'"):
+        _compile(
+            tmp_path / "unknown",
+            "- {kind: topple, body: a, toward: right, push: 3.0, start: 0.5, "
+            "point: 'a@nose', until: 'b@hand'}",
+            b_at=b_at,
+            stick=False,
+        )

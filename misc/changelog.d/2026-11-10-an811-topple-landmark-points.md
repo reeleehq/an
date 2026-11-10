@@ -1,0 +1,1 @@
+- `topple`'s `point` and `until` name a rig's bone or landmark (`until: 'han/head@eye_unpatched'`) through the solve's one point resolver, instead of only `path@u,v` or `world@x,y` (an#811).

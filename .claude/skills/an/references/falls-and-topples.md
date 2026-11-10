@@ -36,7 +36,7 @@ It falls from where the hand lets go, spinning at a steady rate, touches the flo
 | `id` | its name, for another topple's `after` | |
 | `after` | the topple whose body knocks this one: it starts at the instant they first touch, turning at `knock` × the knocker's speed there over its own height | |
 | `knock` | that share | 0.6 |
-| `point`, `until` | a point of the body or of an item it holds (`path@u,v`, fractions of that node's drawing, 0,0 its top left), and where it stops (`path@u,v` of another body, or `world@x,y`): the fall stops there and stays (stuck) | it falls until another point of it reaches its floor |
+| `point`, `until` | a point of the body or of an item it holds (`path@u,v`, fractions of that node's drawing, 0,0 its top left; or `path@<bone>`, a bone or landmark of its rig), and where it stops (`path@u,v` or `path@<bone>` of another body, e.g. `han/head@eye_unpatched`, or `world@x,y`): the fall stops there and stays (stuck). On a rig with several root parts name the part a landmark is on (`han/head@…`, not `han@…`) | it falls until another point of it reaches its floor |
 | `bounce` | restitution when it hits its floor | 0.15 |
 
 Quote a `@u,v` point in a flow mapping (`point: 'sabre@0.03,0.02'`): unquoted, YAML reads the comma as the end of the entry.
