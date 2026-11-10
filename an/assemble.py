@@ -896,6 +896,9 @@ class Placement:
     fade_in: float = 0.0
     fade_out: float = 0.0
     duck: tuple[float, float, float] | None = None  # (duck_db, attack, release)
+    #: Seconds cut from the head of the file: a hit cued so near the film's
+    #: start that its lead-in (before its sync point) would start before 0.
+    skip: float = 0.0
 
 
 @dataclass
@@ -912,8 +915,34 @@ class MixPlan:
 
 
 def _cue_placement(
-    cue: SoundCue, *, at: float, container_end: float, path: Path, asset_duration: float
+    cue: SoundCue,
+    *,
+    at: float,
+    container_end: float,
+    path: Path,
+    asset_duration: float,
+    sync: float | None = None,
 ) -> Placement:
+    """Where ``cue`` sounds: its sound's sync point (``sync``: the hit, seconds
+    into the file) at ``at``, so the file starts ``sync`` earlier (a loop is
+    placed by its first sample); what would start before the film's 0 is cut
+    from the head.
+
+    >>> p = _cue_placement(SoundCue(sound="clink", at=12.0), at=12.0, container_end=20.0,
+    ...                    path=Path("c.wav"), asset_duration=1.5, sync=0.78)
+    >>> round(p.at, 2), p.skip, p.play
+    (11.22, 0.0, 1.5)
+    >>> p = _cue_placement(SoundCue(sound="clink", at=0.5), at=0.5, container_end=20.0,
+    ...                    path=Path("c.wav"), asset_duration=1.5, sync=0.78)
+    >>> p.at, round(p.skip, 2), round(p.play, 2)
+    (0.0, 0.28, 1.22)
+    """
+    skip = 0.0
+    if sync and not cue.loop:
+        at -= sync
+        if at < 0.0:
+            skip, at = -at, 0.0
+        asset_duration = max(0.0, asset_duration - skip)
     if cue.duration is not None:
         # A cue that does not loop cannot sound longer than its asset: its
         # fade-out must land on audio that exists.
@@ -935,6 +964,7 @@ def _cue_placement(
             if cue.duck_db is not None
             else None
         ),
+        skip=skip,
     )
 
 
@@ -971,9 +1001,9 @@ def mix_plan(
                 plan.dialogue_spans.append((at, at + float(line.duration)))
 
     sounds = mall.get("sounds")
-    staged: dict[str, tuple[Path, float]] = {}
+    staged: dict[str, tuple[Path, float, float | None]] = {}
 
-    def stage(key: str) -> tuple[Path, float]:
+    def stage(key: str) -> tuple[Path, float, float | None]:
         if key not in staged:
             if sounds is None:
                 raise AssemblyError(
@@ -989,13 +1019,18 @@ def mix_plan(
                 length = wav_duration(data)
             except SoundError:
                 length = asset.duration
-            staged[key] = (path, length)
+            staged[key] = (path, length, asset.sync)
         return staged[key]
 
     def place(cue: SoundCue, *, at: float, container_end: float) -> None:
-        path, length = stage(cue.sound)
+        path, length, sync = stage(cue.sound)
         placement = _cue_placement(
-            cue, at=at, container_end=container_end, path=path, asset_duration=length
+            cue,
+            at=at,
+            container_end=container_end,
+            path=path,
+            asset_duration=length,
+            sync=sync,
         )
         # A cue that would sound for no time (a loop placed after its
         # container ends) contributes nothing; validate warns about it.
@@ -1165,6 +1200,8 @@ def mix_command(plan: MixPlan, video: Path, output: Path) -> list[str]:
             cmd += ["-stream_loop", "-1"]
         cmd += ["-i", str(p.path)]
         chain = [fmt]
+        if p.skip:
+            chain += [f"atrim=start={p.skip:.6f}", "asetpts=PTS-STARTPTS"]
         if p.play is not None:
             chain.append(f"atrim=end={p.play:.6f}")
         if p.fade_in:

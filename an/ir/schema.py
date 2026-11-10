@@ -2055,39 +2055,84 @@ class Transition(_IRModel):
 
 
 class CueAnchor(_IRModel):
-    """A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column.
+    """A sound cue's time, taken from the picture (an#317): when a node reaches
+    a frame row or column, or when an item's hold event happens.
 
-    ``when`` is a node path in a stage shot (``crawl/line_7``: a text block's
-    unit, a prop, a plane); ``reaches`` is ``{"y": px}`` or ``{"x": px}`` in
-    the frame's pixels (0 at the top or left), crossed in either direction by
-    the node's on-screen centre — the camera, parallax and a crawl's tilt
-    included. Resolved when the film is laid out, never written back into the
-    scene: a layout change moves the sound with the picture. ``offset`` is
+    **A crossing:** ``when`` is a node path in a stage shot (``crawl/line_7``:
+    a text block's unit, a prop, a plane); ``reaches`` is ``{"y": px}`` or
+    ``{"x": px}`` in the frame's pixels (0 at the top or left), crossed in
+    either direction by the node's on-screen centre — the camera, parallax and
+    a crawl's tilt included.
+
+    **A hold event:** ``when`` is an item (an entity a hold verb moves, or a
+    body a ``topple`` moves) and ``event`` what happens to it, as the compiled
+    shot's hold report records it (:data:`an.stage.hold.HOLD_EVENTS`):
+    ``grasp`` (a hand takes it), ``place`` (it arrives where it is put),
+    ``contact`` (either), ``release`` (let go), ``land`` (it first touches the
+    floor), ``bounce``, ``rest``; ``nth`` picks the n-th such event (1: the
+    first). The swap's clink is ``{when: sabre, event: place}``; the drop's
+    thud ``{when: musket, event: land}``.
+
+    Resolved when the film is laid out, never written back into the scene: a
+    layout or timing change moves the sound with the picture. ``offset`` is
     added after. ``shot`` names the shot to look in, for a cue in
     ``meta.sounds`` (default: the first shot that has the node).
 
     >>> CueAnchor(when="crawl/line_7", reaches={"y": 840}).axis
     ('y', 840.0)
+    >>> CueAnchor(when="musket", event="land").describe()
+    'musket land'
+    >>> CueAnchor(when="musket", event="land").model_dump()
+    {'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}
     """
 
     when: str
-    reaches: dict[str, float]
+    reaches: dict[str, float] | None = None
+    event: str | None = None
+    nth: int = Field(default=1, ge=1)
     offset: float = 0.0
     shot: str | None = None
 
     @model_validator(mode="after")
     def _one_axis(self) -> "CueAnchor":
-        if len(self.reaches) != 1 or next(iter(self.reaches)) not in ("x", "y"):
+        if (self.reaches is None) == (self.event is None):
+            raise ValueError(
+                "a cue anchor says either `reaches: {y: px}` (a node crossing a "
+                "frame row or column) or `event: <grasp|place|contact|release|land|"
+                f"bounce|rest>` (an item's hold event), not {'both' if self.event else 'neither'}"
+            )
+        if self.reaches is not None and (
+            len(self.reaches) != 1 or next(iter(self.reaches)) not in ("x", "y")
+        ):
             raise ValueError(
                 f"`reaches` names one frame axis, x or y, got {dict(self.reaches)!r}"
             )
         return self
 
+    @model_serializer(mode="wrap")
+    def _omit_unset(self, handler):
+        # The fields the event form added leave no trace on a crossing (and
+        # `nth` none at its default): an anchor stored before reads the same.
+        data = _omit_none(handler(self), "reaches", "event")
+        if isinstance(data, dict) and data.get("nth") == 1:
+            data.pop("nth")
+        return data
+
     @property
     def axis(self) -> tuple[str, float]:
-        """``(axis, pixels)``."""
+        """``(axis, pixels)`` of a crossing."""
+        if self.reaches is None:
+            raise ValueError(f"anchor {self.describe()!r} is a hold event, not a crossing")
         ((axis, value),) = self.reaches.items()
         return axis, float(value)
+
+    def describe(self) -> str:
+        """The anchor in words, for a finding: ``crawl/line_7 reached y=840``, ``musket land``."""
+        if self.event is not None:
+            nth = f" #{self.nth}" if self.nth != 1 else ""
+            return f"{self.when} {self.event}{nth}"
+        axis, value = self.axis
+        return f"{self.when} reached {axis}={value:g}"
 
 
 class CueUntil(_IRModel):

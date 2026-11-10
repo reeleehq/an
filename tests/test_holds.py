@@ -75,6 +75,19 @@ INK_BOTTOM = (0.0, 100.0 * K)
 HAND_END = (0.0, 200.0 * K * (1.0 - 0.04))
 
 
+#: The corners of the stick's ink (20 x 200 units about its centre), in its node's frame.
+INK_CORNERS = tuple((sx * 10.0 * K, sy * 100.0 * K) for sx in (-1, 1) for sy in (-1, 1))
+
+
+def _lowest_ink(doc, path, t):
+    """The lowest (largest y) of the stick's ink corners on the stage at ``t``."""
+    return max(_stage(doc, path, t, point=c)[1] for c in INK_CORNERS)
+
+
+def _event(doc, name, item="stick", index=0):
+    return [e for e in _holds(doc)["events"] if e["event"] == name and e["item"] == item][index]
+
+
 def _hand(doc, t):
     return _stage(doc, "fig/arm_r", t, point=HAND_END)
 
@@ -329,23 +342,51 @@ def test_a_release_tossed_onto_the_ground_lands_there_on_an_arc(tmp_path):
     start_y = ys[0][0]
     apex = min(y for y, _ in ys)
     assert apex < start_y - 30  # it rises before it falls
+    # It comes to rest, after tipping onto its side, centred where it was thrown.
     x, _y = _stage(doc, "stick", 4.0)
     assert x == pytest.approx(150.0, abs=1e-3)
-    assert _stage(doc, "stick", 4.0, point=INK_BOTTOM)[1] == pytest.approx(
-        GROUND, abs=1.0
-    )
+    assert _lowest_ink(doc, "stick", 4.0) == pytest.approx(GROUND, abs=1.0)
 
 
 def test_a_dropped_item_falls_straight_and_lands_on_the_floor(tmp_path):
     actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n- {kind: release, item: stick, at: 2.0}"
     doc = _compile(_project(tmp_path, actions))
     x0 = _stage(doc, "stick", 2.0)[0]
-    assert _stage(doc, "stick", 4.0)[0] == pytest.approx(x0, abs=0.5)
-    assert _stage(doc, "stick", 4.0, point=INK_BOTTOM)[1] == pytest.approx(
-        GROUND, abs=1.0
-    )
-    ys = [_stage(doc, "stick", t)[1] for t in _times(2.0, 2.4)]
+    land = _event(doc, "land")["at"]
+    # Straight down until it touches the floor (then it falls over the end that touched).
+    for t in _times(2.0, land):
+        assert _stage(doc, "stick", t)[0] == pytest.approx(x0, abs=0.5)
+    assert _lowest_ink(doc, "stick", 4.0) == pytest.approx(GROUND, abs=1.0)
+    ys = [_stage(doc, "stick", t)[1] for t in _times(2.0, land)]
     assert all(b >= a - 1e-6 for a, b in zip(ys, ys[1:]))  # it only goes down
+
+
+def test_a_dropped_stick_falls_over_and_lies_on_its_side(tmp_path):
+    """A let-go item lands the way it falls (the user, 2026-11-10: "it floats up
+    and down; use object falling physics"): a bar drawn upright is not stood back
+    up on its end, it topples and lies flat; it never rises; it spins at a steady
+    rate in the air; and the report says when it lands and rests."""
+    actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n- {kind: release, item: stick, at: 2.0}"
+    doc = _compile(_project(tmp_path, actions))
+    land, rest = _event(doc, "land")["at"], _event(doc, "rest")["at"]
+    assert 2.0 < land < rest < 4.0
+    rot = _pose(doc, 4.0)[("stick", "rotation")]
+    assert abs(abs(rot) - math.pi / 2) < 0.05, rot  # on its side
+    # Its centre never goes up between the let-go and the landing.
+    ys = [_stage(doc, "stick", t, point=(0.0, 0.0))[1] for t in _times(2.0, land)]
+    assert all(b >= a - 1e-6 for a, b in zip(ys, ys[1:]))
+    timeline = _holds(doc)["holders"]["stick"]
+    assert timeline[-2:] == [[2.0, "air"], [round(land, 2), "ground"]]
+
+
+def test_a_release_onto_x_with_no_arc_never_rises(tmp_path):
+    """``onto: ground@x`` with no ``arc`` is a drop nudged to land there, not a
+    throw: the default arc is 0 (it was 40 px, which made every let-go rise)."""
+    actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n- {kind: release, item: stick, at: 2.0, onto: ground@-20}"
+    doc = _compile(_project(tmp_path, actions))
+    land = _event(doc, "land")["at"]
+    ys = [_stage(doc, "stick", t)[1] for t in _times(2.0, land)]
+    assert all(b >= a - 1e-6 for a, b in zip(ys, ys[1:]))
 
 
 def test_a_held_item_turns_round_with_its_carrier(tmp_path):
@@ -710,6 +751,7 @@ def test_a_held_item_draws_just_above_the_part_that_holds_it(tmp_path):
         "stand@hand",
         "fig/arm_r",
         "air",
+        "ground",
     ]
     (channel,) = _paint_channels(doc)
     assert channel.target == "stick"
@@ -1078,7 +1120,7 @@ def test_a_rig_placed_by_its_middle_is_not_standing_on_it(tmp_path):
     (stand / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
     doc = _compile(load(root))
     base = 200.0 + 75.0 * K
-    lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
+    lowest = _lowest_ink(doc, "stick", 2.9)
     assert lowest == pytest.approx(base, abs=1.0), lowest
 
 
@@ -1112,5 +1154,5 @@ def test_a_rig_whose_root_bone_is_its_middle_is_not_standing_on_it(tmp_path):
     doc["skins"]["default"]["slots"]["body"]["body"]["anchor"] = [0.5, 0.5]
     (stand / "prop.json").write_text(_json.dumps(doc), encoding="utf-8")
     doc = _compile(load(root))
-    lowest = _stage(doc, "stick", 2.9, point=INK_BOTTOM)[1]
+    lowest = _lowest_ink(doc, "stick", 2.9)
     assert lowest == pytest.approx(200.0 + 75.0 * K, abs=1.0), lowest

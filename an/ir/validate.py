@@ -3405,6 +3405,7 @@ def _check_assembly(
     if sounds is None:
         return  # store not supplied: the reference checks did not run
     durations: dict[str, str | None] = {}  # one read of each sound, however many cues
+    measured: dict[str, float | None] = {}  # each undeclared sound's hit, measured once
     for base, j, cue in cues:
         path = f"{base}/{j}/sound"
         if cue.sound not in sounds:
@@ -3419,6 +3420,9 @@ def _check_assembly(
             durations[cue.sound] = _sound_duration_problem(sounds, cue.sound)
         if durations[cue.sound]:
             report.add("warning", path, durations[cue.sound])
+        late = _late_hit(sounds, cue, measured)
+        if late:
+            report.add("warning", f"{base}/{j}/at", late)
         source = (sounds[cue.sound] or {}).get("source") or {}
         if not source.get("license"):
             report.add(
@@ -3427,6 +3431,42 @@ def _check_assembly(
                 f"sound {cue.sound!r} has no recorded licence; `an credits` "
                 "reports it UNVERIFIED — unknown is not unencumbered",
             )
+
+
+#: A hit this far (s) into its file, cued by its first sample, sounds late
+#: enough to be seen (ITU-R BT.1359's 125 ms sound-behind window).
+LATE_HIT_S: float = 0.125
+
+
+def _late_hit(
+    sounds: Mapping[str, Any], cue: Any, measured: dict[str, float | None]
+) -> str | None:
+    """A warning when ``cue`` (not a loop) plays a sound whose hit comes
+    :data:`LATE_HIT_S` or more after its first sample and whose ``sound.json``
+    declares no ``sync`` point: the cue's ``at`` is its first sample, so what
+    is heard is late by that lead-in."""
+    if cue.loop:
+        return None
+    record = sounds[cue.sound] or {}
+    if record.get("sync") is not None:
+        return None
+    if cue.sound not in measured:
+        from an.sounds import SoundError, measure_sync
+
+        read_audio = getattr(sounds, "read_audio", None)
+        try:
+            measured[cue.sound] = measure_sync(read_audio(cue.sound)) if read_audio else None
+        except (SoundError, OSError, ValueError, KeyError):
+            measured[cue.sound] = None
+    lead = measured[cue.sound]
+    if lead is None or lead < LATE_HIT_S:
+        return None
+    return (
+        f"sound {cue.sound!r} hits {lead:.2f} s into its file, and its sound.json "
+        "declares no sync point, so this cue is heard that late after its `at`. "
+        f"Declare it: `an sounds sync <project> {cue.sound}` (measures {lead:.2f} s; "
+        "the cue then puts the hit at `at`), or trim the clip's lead-in"
+    )
 
 
 def _sound_duration_problem(sounds: Mapping[str, Any], key: str) -> str | None:

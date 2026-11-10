@@ -77,6 +77,9 @@ The core's constraints:
   :data:`CAUSE_TOLERANCE`) and sits within the audio-visual sync window
   (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and
   lip-sync consistency are not built.
+- ``cue_event``: a shot sound cue timed by a hold event (``at: {when: musket,
+  event: land}``) names an event the compiled shot has (error, listing the
+  item's events, else an ``info`` line with its second).
 - ``light`` (catalogue D1): under the scene's one ``meta.light``, a member whose
   art declares ``metadata.shaded_side`` (or ``overrides.shaded_side``) is shaded
   on the side facing away from it, read where that side faces on screen as the
@@ -114,6 +117,7 @@ __all__ = [
     "GRAVITY",
     "gravity_of",
     "CAUSALITY",
+    "CUE_EVENT",
     "av_offset_fault",
     "airborne_faults",
     "Move",
@@ -1870,12 +1874,12 @@ def check_causality(ctx: Any) -> None:
     doc = compiled_shot(ctx)
     if doc is None:
         return
-    from an.sound_anchors import SoundAnchorError, crossing_in_document
+    from an.sound_anchors import SoundAnchorError, anchor_in_document
 
     for j, cue in cues:
         where = f"{ctx.path}/sounds/{j}"
         try:
-            cause_t = crossing_in_document(
+            cause_t = anchor_in_document(
                 doc,
                 cue.cause,
                 shot_id=ctx.shot.id,
@@ -1890,21 +1894,25 @@ def check_causality(ctx: Any) -> None:
         fault = av_offset_fault(float(cue.at), cause_t)
         if fault is None:
             continue
-        axis, value = cue.cause.axis
         delta = float(cue.at) - cause_t
         ctx.report.add(
             "error" if fault == "before_cause" else "warning",
             f"{where}/at",
             f"{cue.sound!r} at {float(cue.at):.2f} s is {abs(delta) * 1000:.0f} ms "
-            f"{'ahead of' if delta < 0 else 'behind'} its cause ({cue.cause.when} "
-            f"reaches {axis}={value:g} at {cause_t:.2f} s)"
+            f"{'ahead of' if delta < 0 else 'behind'} its cause ({cue.cause.describe()} "
+            f"at {cause_t:.2f} s)"
             + (
                 ": an effect cannot precede its cause. "
                 if fault == "before_cause"
                 else f": outside the {AV_AHEAD_S * 1000:.0f} ms ahead / "
                 f"{AV_BEHIND_S * 1000:.0f} ms behind window viewers accept. "
             )
-            + f"Move the cue to {cause_t:.2f} s, or anchor it with `at: {{when: ..., reaches: ...}}`.",
+            + f"Move the cue to {cause_t:.2f} s, or anchor it to its cause: `at: "
+            + (
+                f"{{when: {cue.cause.when}, event: {cue.cause.event}}}`."
+                if cue.cause.event is not None
+                else "{when: ..., reaches: ...}`."
+            ),
         )
 
 
@@ -1912,6 +1920,44 @@ CAUSALITY = Constraint(
     "causality",
     check_causality,
     description="a sound cue that names its visible cause is not ahead of it, and is within the audio-visual sync window (catalogue B7)",
+)
+
+
+def check_cue_event(ctx: Any) -> None:
+    """The core's ``cue_event`` check: each shot cue timed by a hold event
+    (``at: {when: musket, event: land}``) names one the shot has; it says when."""
+    from an.ir.schema import CueAnchor
+
+    cues = [
+        (j, c)
+        for j, c in enumerate(ctx.shot.sounds)
+        if isinstance(c.at, CueAnchor) and c.at.event is not None
+    ]
+    if not cues:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.sound_anchors import SoundAnchorError, event_in_document
+
+    for j, cue in cues:
+        where = f"{ctx.path}/sounds/{j}/at"
+        try:
+            t = event_in_document(doc, cue.at, shot_id=ctx.shot.id, where=where)
+        except SoundAnchorError as e:
+            ctx.report.add("error", where, str(e))
+            continue
+        ctx.report.add(
+            "info",
+            where,
+            f"{cue.sound!r} sounds at {t + cue.at.offset:.2f} s ({cue.at.describe()})",
+        )
+
+
+CUE_EVENT = Constraint(
+    "cue_event",
+    check_cue_event,
+    description="a sound cue timed by a hold event (`at: {when: item, event: land}`) names an event the shot has",
 )
 
 
@@ -2202,6 +2248,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     MOTION_STYLE,
     GRAVITY,
     CAUSALITY,
+    CUE_EVENT,
     LIGHT,
 )
 

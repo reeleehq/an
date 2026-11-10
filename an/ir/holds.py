@@ -85,8 +85,10 @@ DFLT_RETRACT: Seconds = 0.35
 #: How far the body a hand hangs from may turn to reach (degrees): a figure
 #: bent well over at the hip. ``0`` never bends.
 DFLT_LEAN_DEG: float = 60.0
-#: How high a toss rises above the higher of its two ends (scene px).
-DFLT_TOSS_ARC: float = 40.0
+#: How high a toss rises above the higher of its two ends (scene px). ``0``:
+#: it is let fall, never thrown up (a let-go item does not rise; a positive
+#: ``arc`` is a throw).
+DFLT_TOSS_ARC: float = 0.0
 #: In a ``swap``, how long after the taking hand starts the giving hand starts
 #: (s): it arrives a beat after the socket is empty.
 DFLT_SWAP_LAG: Seconds = 0.25
@@ -164,9 +166,12 @@ class PlaceAction(ExtensionAction):
 
 
 class ReleaseAction(ExtensionAction):
-    """The hand holding ``item`` lets it go at ``at``: it falls with the
-    velocity it had onto the ground, or is tossed ``onto: ground@x`` on an
-    arc ``arc`` px high, and lands at ``rotation`` (default: as in ``place``).
+    """The hand holding ``item`` lets it go at ``at``: it falls (never rising)
+    onto the ground, ``onto: ground@x`` nudged to land there, or tossed up
+    first when ``arc`` (px above the hand) is positive; it lands one end
+    first, tips onto its side at ``rotation`` (default: as in ``place``) and
+    bounces a little (``bounce``: the coefficient of restitution, default
+    :data:`an.stage.rigid.DFLT_BOUNCE`; 0 lands dead).
 
     >>> ReleaseAction(item="cup", at=1.0).onto is None
     True
@@ -178,6 +183,7 @@ class ReleaseAction(ExtensionAction):
     onto: str | None = None
     arc: float = Field(default=DFLT_TOSS_ARC, ge=0, allow_inf_nan=False)
     rotation: float | None = Field(default=None, allow_inf_nan=False)
+    bounce: float | None = Field(default=None, ge=0, le=0.95, allow_inf_nan=False)
 
 
 class HandoverAction(ExtensionAction):
@@ -284,13 +290,18 @@ def release(
     onto: str | None = None,
     arc: float = DFLT_TOSS_ARC,
     rotation: float | None = None,
+    bounce: float | None = None,
 ) -> ReleaseAction:
-    """Let ``item`` go at ``at`` (a drop, or a toss ``onto: ground@x``).
+    """Let ``item`` go at ``at`` (a drop; ``onto: ground@x`` to land there; ``arc`` > 0 to throw it up first).
 
     >>> release("musket", onto="ground@-620", arc=60).arc
     60.0
+    >>> release("musket", onto="ground@-620").arc   # let fall: no rise
+    0.0
     """
-    return ReleaseAction(item=item, at=at, onto=onto, arc=arc, rotation=rotation)
+    return ReleaseAction(
+        item=item, at=at, onto=onto, arc=arc, rotation=rotation, bounce=bounce
+    )
 
 
 def handover(

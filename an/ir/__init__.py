@@ -53,6 +53,7 @@ from an.ir.holds import grasp, place, release, handover, swap  # noqa: E402
 
 # Changing frame (an#502, ADR 0008 decision 5): reframe.
 from an.ir.reframe import reframe  # noqa: E402
+from an.ir.topple import topple  # noqa: E402  (registers the `topple` action kind)
 from an.ir.validate import (
     validate_schema,
     validate_semantic,
@@ -130,6 +131,7 @@ __all__ = [
     "release",
     "handover",
     "swap",
+    "topple",
 ]
 
 # Document kinds self-register on import of the package that owns their schema.

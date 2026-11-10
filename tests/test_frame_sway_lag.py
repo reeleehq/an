@@ -493,13 +493,14 @@ def _braking_hold(tmp_path, mode: str):
 
 @pytest.mark.parametrize(
     "mode, quarters",
-    [("release", 0), ("surface", 0), ("authored", 1)],
+    [("release", 1), ("surface", 0), ("authored", 1)],
 )
 def test_an_item_let_go_in_a_braking_car_lands_as_it_hangs(tmp_path, mode, quarters):
     """an#659: the figure leans ~64 degrees with the braking car and carries
-    the stick at that angle; let go, the stick landed at the nearest quarter
-    turn of it (on its side). The floor does not lean: the holder's lean is
-    taken out first, so it lands upright (``release``); put on a crate that
+    the stick at that angle. The floor does not lean: let go (``release``),
+    the stick lands level with the floor, on the side it falls to (a rigid
+    fall since 2026-11-10: a thin stick is never stood back up on its end, so
+    on its side, a quarter turn from upright, not at the 64 degrees it hung at); put on a crate that
     leans with it, it lies level on it (``surface``: the crate's lean is taken
     out too); and a figure the author tilts to lie down, which the world does
     not mark as leaning, still lets it land sideways (``authored``)."""

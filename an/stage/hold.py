@@ -34,10 +34,15 @@ that the hand first goes where the item is:
   aligned with a socket's frame or lying on the ground at its rest angle, its
   lowest INK point at floor height (the texture's alpha, not its box, so a
   carved part with a transparent margin does not float).
-- **Release.** A parabola under gravity (the shot's or the style pack's, else
-  :data:`DFLT_FALL_GRAVITY`) from the velocity the hand gave it, turning to its
-  rest angle on the way down, landing on the ground exactly; ``onto:
-  ground@x`` solves the throw that lands there on an arc ``arc`` px high.
+- **Release.** A rigid fall under gravity (the shot's or the style pack's,
+  else :data:`DFLT_FALL_GRAVITY`; :func:`an.stage.rigid.drop_track`): a
+  parabola from where it was let go (never rising, unless tossed: ``arc`` >
+  0), spinning at a constant rate, one end touching the floor first, a tip
+  onto its side about that end, a small bounce (``bounce``), at rest on the
+  side it fell nearest to (or at ``rotation``); ``onto: ground@x`` solves the
+  horizontal speed that lands it there. Let go already touching the floor (a
+  long item carried low), it falls over that end where it is, and the report
+  warns. The report records when it lands and rests (``events``).
 
 **Draw order.** While a body holds an item, the item is PAINTED just after
 its holder's part (an#537): a ``paint_after`` channel on the item's entity node
@@ -115,8 +120,10 @@ __all__ = [
     "DFLT_FALL_GRAVITY",
     "HOLD_PLAN_PASSES",
     "SURFACE_BONES",
+    "HOLD_EVENTS",
     "HoldError",
     "HoldVerb",
+    "hold_events",
     "HoldDeclarations",
     "declares_holds",
     "hold_declarations",
@@ -128,7 +135,7 @@ __all__ = [
 
 #: The hold layer's version, in the shot-cache key (``solve_knobs``): bump it
 #: when the same declarations can compile to other keys.
-HOLD_VERSION: str = "2"
+HOLD_VERSION: str = "3"
 #: The key of the hold report inside ``meta.extensions.solve``.
 HOLDS_REPORT: str = "holds"
 #: ``AssetRef.overrides`` key: what holds an item when the shot opens
@@ -692,6 +699,9 @@ class _Ctx:
     #: floor is that point's line, not the lowest of their parts (an arm can
     #: hang lower).
     stands: frozenset[str] = frozenset()
+    #: Each fall the walk made: ``{item, at, lands, rests, bounces}`` (seconds),
+    #: what the report's ``events`` and the holders' landing come from.
+    falls: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _frame_at(times: Sequence[float], t: float) -> int:
@@ -1376,6 +1386,7 @@ class _State:
     lin0: Lin = (0.0, 1.0, 1.0)
     lin1: Lin = (0.0, 1.0, 1.0)
     landing: Affine | None = None
+    track: Any = None  # flight: the rigid drop (:class:`an.stage.rigid.DropTrack`)
 
 
 @dataclass
@@ -1780,17 +1791,12 @@ def _pose(
         f = _min_jerk((ctx.times[k] - ctx.times[g.k0]) / span)
         hand = _apply(_body_world(puppet, run, k, state.body), state.hand)
         return _placed(hand, _blend_lin(carried, target_lin, f), state.attach)
-    # flight
+    # flight: the rigid drop (constant spin, a tip onto its side, a bounce)
     tau = ctx.times[k] - state.t0
     if tau >= state.duration - 1e-9 and state.landing is not None:
         return state.landing
-    gx, gy = ctx.gravity or (0.0, 0.0)
-    c = (
-        state.c0[0] + state.v0[0] * tau + 0.5 * gx * tau * tau,
-        state.c0[1] + state.v0[1] * tau + 0.5 * gy * tau * tau,
-    )
-    f = _min_jerk(tau / state.duration) if state.duration > 0 else 1.0
-    return _placed(c, _blend_lin(state.lin0, state.lin1, f), ctx.items[item].centre)
+    cx, cy, theta, sx, sy = state.track.pose(tau)
+    return _placed((cx, cy), (theta, sx, sy), ctx.items[item].centre)
 
 
 def _transition(
@@ -1959,6 +1965,7 @@ def _transition(
         arc=float(a.arc),
         entity=holder_entity,
         inherit=toss is None,
+        bounce=a.bounce,
     )
 
 
@@ -1976,8 +1983,13 @@ def _fall(
     arc: float,
     entity: str | None,
     inherit: bool,
+    bounce: float | None = None,
 ) -> tuple[_State, Affine]:
-    """The item leaves every holder at frame ``k``: a parabola onto the ground."""
+    """The item leaves every holder at frame ``k``: a rigid fall onto the ground
+    (:func:`an.stage.rigid.drop_track`): a parabola spinning at a constant
+    rate, one end touching first, a tip onto its side, a small bounce."""
+    from an.stage.rigid import DFLT_BOUNCE, drop_track
+
     info = ctx.items[item]
     t0 = ctx.times[k]
     c0 = _apply(current, info.centre)
@@ -2002,27 +2014,42 @@ def _fall(
             }
         )
         return _State("rest", m=current), current
-    landing0 = _on_ground(ctx, lin1, item, 0.0, ground)
-    y_land = _apply(landing0, info.centre)[1]
-    if toss is not None:
-        apex = min(c0[1], y_land) - max(0.0, arc)
-        up = math.sqrt(max(0.0, 2.0 * gy * (c0[1] - apex)))
-        down = math.sqrt(max(0.0, 2.0 * (y_land - apex) / gy))
-        duration = up / gy + down
-        vx = (
-            (toss - c0[0] - 0.5 * gx * duration * duration) / duration
-            if duration > 0
-            else 0.0
+    cx, cy = info.centre
+    theta1, sx1, sy1 = lin1
+    # The ink about the centre as it will land: R(theta) diag(sx, sy) (sx < 0: mirrored).
+    points = [(sx1 * (p[0] - cx), sy1 * (p[1] - cy)) for p in info.corners]
+    track = drop_track(
+        points,
+        centre=c0,
+        velocity=v0,
+        angle=lin0[0],
+        rest_angle=theta1 if rotation is not None else None,
+        ground=ground,
+        gravity=gy,
+        scale=((lin0[1], lin0[2]), (sx1, sy1)),
+        toss_x=toss,
+        arc=arc,
+        bounce=DFLT_BOUNCE if bounce is None else float(bounce),
+    )
+    lin1 = (track.angle, sx1, sy1)
+    rest_c = track.pose(track.rest)
+    landing = _on_ground(ctx, lin1, item, rest_c[0], track.floor)
+    if track.floor - ground > SUPPORT_TOLERANCE_PX and arc <= 0:
+        ctx.warnings.append(
+            {
+                "item": item,
+                "at": round(t0, 3),
+                "message": (
+                    f"{item!r} is let go at {t0:.2f} s with its lowest point "
+                    f"{track.floor - ground:.0f} px below the floor line (y {ground:g}): it "
+                    "falls over that end and lies there, in front of the line. To have it "
+                    "drop onto the line, let go of it where it clears the floor (carry it "
+                    "higher: `align: false` on the grasp keeps the angle it was taken at, "
+                    "or lift the arm before the release), or lay it down with `place`"
+                ),
+            }
         )
-        v0 = (vx, -up)
-    else:
-        # Solve 1/2 gy T^2 + vy T - (y_land - c0y) = 0 for T > 0.
-        dy = y_land - c0[1]
-        disc = v0[1] * v0[1] + 2.0 * gy * dy
-        duration = (-v0[1] + math.sqrt(disc)) / gy if disc >= 0 else 0.0
-    duration = max(0.0, duration)
-    x_land = c0[0] + v0[0] * duration + 0.5 * gx * duration * duration
-    landing = _compose(_translate(x_land, 0.0), landing0)
+    duration = max(0.0, track.rest)
     state = _State(
         "flight",
         k0=k,
@@ -2033,6 +2060,16 @@ def _fall(
         lin0=lin0,
         lin1=lin1,
         landing=landing,
+        track=track,
+    )
+    ctx.falls.append(
+        {
+            "item": item,
+            "at": t0,
+            "lands": t0 + track.touch,
+            "rests": t0 + track.rest,
+            "bounces": [t0 + b for b in track.bounces],
+        }
     )
     land_k = _frame_at(ctx.times, t0 + duration)
     rests.append((land_k, lin1))
@@ -2464,6 +2501,7 @@ def solve_holds(
             _plan(ctx, base, run)
             run = run_solve(doc, puppet, times, settings, extra_paths=extra)
     ctx.warnings.clear()  # the plans' walks said it too; the picture's walk says it once
+    ctx.falls.clear()
     walk = walk_items(ctx, run, ideal=False)
     _measure(ctx, run, walk)
     channels = _item_channels(ctx, run, walk)
@@ -2643,6 +2681,74 @@ def _nearest_support(
     return (*least, [(m[1], m[0]) for m in measured if m is not least])
 
 
+#: The visible events of a hold, as a sound cue or a check names them: a hand
+#: takes the item (``grasp``, a swap's take included), the item arrives where
+#: it is put (``place``, a swap's give included), it is let go (``release``),
+#: it first touches the floor (``land``), each bounce lands (``bounce``), it
+#: stops moving (``rest``); ``contact`` is any of ``grasp`` and ``place``.
+HOLD_EVENTS: tuple[str, ...] = ("grasp", "place", "release", "land", "bounce", "rest", "contact")
+
+
+def hold_events(
+    gestures: Sequence[Any], falls: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """The hold report's ``events``: ``[{event, item, at, by|onto}]`` in time
+    order, from the gestures' contacts and the falls (seconds, shot-local).
+
+    >>> hold_events([], [{"item": "cup", "at": 1.0, "lands": 1.3, "rests": 1.5, "bounces": [1.45]}])
+    [{'event': 'release', 'item': 'cup', 'at': 1.0}, {'event': 'land', 'item': 'cup', 'at': 1.3}, {'event': 'bounce', 'item': 'cup', 'at': 1.45}, {'event': 'rest', 'item': 'cup', 'at': 1.5}]
+    """
+    out: list[dict[str, Any]] = []
+    falls = _falls_as_shown(gestures, falls)
+    for g in gestures:
+        if g.kind in ("grasp", "take"):
+            out.append({"event": "grasp", "item": g.item, "at": round(g.contact, 4), "by": g.ref})
+        elif g.kind in ("place", "give"):
+            onto = g.target.text() if g.target is not None else None
+            out.append({"event": "place", "item": g.item, "at": round(g.contact, 4), "onto": onto})
+    for f in falls:
+        out.append({"event": "release", "item": f["item"], "at": round(f["at"], 4)})
+        if f["lands"] is not None:
+            out.append({"event": "land", "item": f["item"], "at": round(f["lands"], 4)})
+        out.extend(
+            {"event": "bounce", "item": f["item"], "at": round(b, 4)} for b in f["bounces"]
+        )
+        if f["rests"] is not None:
+            out.append({"event": "rest", "item": f["item"], "at": round(f["rests"], 4)})
+    return sorted(out, key=lambda e: e["at"])
+
+
+def _falls_as_shown(
+    gestures: Sequence[Any], falls: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """``falls`` cut where a hand takes the item before it rests (a catch): no
+    landing, bounce or rest after the take."""
+    out = []
+    for f in falls:
+        cut = min(
+            (
+                g.contact
+                for g in gestures
+                if g.item == f["item"]
+                and g.kind in ("grasp", "take")
+                and f["at"] - 1e-9 <= g.contact < f["rests"]
+            ),
+            default=None,
+        )
+        if cut is None:
+            out.append(dict(f))
+            continue
+        out.append(
+            {
+                **f,
+                "lands": f["lands"] if f["lands"] < cut else None,
+                "bounces": [b for b in f["bounces"] if b < cut],
+                "rests": None,
+            }
+        )
+    return out
+
+
 def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
     def r2(v: float) -> float:
         return round(float(v), 2) + 0.0
@@ -2690,6 +2796,10 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
                 timeline.append([t, ev.gesture.target.text()])
             elif ev.kind == "drop":
                 timeline.append([t, "air"])
+        for fall in _falls_as_shown(ctx.gestures, ctx.falls):
+            if fall["item"] == item and fall["lands"] is not None:
+                timeline.append([r2(fall["lands"]), "ground"])
+        timeline.sort(key=lambda e: e[0])
         holders[item] = timeline
     floating = []
     for g in ctx.gestures:
@@ -2722,6 +2832,7 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
             )
     return {
         "version": HOLD_VERSION,
+        "events": hold_events(ctx.gestures, ctx.falls),
         "gravity": [r2(v) for v in ctx.gravity] if ctx.gravity else None,
         "ground": r2(ctx.ground) if ctx.ground is not None else None,
         "gestures": gestures,

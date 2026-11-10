@@ -6,7 +6,7 @@ CLI by :data:`an.tools._dispatch_namespaces`.
 
 from __future__ import annotations
 
-__all__ = ["add"]
+__all__ = ["add", "sync"]
 
 
 def add(
@@ -64,4 +64,38 @@ def add(
     return f"sounds/{key}: {asset.duration:.2f} s from {asset.source.url} [{asset.source.license or 'unknown'}]"
 
 
-_dispatch_funcs = [add]
+def sync(project_dir: str, key: str, at: str = "auto") -> str:
+    """Record where a sound's hit is, so a cue puts the hit (not the file's first sample) at its `at`.
+
+    A clip whose clink comes after a scrape, or after silence, is heard late by
+    that lead-in when it is cued by its first sample; `an validate` warns when
+    a cued hit is 125 ms or more into its file. Only sound.json changes.
+
+    project_dir: the an project
+    key: the sound's key in the project's sounds store
+    at: seconds into the file, "auto" to measure it (the first 10 ms within 6 dB of the loudest), or "none" to clear it
+    """
+    from an.sounds import SoundError, set_sync
+    from an.stores import build_project_mall
+
+    mall = build_project_mall(project_dir)
+    value: float | str | None
+    if at.lower() == "auto":
+        value = "auto"
+    elif at.lower() == "none":
+        value = None
+    else:
+        try:
+            value = float(at)
+        except ValueError:
+            raise SystemExit(f"an sounds sync: --at {at!r}: say seconds, auto or none") from None
+    try:
+        asset = set_sync(mall["sounds"], key, value)
+    except (SoundError, KeyError) as e:
+        raise SystemExit(f"an sounds sync: {e}") from e
+    if asset.sync is None:
+        return f"sounds/{key}: no sync point (a cue places its first sample)"
+    return f"sounds/{key}: its hit is {asset.sync:.2f} s into the file; a cue's `at` is the hit"
+
+
+_dispatch_funcs = [add, sync]

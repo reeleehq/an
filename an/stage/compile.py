@@ -1207,6 +1207,13 @@ def _solve_pass(state: CompileState) -> None:
     solve_pass(state)
 
 
+def _topple_pass(state: CompileState) -> None:
+    """The ``topple`` pass (after ``solve``): see :mod:`an.stage.topple`."""
+    from an.stage.topple import topple_pass
+
+    topple_pass(state)
+
+
 def _camera_follow_pass(state: CompileState) -> None:
     """A following camera (an#445): its keys, from where the target IS.
 
@@ -1741,6 +1748,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         _solve_pass,
         order=525,
         description="joints kept at every frame: the bodies the joints move (ADR 0008, an#512)",
+    ),
+    CompilePass(
+        "topple",
+        _topple_pass,
+        order=535,
+        description="rigid bodies falling over about their foot, one knocking the next (an.ir.topple)",
     ),
     CompilePass(
         "camera_follow",

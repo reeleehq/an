@@ -47,6 +47,8 @@ __all__ = [
     "SoundError",
     "add_sound",
     "get_sound",
+    "measure_sync",
+    "set_sync",
     "synth_bed",
     "synth_hit",
     "synth_tone",
@@ -107,6 +109,11 @@ class SoundAsset(BaseModel):
     #: an#330 a pipe-cut WAV recorded its streaming header's ~22369 s).
     duration: float
     description: str = ""
+    #: Seconds from the first sample to the instant the sound IS its event (a
+    #: hit's transient, the clink after a scrape): a cue's ``at`` puts THIS
+    #: instant there (an#317 follow-up; :func:`measure_sync`, :func:`set_sync`).
+    #: ``None``: its first sample is the event, as before.
+    sync: float | None = None
 
 
 @dataclass(frozen=True)
@@ -263,6 +270,89 @@ def add_sound(
     store[key] = asset.model_dump(exclude_none=True)
     store.write_audio(key, audio)
     return asset
+
+
+#: A sync point is the first window within this many dB of the loudest one: the
+#: attack of the main hit, not a soft lead-in before it.
+SYNC_PEAK_DB: float = 6.0
+#: The window the loudness is measured over (s).
+SYNC_WINDOW_S: float = 0.01
+
+
+def wav_samples(data: bytes) -> tuple[Any, int]:
+    """``(mono float samples in [-1, 1], sample rate)`` of PCM WAV ``data``.
+
+    >>> samples, rate = wav_samples(synth_tone(440.0, 0.1))
+    >>> rate, len(samples), round(float(abs(samples).max()), 1)
+    (44100, 4410, 0.3)
+    """
+    import numpy as np
+
+    lay = _wav_layout(data)
+    width = lay.block_align // lay.channels
+    raw = data[lay.offset : lay.end]
+    if width == 1:
+        x = (np.frombuffer(raw, dtype=np.uint8).astype(np.float64) - 128.0) / 128.0
+    elif width in (2, 4):
+        dtype = np.int16 if width == 2 else np.int32
+        x = np.frombuffer(raw, dtype=f"<i{width}").astype(np.float64)
+        x /= float(np.iinfo(dtype).max) + 1.0
+    elif width == 3:
+        b = np.frombuffer(raw, dtype=np.uint8).reshape(-1, 3).astype(np.int32)
+        v = b[:, 0] | (b[:, 1] << 8) | (b[:, 2] << 16)
+        x = np.where(v & 0x800000, v - 0x1000000, v).astype(np.float64) / 8388608.0
+    else:
+        raise SoundError(f"{8 * width}-bit samples are not read here")
+    return x.reshape(-1, lay.channels).mean(axis=1), lay.sample_rate
+
+
+def measure_sync(data: bytes) -> float:
+    """Seconds from the start of WAV ``data`` to its hit: the first
+    :data:`SYNC_WINDOW_S` window within :data:`SYNC_PEAK_DB` dB of the loudest
+    one. A clip with silence or a lead-in before its transient is late by this
+    much when it is cued by its first sample.
+
+    >>> import numpy as np
+    >>> lead = np.zeros(int(0.3 * 44100))
+    >>> hit, _ = wav_samples(synth_hit(0.2))
+    >>> round(measure_sync(_wav_bytes(np.concatenate([lead, hit]), sample_rate=44100)), 2)
+    0.3
+    """
+    import numpy as np
+
+    x, rate = wav_samples(data)
+    w = max(1, int(round(rate * SYNC_WINDOW_S)))
+    n = len(x) // w
+    if n == 0:
+        return 0.0
+    rms = np.sqrt((x[: n * w].reshape(n, w) ** 2).mean(axis=1) + 1e-20)
+    db = 20.0 * np.log10(rms)
+    first = int(np.argmax(db >= db.max() - SYNC_PEAK_DB))
+    return round(first * w / rate, 4)
+
+
+def set_sync(
+    store: MutableMapping, key: str, seconds: float | str | None = "auto"
+) -> SoundAsset:
+    """Record ``key``'s sync point: ``"auto"`` measures it
+    (:func:`measure_sync`), a number states it, ``None`` clears it (its first
+    sample is the event again). Only ``sound.json`` changes: the bytes, and the
+    licence recorded against them, stay as they were."""
+    asset, audio = get_sound(store, key)
+    if seconds == "auto":
+        value: float | None = measure_sync(audio)
+    elif seconds is None:
+        value = None
+    else:
+        value = float(seconds)
+        if not 0.0 <= value <= asset.duration:
+            raise SoundError(
+                f"sound {key!r}: a sync point at {value:g} s is outside its "
+                f"{asset.duration:g} s of audio"
+            )
+    updated = asset.model_copy(update={"sync": value})
+    store[key] = updated.model_dump(exclude_none=True)
+    return updated
 
 
 def get_sound(store: Mapping, key: str) -> tuple[SoundAsset, bytes]:

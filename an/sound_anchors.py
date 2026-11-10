@@ -12,8 +12,18 @@ when the film is laid out:
   parallax and a crawl's tilt (:func:`an.stage.timeline.screen_position`),
   sampled at every film frame and interpolated between the two that straddle
   it; plus ``offset``;
+- ``at: {when: musket, event: land}`` — the instant an item's hold event
+  happens in the compiled shot (the hold report's ``events``: ``grasp``,
+  ``place``, ``contact``, ``release``, ``land``, ``bounce``, ``rest``; and a
+  ``topple``'s, :mod:`an.stage.topple`), ``nth`` picking the n-th; plus
+  ``offset``. A swap's clink lands on the frame the sabre reaches the socket,
+  wherever the timing of the reach moves it;
 - ``until: {cue: scratch, offset: 0.12}`` — the cue ends at that cue's start
   plus ``offset`` (its ``duration`` is derived).
+
+A cue's second is where its sound's **sync point** goes (``sync`` in its
+``sound.json``, :func:`an.sounds.set_sync`: a clip whose clink comes 0.78 s
+after a scrape is placed 0.78 s early), so an anchored hit sounds on its frame.
 
 It runs on the in-memory settled copy of the scene (as the measured shot
 lengths do, :mod:`an.measurements`): ``scene.md`` keeps the anchor, never the
@@ -32,7 +42,13 @@ from an.frame_clock import frame_count
 from an.ir.schema import CueAnchor, SceneIR, SoundCue
 from an.verify._base import Finding
 
-__all__ = ["SoundAnchorError", "crossing_in_document", "resolve_cue_anchors"]
+__all__ = [
+    "SoundAnchorError",
+    "anchor_in_document",
+    "crossing_in_document",
+    "event_in_document",
+    "resolve_cue_anchors",
+]
 
 #: The kind a resolved cue's finding is filed under in the render report.
 SOUND_FINDING_KIND: str = "sound"
@@ -108,11 +124,68 @@ def crossing_in_document(
     )
 
 
+def document_events(doc: Any) -> list[dict[str, Any]]:
+    """Every hold and topple event a compiled stage document records, in time order."""
+    ext = getattr(getattr(doc, "meta", None), "extensions", None) or {}
+    holds = (ext.get("solve") or {}).get("holds") or {}
+    topple = ext.get("topple") or {}
+    events = [*(holds.get("events") or ()), *(topple.get("events") or ())]
+    return sorted(events, key=lambda e: e["at"])
+
+
+#: The events ``contact`` stands for.
+CONTACT_EVENTS: tuple[str, ...] = ("grasp", "place")
+
+
+def event_in_document(doc: Any, anchor: CueAnchor, *, shot_id: str, where: str) -> float:
+    """Shot-local seconds of ``anchor``'s hold event (the ``nth`` ``event`` of
+    item ``when``) in a compiled stage document."""
+    events = document_events(doc)
+    if not events:
+        raise SoundAnchorError(
+            f"{where}: shot {shot_id!r} records no hold or topple events, so "
+            f"{anchor.describe()!r} cannot be found (an event anchor needs a "
+            "grasp, place, release, swap or topple in the shot)"
+        )
+    names = CONTACT_EVENTS if anchor.event == "contact" else (anchor.event,)
+    mine = [e for e in events if e.get("item") == anchor.when]
+    matching = [e for e in mine if e["event"] in names]
+    if len(matching) >= anchor.nth:
+        return float(matching[anchor.nth - 1]["at"])
+    if mine:
+        have = ", ".join(f"{e['event']} {e['at']:.2f}" for e in mine)
+        found = f"the events of {anchor.when!r} in shot {shot_id!r}: {have}"
+    else:
+        items = sorted({e.get("item") for e in events})
+        found = f"no events of {anchor.when!r} in shot {shot_id!r}; items with events: {items}"
+    raise SoundAnchorError(
+        f"{where}: {anchor.describe()!r} does not happen ({len(matching)} "
+        f"{anchor.event} event(s), #{anchor.nth} asked): {found}"
+    )
+
+
+def anchor_in_document(
+    doc: Any,
+    anchor: CueAnchor,
+    *,
+    shot_id: str,
+    fps: float,
+    duration: float,
+    where: str,
+) -> float:
+    """Shot-local seconds of ``anchor`` (an event, or a crossing), before its ``offset``."""
+    if anchor.event is not None:
+        return event_in_document(doc, anchor, shot_id=shot_id, where=where)
+    return crossing_in_document(
+        doc, anchor, shot_id=shot_id, fps=fps, duration=duration, where=where
+    )
+
+
 def _crossing(
     shot: Any, ctx: Any, renderer: Any, anchor: CueAnchor, *, where: str
 ) -> float:
-    """Shot-local seconds at which ``anchor.when``'s centre first reaches ``anchor.reaches``."""
-    return crossing_in_document(
+    """Shot-local seconds of ``anchor``: its event, or when ``anchor.when``'s centre first reaches ``anchor.reaches``."""
+    return anchor_in_document(
         _stage_document(shot, ctx, renderer),
         anchor,
         shot_id=shot.id,
@@ -133,7 +206,7 @@ def _shot_with(
                 f"meta.sounds anchor names shot {anchor.shot!r}; the shots are {ids}"
             )
         return ids.index(anchor.shot)
-    root = anchor.when.split("/", 1)[0]
+    root = anchor.when.split("/", 1)[0].split("@", 1)[0]
     for i, shot in enumerate(scene.timeline):
         if any(e.id == root for e in shot.entities):
             return i
@@ -193,13 +266,12 @@ def resolve_cue_anchors(
             scene.timeline[shot_index], ctx, renderers[shot_index], anchor, where=path
         )
         t = max(0.0, local + anchor.offset + (film_starts[shot_index] if film else 0.0))
-        axis, value = anchor.axis
         findings.append(
             Finding(
                 severity="info",
                 ir_path=f"{path}/at",
                 description=(
-                    f"{cue.sound} at {t:.2f} s ({anchor.when} reached {axis}={value:g}"
+                    f"{cue.sound} at {t:.2f} s ({anchor.describe()}"
                     + (f", {anchor.offset:+g} s" if anchor.offset else "")
                     + ")"
                 ),
