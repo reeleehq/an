@@ -2,10 +2,12 @@
 
 # About this build
 
-This documentation was built on **2026-11-10 14:55 UTC** from commit <a href="https://github.com/reeleehq/an/commit/ed301b0abae0e7d2d186b06b71bde335510f2392"><code>ed301b0</code></a> on branch <code>main</code>, for **an 0.1.396** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-10 14:56 UTC** from commit <a href="https://github.com/reeleehq/an/commit/ed301b0abae0e7d2d186b06b71bde335510f2392"><code>ed301b0</code></a> on branch <code>main</code>, for **an 0.1.396** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.396) is ahead of the latest release on PyPI (0.1.394): these docs describe unreleased code.
 
 ## Source
 
@@ -22,9 +24,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42837659338">42837659338</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/42837563628">42837563628</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>0da3ba618b414d54c82eca9b4bf99416c0257143</code> (in the history of the built commit) |
+| Event commit | <code>b3de25eebd03c30251fdcff4d4e8dd3b3197c7b6</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,7 +51,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.396/">0.1.396</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.394/">0.1.394</a>, older than the documented version (0.1.396).
 
 ## Reproduce
 
