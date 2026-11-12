@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-12
+- **No walking backwards** (an#818): `an validate` gains `facing_travel`: art that declares which way it faces (`metadata.faces`, a facing or a facing per swap key; `overrides.faces` on the entity) warns when it travels the other way by its own motion, with when and how far. New module `an/verify/staging.py`.
+
 ## 2026-11-10
 - A let-go item keeps the mirror it was carried with: an item lying unmirrored, picked up by a figure that has turned round and released, no longer eases its `scale_x` through 0 in the air (squashed flat, then flipped) or slides sideways from a still hand. The falls reference also says how to lift before a deliberate drop (fast and high) and how to swing into a throw (`ease_in`, no `arc` for a toss down).
 - `topple`'s `point` and `until` name a rig's bone or landmark (`until: 'han/head@eye_unpatched'`) through the solve's one point resolver, instead of only `path@u,v` or `world@x,y` (an#811).

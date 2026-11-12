@@ -1,1 +1,0 @@
-- **No walking backwards** (an#818): `an validate` gains `facing_travel`: art that declares which way it faces (`metadata.faces`, a facing or a facing per swap key; `overrides.faces` on the entity) warns when it travels the other way by its own motion, with when and how far. New module `an/verify/staging.py`.
