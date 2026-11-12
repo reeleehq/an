@@ -67,6 +67,7 @@ import an.verify.constraints  # noqa: F401
 import an.verify.joints  # noqa: F401  (ADR 0008: the joint checks, after the catalogue's)
 import an.verify.holds  # noqa: F401  (an#502: the hold checks, beside the joint checks)
 import an.verify.support  # noqa: F401  (an#519: the support check, between the two)
+import an.verify.staging  # noqa: F401  (an#818: facing_travel, no walking backwards)
 from an.ir.migrate import (
     migrate,
     register_migration,
