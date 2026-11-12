@@ -241,11 +241,12 @@
 - [an.verify.media](_autosummary/an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
 - [an.verify.media_quality](_autosummary/an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
 - [an.verify.prosody](_autosummary/an.verify.prosody.html.md): Prosody measurement: how a recorded voice delivers its words, as numbers a target can check.
+- [an.verify.staging](_autosummary/an.verify.staging.html.md): Staging checks: a figure faces the way it goes.
 - [an.verify.support](_autosummary/an.verify.support.html.md): The &#96;support&#96; and &#96;skate&#96; checks: a body declared to rest on a surface does, and its feet do not sli...
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-10 16:13 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-12 07:37 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

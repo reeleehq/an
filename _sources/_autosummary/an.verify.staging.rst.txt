@@ -1,0 +1,27 @@
+an.verify.staging
+=================
+
+.. automodule:: an.verify.staging
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      FACES_KEY
+      STAGING_CONSTRAINTS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      declared_faces
+      art_facing_at
+      backward_runs
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FacingRun
+   

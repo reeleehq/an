@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=812dd8b6"></script>
+    <script src="_static/documentation_options.js?v=69377b74"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.397" />
+  <meta name="docsearch:version" content="0.1.398" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -447,7 +447,7 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 </div>
 </section>
 <section id="persistence-the-project-mall">
-<h3>Persistence — the project mall<a class="headerlink" href="#persistence-the-project-mall" title="Link to this heading">#</a></h3>
+<span id="persistence--the-project-mall"></span><h3>Persistence — the project mall<a class="headerlink" href="#persistence-the-project-mall" title="Link to this heading">#</a></h3>
 <p>Everything long-lived (assets, artifacts, decisions, scene state) goes through a <code class="docutils literal notranslate"><span class="pre">dol</span></code>-backed <code class="docutils literal notranslate"><span class="pre">MutableMapping</span></code> mall:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">an</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_project_mall</span>
 
@@ -471,7 +471,7 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 <p>The default verifier chain runs <code class="docutils literal notranslate"><span class="pre">LayoutLintVerifier</span></code> (pre + post) and <code class="docutils literal notranslate"><span class="pre">MediaQualityVerifier</span></code> (post). Pass your own list to swap in <code class="docutils literal notranslate"><span class="pre">VisionLMVerifier</span></code> (Claude vision QA) or <code class="docutils literal notranslate"><span class="pre">HumanInTheLoopVerifier</span></code> (interactive approval).</p>
 </section>
 <section id="free-text-iteration-the-spec-s-signature-loop">
-<h3>Free-text iteration (the spec’s signature loop)<a class="headerlink" href="#free-text-iteration-the-spec-s-signature-loop" title="Link to this heading">#</a></h3>
+<span id="free-text-iteration-the-specs-signature-loop"></span><h3>Free-text iteration (the spec’s signature loop)<a class="headerlink" href="#free-text-iteration-the-spec-s-signature-loop" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">an.orchestrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">iterate</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="s2">"my-scene"</span><span class="p">,</span> <span class="s2">"Make Maya's response a bit longer and more affectionate"</span><span class="p">)</span>
@@ -546,7 +546,7 @@ this hook to feed <code class="docutils literal notranslate"><span class="pre">l
 cutout pipeline.</p>
 </section>
 <section id="synthetic-impact-clips-cutan-impacts">
-<h3>Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">cutan.impacts</span></code>)<a class="headerlink" href="#synthetic-impact-clips-cutan-impacts" title="Link to this heading">#</a></h3>
+<span id="synthetic-impact-clips-cutanimpacts"></span><h3>Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">cutan.impacts</span></code>)<a class="headerlink" href="#synthetic-impact-clips-cutan-impacts" title="Link to this heading">#</a></h3>
 <p>Structured animations of a stick or a ball striking a surface — or striking <em>the air</em>, a stroke that turns with nothing to hit — on a known tempo grid, filmed by a camera whose frame rate, shutter and capture jitter you choose. Each clip ships a sidecar that keeps three times apart, which is what makes it useful for scoring estimators that try to recover an impact <em>between</em> two frames: the <strong>intended</strong> grid time, the <strong>executed</strong> impact time (grid plus humanisation, in continuous seconds — never snapped to a frame), and <strong>what the frames show</strong> (each frame’s exposure interval and sample instants, per-frame keypoints, and which frames bracket each impact).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cutan.impacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImpactClipSpec</span><span class="p">,</span> <span class="n">write_impact_clip</span><span class="p">,</span> <span class="n">write_impact_set</span>
 
@@ -576,7 +576,7 @@ cutout pipeline.</p>
 </section>
 <hr class="docutils" />
 <section id="what-s-not-in-v0-1">
-<h2>What’s not in v0.1<a class="headerlink" href="#what-s-not-in-v0-1" title="Link to this heading">#</a></h2>
+<span id="whats-not-in-v01"></span><h2>What’s not in v0.1<a class="headerlink" href="#what-s-not-in-v0-1" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>3D animation, generative video, interactive output, SaaS hosting, music/sound-effect generation, in-house GUI, or editing of pre-existing video footage. <code class="docutils literal notranslate"><span class="pre">an</span></code> synthesizes; it does not cut.</p></li>
 <li><p>The Manim backend works for placeholder title cards but isn’t doing real shot-to-Manim translation; Remotion + whiteboard are skeleton implementations that respond correctly to <code class="docutils literal notranslate"><span class="pre">can_render</span></code> but can’t produce video yet.</p></li>
@@ -614,7 +614,7 @@ thing that renders; <code class="docutils literal notranslate"><span class="pre"
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-10 16:13 UTC from <a href="https://github.com/reeleehq/an/commit/344495045e85f40b44be8bf0f104effc9c4b5d0c">3444950</a> (main) · an 0.1.397 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-12 07:37 UTC from <a href="https://github.com/reeleehq/an/commit/d919228a72b0e3a152563b631ea38c7a82269c77">d919228</a> (main) · an 0.1.398 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               

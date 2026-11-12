@@ -30,5 +30,6 @@ an.verify
    media
    media_quality
    prosody
+   staging
    support
    vision
