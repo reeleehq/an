@@ -379,12 +379,12 @@ def _codec_store(
 ) -> MutableMapping:
     """``files`` seen through ``dol``: a key transform, a filter on depth, a codec."""
     codec = (
-        {"data_of_obj": _json_bytes, "obj_of_data": _json_obj} if json_values else {}
+        {"value_encoder": _json_bytes, "value_decoder": _json_obj} if json_values else {}
     )
     store = wrap_kvs(
         filt_iter(files, filt=lambda p: p.count("/") == depth),
-        id_of_key=id_of_key,
-        key_of_id=key_of_id,
+        key_encoder=id_of_key,
+        key_decoder=key_of_id,
         **codec,
     )
     return store
