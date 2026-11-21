@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=69377b74"></script>
+    <script src="../../../_static/documentation_options.js?v=cd4fff6d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.398" />
+  <meta name="docsearch:version" content="0.1.399" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1123,12 +1123,14 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MutableMapping</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``files`` seen through ``dol``: a key transform, a filter on depth, a codec."""</span>
     <span class="n">codec</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">{</span><span class="s2">"data_of_obj"</span><span class="p">:</span> <span class="n">_json_bytes</span><span class="p">,</span> <span class="s2">"obj_of_data"</span><span class="p">:</span> <span class="n">_json_obj</span><span class="p">}</span> <span class="k">if</span> <span class="n">json_values</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="p">{</span><span class="s2">"value_encoder"</span><span class="p">:</span> <span class="n">_json_bytes</span><span class="p">,</span> <span class="s2">"value_decoder"</span><span class="p">:</span> <span class="n">_json_obj</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">json_values</span>
+        <span class="k">else</span> <span class="p">{}</span>
     <span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">wrap_kvs</span><span class="p">(</span>
         <span class="n">filt_iter</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">filt</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span> <span class="o">==</span> <span class="n">depth</span><span class="p">),</span>
-        <span class="n">id_of_key</span><span class="o">=</span><span class="n">id_of_key</span><span class="p">,</span>
-        <span class="n">key_of_id</span><span class="o">=</span><span class="n">key_of_id</span><span class="p">,</span>
+        <span class="n">key_encoder</span><span class="o">=</span><span class="n">id_of_key</span><span class="p">,</span>
+        <span class="n">key_decoder</span><span class="o">=</span><span class="n">key_of_id</span><span class="p">,</span>
         <span class="o">**</span><span class="n">codec</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">store</span>
