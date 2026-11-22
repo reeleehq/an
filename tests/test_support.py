@@ -583,3 +583,15 @@ def test_a_join_after_a_natural_length_play_is_read_where_the_compile_placed_it(
         joined = [(s.t, s.joined) for s in states if s.entity == "stand"]
         assert joined and all(on == (t >= 0.5 - 1e-9) for t, on in joined), joined
         assert _lint(project) == []
+
+
+def test_a_support_beside_joints_leaves_the_shot_cache_key_alone():
+    """A support is a lint's declaration: it changes no pixel, so a shot that
+    declares joints and a support keys the same as joints alone (an#796)."""
+    from an.stage.solve import solve_knobs
+
+    pin = JointSpec(type="pin", a="body", b="far")
+    support = JointSpec(type="support", a="cup@base", b="ground")
+    joints_only = solve_knobs(Shot(id="s", joints=[pin]))
+    assert solve_knobs(Shot(id="s", joints=[pin, support])) == joints_only
+    assert solve_knobs(Shot(id="s", joints=[support])) == solve_knobs(Shot(id="s"))
