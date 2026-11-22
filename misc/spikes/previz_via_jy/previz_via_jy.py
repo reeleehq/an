@@ -203,7 +203,9 @@ def property_space(info: Mapping[str, Any], *, name: str = "previz.view"):
         kind = kind_from_spec(spec)
         view = next((d for d in declared if d.kind == kind), None)
         if view is not None:
-            return FieldDecl(path, view.kind, unit=view.unit, description=view.description)
+            return FieldDecl(
+                path, view.kind, unit=view.unit, description=view.description
+            )
         return FieldDecl(path, kind)
 
     return PropertySpace(

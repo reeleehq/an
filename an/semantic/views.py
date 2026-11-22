@@ -114,7 +114,10 @@ class ViewField:
         from an.timing.spaces import FieldDecl
 
         return FieldDecl(
-            self.name, self.field_kind, unit=self.unit or None, description=self.description
+            self.name,
+            self.field_kind,
+            unit=self.unit or None,
+            description=self.description,
         )
 
     def schema(self) -> dict[str, Any]:
@@ -234,6 +237,7 @@ MULTIPLANE: ViewSpace = view_space(
     description="a 2D framing that also travels in depth through planes (a dolly)",
 )
 
+
 #: The orbit camera, declared ONCE (an#788): the field kind the timing kernel
 #: interpolates (:class:`an.timing.kinds.OrbitKind`, degrees, as previz's camera
 #: field), and the one axis of the ``orbit3d`` view space. An engine whose state
@@ -262,7 +266,12 @@ ORBIT_3D: ViewSpace = view_space(
     (
         ViewField.from_decl(
             ORBIT_DECL,
-            rest={"azimuth": 0.0, "elevation": 0.0, "distance": 1.0, "target": [0.0, 0.0, 0.0]},
+            rest={
+                "azimuth": 0.0,
+                "elevation": 0.0,
+                "distance": 1.0,
+                "target": [0.0, 0.0, 0.0],
+            },
         ),
     ),
     description="an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)",

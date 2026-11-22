@@ -302,7 +302,12 @@ class QuaternionKind(FieldKind):
 
     def value_schema(self) -> dict[str, Any]:
         n = QUATERNION_LENGTH
-        return {"type": "array", "items": {"type": "number"}, "minItems": n, "maxItems": n}
+        return {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": n,
+            "maxItems": n,
+        }
 
     def check(self, value: Any) -> str | None:
         problem = _number_list(value, "a quaternion [x, y, z, w]", QUATERNION_LENGTH)
