@@ -13,7 +13,7 @@ shapes come in:
   at them with no model at all;
 - **plain text** — the lines, one per line, optionally `speaker: text` (the
   `scene.md` grammar). No times: either each line is its own audio file, or
-  a transcriber’s timed words are matched to the text ([`align_words()`](#an.audio.transcripts.align_words));
+  a transcriber’s timed words are matched to the text (`align_words()`);
 - **a transcriber’s result** — any object shaped like scribed’s `Transcript`
   (segments with `text`/`start`/`end`/`speaker`/`words`), read by
   [`from_transcript_object()`](#an.audio.transcripts.from_transcript_object).
@@ -25,6 +25,7 @@ All times are seconds from the start of the recording they describe.
 ...                         "2\n00:00:03,000 --> 00:00:03,800\nned: Hi.\n")
 >>> [(s.speaker, s.text, s.start, s.end) for s in segs]
 [('carl', 'Hello there.', 1.0, 2.5), ('ned', 'Hi.', 3.0, 3.8)]
+>>> from an.audio.transcripts import align_words
 >>> aligned = align_words(["Hello", "there,", "friend"],
 ...                       [("hello", 0.5, 0.9), ("there", 0.9, 1.2), ("fred", 1.3, 1.6)])
 >>> aligned.words
@@ -42,32 +43,32 @@ All times are seconds from the start of the recording they describe.
 
 ### Functions
 
-| [`detect_format`](#an.audio.transcripts.detect_format)(text, \*[, suffix])           | Which of [`FORMATS`](#an.audio.transcripts.FORMATS) `text` is, by its file suffix first, then its content.                                                                                                                                                                                                       |
-|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`parse_transcript`](#an.audio.transcripts.parse_transcript)(source, \*[, fmt])         | Read `source` — a path to a transcript file, or the transcript text itself — into segments.                                                                                                                                                                                                                                    |
-| [`parse_transcript_text`](#an.audio.transcripts.parse_transcript_text)(text, \*[, fmt])      | The transcript `text` (never a path: what a store hands back, an#493) into segments; `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMATS)) overrides detection.                                                                                                                                              |
-| [`parse_srt`](#an.audio.transcripts.parse_srt)(text)                             | SubRip cues → timed segments; a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                                           |
-| [`parse_vtt`](#an.audio.transcripts.parse_vtt)(text)                             | WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the speaker.                                                                                                                                                                                                                                             |
-| [`parse_plain`](#an.audio.transcripts.parse_plain)(text)                           | One non-empty line per segment, untimed; `speaker: text` names the speaker.                                                                                                                                                                                                                                                    |
-| [`parse_json`](#an.audio.transcripts.parse_json)(obj)                             | A word-timed JSON → segments.                                                                                                                                                                                                                                                                                                  |
-| [`parse_textgrid`](#an.audio.transcripts.parse_textgrid)(text)                        | A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.                                                                                                                                                                                                                                               |
-| [`textgrid_text`](#an.audio.transcripts.textgrid_text)(tiers, \*, xmax)              | A long-form Praat TextGrid of interval `tiers` (`{name: [(start, end, label), ...]}`) spanning `0..xmax`: what [`parse_textgrid()`](#an.audio.transcripts.parse_textgrid) reads back, and what a forced aligner takes as a transcript of timed lines (an#716).                                                          |
-| [`from_transcript_object`](#an.audio.transcripts.from_transcript_object)(obj)                 | A transcriber's result — scribed's `Transcript` or anything shaped like it (iterable segments with `text`, `start`, `end`, `speaker` and `words` having `text`/`start`/`end`) — as segments.                                                                                                                                   |
-| [`parse_timestamp`](#an.audio.transcripts.parse_timestamp)(value)                      | `HH:MM:SS,mmm` / `MM:SS.mmm` / plain seconds → seconds.                                                                                                                                                                                                                                                                        |
-| [`phone_alphabet_of`](#an.audio.transcripts.phone_alphabet_of)(labels)                   | The alphabet aligner phone `labels` show, or `None` when they show none (an#721).                                                                                                                                                                                                                                              |
-| [`normalize_tokens`](#an.audio.transcripts.normalize_tokens)(text)                      | The words of `text` for matching: [`tokens_of()`](#an.audio.transcripts.tokens_of) case-folded.                                                                                                                                                                                                                    |
-| [`tokens_of`](#an.audio.transcripts.tokens_of)(text)                             | The words of `text` as written: punctuation dropped, an apostrophe inside a word kept, case kept.                                                                                                                                                                                                                              |
-| [`normalize_text`](#an.audio.transcripts.normalize_text)(text)                        | [`normalize_tokens()`](#an.audio.transcripts.normalize_tokens) joined by single spaces (what two lines are compared by).                                                                                                                                                                                                  |
-| [`align_words`](#an.audio.transcripts.align_words)(reference, timed, \*[, bounds]) | Time the `reference` words (the text the performer was meant to say) by a transcriber's `timed` words of the same audio.                                                                                                                                                                                                       |
-| [`segment_lines`](#an.audio.transcripts.segment_lines)(lines, timed, \*[, bounds])   | Time untimed `lines` (a plain transcript) by a transcriber's `timed` words of the whole recording: the lines' words are aligned as one text ([`align_words()`](#an.audio.transcripts.align_words)) and handed back per line, each line spanning its first word's start to its last word's end, with its own `words`. |
-| [`cut_spans`](#an.audio.transcripts.cut_spans)(segments, \*, total[, pad_s])     | Where to cut the recording for each timed segment: its span widened by `pad_s` on each side, never past the midpoint to its neighbour or the recording's ends (`total` seconds).                                                                                                                                               |
-| [`rebase_words`](#an.audio.transcripts.rebase_words)(words, start)                  | `words` (or phones: any `(label, start, end)` timings) re-timed from `start` (a cut's start): the clip-relative timings a line keeps.                                                                                                                                                                                          |
+| [`detect_format`](#an.audio.transcripts.detect_format)(text, \*[, suffix])         | Which of [`FORMATS`](#an.audio.transcripts.FORMATS) `text` is, by its file suffix first, then its content.                                                                                                                                                        |
+|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`parse_transcript`](#an.audio.transcripts.parse_transcript)(source, \*[, fmt])       | Read `source` — a path to a transcript file, or the transcript text itself — into segments.                                                                                                                                                                                     |
+| [`parse_transcript_text`](#an.audio.transcripts.parse_transcript_text)(text, \*[, fmt])    | The transcript `text` (never a path: what a store hands back, an#493) into segments; `fmt` (one of [`FORMATS`](#an.audio.transcripts.FORMATS)) overrides detection.                                                                                               |
+| [`parse_srt`](#an.audio.transcripts.parse_srt)(text)                           | SubRip cues → timed segments; a `speaker:` prefix names the speaker.                                                                                                                                                                                                            |
+| [`parse_vtt`](#an.audio.transcripts.parse_vtt)(text)                           | WebVTT cues → timed segments; `<v Name>` or a `speaker:` prefix names the speaker.                                                                                                                                                                                              |
+| [`parse_plain`](#an.audio.transcripts.parse_plain)(text)                         | One non-empty line per segment, untimed; `speaker: text` names the speaker.                                                                                                                                                                                                     |
+| [`parse_json`](#an.audio.transcripts.parse_json)(obj)                           | A word-timed JSON → segments.                                                                                                                                                                                                                                                   |
+| [`parse_textgrid`](#an.audio.transcripts.parse_textgrid)(text)                      | A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.                                                                                                                                                                                                |
+| [`textgrid_text`](#an.audio.transcripts.textgrid_text)(tiers, \*, xmax)            | A long-form Praat TextGrid of interval `tiers` (`{name: [(start, end, label), ...]}`) spanning `0..xmax`: what [`parse_textgrid()`](#an.audio.transcripts.parse_textgrid) reads back, and what a forced aligner takes as a transcript of timed lines (an#716).           |
+| [`from_transcript_object`](#an.audio.transcripts.from_transcript_object)(obj)               | A transcriber's result — scribed's `Transcript` or anything shaped like it (iterable segments with `text`, `start`, `end`, `speaker` and `words` having `text`/`start`/`end`) — as segments.                                                                                    |
+| [`parse_timestamp`](#an.audio.transcripts.parse_timestamp)(value)                    | `HH:MM:SS,mmm` / `MM:SS.mmm` / plain seconds → seconds.                                                                                                                                                                                                                         |
+| [`phone_alphabet_of`](#an.audio.transcripts.phone_alphabet_of)(labels)                 | The alphabet aligner phone `labels` show, or `None` when they show none (an#721).                                                                                                                                                                                               |
+| [`normalize_tokens`](#an.audio.transcripts.normalize_tokens)(text)                    | The words of `text` for matching: `tokens_of()` case-folded.                                                                                                                                                                                                                    |
+| `tokens_of`(text)                                                                          | The words of `text` as written: punctuation dropped, an apostrophe (straight or typographic) inside a word kept, case kept.                                                                                                                                                     |
+| `normalize_text`(text)                                                                     | The form two words are matched by: `tokens_of()` the case-folded `text`, typographic apostrophes made straight, joined by single spaces.                                                                                                                                        |
+| `align_words`(reference, heard, \*[, bounds, ...])                                         | Time the `reference` tokens (what was meant to be said) by a recogniser's `heard` words of the same audio.                                                                                                                                                                      |
+| [`segment_lines`](#an.audio.transcripts.segment_lines)(lines, timed, \*[, bounds]) | Time untimed `lines` (a plain transcript) by a transcriber's `timed` words of the whole recording: the lines' words are aligned as one text (`align_words()`) and handed back per line, each line spanning its first word's start to its last word's end, with its own `words`. |
+| [`cut_spans`](#an.audio.transcripts.cut_spans)(segments, \*, total[, pad_s])   | Where to cut the recording for each timed segment: its span widened by `pad_s` on each side, never past the midpoint to its neighbour or the recording's ends (`total` seconds).                                                                                                |
+| [`rebase_words`](#an.audio.transcripts.rebase_words)(words, start)                | `words` (or phones: any `(label, start, end)` timings) re-timed from `start` (a cut's start): the clip-relative timings a line keeps.                                                                                                                                           |
 
 ### Classes
 
-| [`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)(text[, start, end, ...])   | One spoken line of a transcript: its text, and when and who, if known.                                                                                                                     |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`AlignedWords`](#an.audio.transcripts.AlignedWords)(words, matched, total)          | [`align_words()`](#an.audio.transcripts.align_words)'s result: the reference words timed, and how many of them a transcribed word actually anchored (the rest are interpolated). |
+| [`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)(text[, start, end, ...])   | One spoken line of a transcript: its text, and when and who, if known.   |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| `AlignedWords`(words, matched, total[, anchors])                                              | `align_words()`'s result.                                                |
 
 ### an.audio.transcripts.ARPABET *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'arpabet'*
 
@@ -82,17 +83,6 @@ read as ARPAbet (cutan’s `ARPABET_TO_VISEME` keys the same set).
 
 * **Type:**
   The 39 ARPAbet phones of the CMU dictionary, without stress digits
-
-### *class* an.audio.transcripts.AlignedWords(words, matched, total)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-[`align_words()`](#an.audio.transcripts.align_words)’s result: the reference words timed, and how many
-of them a transcribed word actually anchored (the rest are interpolated).
-
-#### *property* coverage *: [float](https://docs.python.org/3/builtins/functions.html#float)*
-
-The share of reference words anchored by a transcribed word, 0..1.
 
 ### an.audio.transcripts.FORMATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('vtt', 'textgrid', 'json', 'srt', 'plain')*
 
@@ -122,29 +112,6 @@ writes them (a TextGrid’s `phones` tier, an#491), else `None`.
 #### *property* timed *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
 
 Whether both `start` and `end` are known.
-
-### an.audio.transcripts.align_words(reference, timed, , bounds=None)
-
-Time the `reference` words (the text the performer was meant to say) by a
-transcriber’s `timed` words of the same audio.
-
-Reference words that a transcribed word matches (same normalized form, in
-sequence — [`difflib.SequenceMatcher`](https://docs.python.org/3/library/difflib.html#difflib.SequenceMatcher)) take that word’s times. A run
-the transcriber heard differently (`friend` heard as `fred`) is spread
-over the misheard words’ span; a run it did not hear at all is spread over
-the gap to the next anchor, in proportion to word length — so a misheard or
-dropped word still gets a plausible slot. `bounds` (`(start, end)` of
-the audio) time the ends when no anchor does; without it the first and last
-transcribed words do. Words come back in reference order with
-non-decreasing starts.
-
-```pycon
->>> align_words(["I", "did", "NOT", "ask"], [("i", 0.0, 0.1), ("did", 0.1, 0.3), ("ask", 0.6, 0.9)]).words
-[('I', 0.0, 0.1), ('did', 0.1, 0.3), ('NOT', 0.3, 0.6), ('ask', 0.6, 0.9)]
-```
-
-* **Return type:**
-  [`AlignedWords`](#an.audio.transcripts.AlignedWords)
 
 ### an.audio.transcripts.cut_spans(segments, , total, pad_s=0.05)
 
@@ -194,16 +161,9 @@ it (iterable segments with `text`, `start`, `end`, `speaker` and
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`TranscriptSegment`](#an.audio.transcripts.TranscriptSegment)]
 
-### an.audio.transcripts.normalize_text(text)
-
-[`normalize_tokens()`](#an.audio.transcripts.normalize_tokens) joined by single spaces (what two lines are compared by).
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
 ### an.audio.transcripts.normalize_tokens(text)
 
-The words of `text` for matching: [`tokens_of()`](#an.audio.transcripts.tokens_of) case-folded.
+The words of `text` for matching: `tokens_of()` case-folded.
 
 ```pycon
 >>> normalize_tokens("Hello, there — it's ME!")
@@ -368,7 +328,7 @@ and the lip-sync decides it per clip. Silences are not labels.
 
 Time untimed `lines` (a plain transcript) by a transcriber’s `timed`
 words of the whole recording: the lines’ words are aligned as one text
-([`align_words()`](#an.audio.transcripts.align_words)) and handed back per line, each line spanning its
+(`align_words()`) and handed back per line, each line spanning its
 first word’s start to its last word’s end, with its own `words`.
 
 ```pycon
@@ -404,17 +364,3 @@ ValueError: tier 'take': interval (1.0, 1.5, 'b') overlaps the one before, which
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
-
-### an.audio.transcripts.tokens_of(text)
-
-The words of `text` as written: punctuation dropped, an apostrophe
-inside a word kept, case kept. What a line’s words are timed as
-([`segment_lines()`](#an.audio.transcripts.segment_lines)).
-
-```pycon
->>> tokens_of("Hello, there — it's ME!")
-['Hello', 'there', "it's", 'ME']
-```
-
-* **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

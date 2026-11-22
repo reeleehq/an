@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=c7e33964"></script>
+    <script src="../../../_static/documentation_options.js?v=639bbd7d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.412" />
+  <meta name="docsearch:version" content="0.1.413" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -742,6 +742,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransformJSON</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">Clip</span><span class="p">,</span> <span class="n">LoopMode</span><span class="p">,</span> <span class="n">Pose</span><span class="p">,</span> <span class="n">merge_poses</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">STAGE_NODE_ALIASES</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">SWAP_WRITE_GROUP</span><span class="p">,</span>
     <span class="n">PlacedClip</span><span class="p">,</span>
@@ -980,6 +981,8 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="p">(</span><span class="n">_target</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">pose</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
                 <span class="k">continue</span>
+            <span class="c1"># The runtime assigns `rotation_rad` as `rotation` (an#771).</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="n">STAGE_NODE_ALIASES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
                 <span class="n">values</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"perspective"</span><span class="p">:</span>

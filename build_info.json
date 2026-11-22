@@ -1,34 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T11:20:34Z",
+  "built_at": "2026-11-22T14:45:07Z",
   "package": {
     "name": "an",
-    "version": "0.1.412",
+    "version": "0.1.413",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "f36856fb4edd516eb6b09013275dfded48824d5e",
-    "short_commit": "f36856f",
+    "commit": "4392ba0913a25c60ab0578e4738ca8b03a7efa50",
+    "short_commit": "4392ba0",
     "branch": "main",
-    "tags": [
-      "0.1.412"
-    ],
+    "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/f36856fb4edd516eb6b09013275dfded48824d5e",
+    "commit_url": "https://github.com/reeleehq/an/commit/4392ba0913a25c60ab0578e4738ca8b03a7efa50",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "90d20795dc519c94311a58c12948bde2e79567cd",
+    "sha": "e17aae00354d3e4a5081c64c4d5d628818816d08",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "45014936890",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/45014936890",
+    "run_id": "45033658631",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/45033658631",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -58,15 +56,15 @@
   },
   "site": {
     "modules_documented": 240,
-    "objects_documented": 3568
+    "objects_documented": 3563
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.412",
+    "latest": "0.1.413",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout f36856fb4edd516eb6b09013275dfded48824d5e\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 4392ba0913a25c60ab0578e4738ca8b03a7efa50\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

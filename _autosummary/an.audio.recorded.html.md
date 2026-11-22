@@ -75,7 +75,7 @@ True
 | [`recording_by_digest`](#an.audio.recorded.recording_by_digest)(store, sha256, \*[, text]) | The take whose audio has `sha256`, as `(key, record)`; `None` if none.                                                                                                                                                                                                                                       |
 | [`read_recording`](#an.audio.recorded.read_recording)(store, key)                     | `(record, wav_bytes)` for `key`, the bytes checked against the record's digest.                                                                                                                                                                                                                              |
 | [`recording_key`](#an.audio.recorded.recording_key)(speaker, text, sha256)           | A readable, unique store key: `<speaker>--<words>--<digest prefix>`.                                                                                                                                                                                                                                         |
-| [`normalize_key_text`](#an.audio.recorded.normalize_key_text)(text)                       | The form a line's text is matched by: [`normalize_text()`](an.audio.transcripts.html.md#an.audio.transcripts.normalize_text).                                                                                                                                                                 |
+| [`normalize_key_text`](#an.audio.recorded.normalize_key_text)(text)                       | The form a line's text is matched by: `normalize_text()`.                                                                                                                                                                                                                                                    |
 | [`audio_paths`](#an.audio.recorded.audio_paths)(audio)                             | The audio files `audio` names: a file, a directory (its audio files, sorted), a glob, a comma-separated list, or a sequence of those.                                                                                                                                                                        |
 | [`scribed_transcriber`](#an.audio.recorded.scribed_transcriber)([backend, diarize])        | The default transcriber: scribed's facade with word timestamps (and speaker labels when `diarize` and the backend has them).                                                                                                                                                                                 |
 | [`load_wav`](#an.audio.recorded.load_wav)(path, \*[, denoise])                  | `path` as 16-bit PCM WAV bytes: a PCM WAV is taken as it is; anything else (MP3, M4A, a video's audio) is decoded with ffmpeg to mono at `IMPORT_SAMPLE_RATE`; `denoise` (a key of [`DENOISE_FILTERS`](#an.audio.recorded.DENOISE_FILTERS)) runs that filter first, which also goes through ffmpeg. |
@@ -354,7 +354,7 @@ runs that filter first, which also goes through ffmpeg.
 
 ### an.audio.recorded.normalize_key_text(text)
 
-The form a line’s text is matched by: [`normalize_text()`](an.audio.transcripts.html.md#an.audio.transcripts.normalize_text).
+The form a line’s text is matched by: `normalize_text()`.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

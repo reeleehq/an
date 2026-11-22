@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=c7e33964"></script>
+    <script src="../../../_static/documentation_options.js?v=639bbd7d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.412" />
+  <meta name="docsearch:version" content="0.1.413" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -789,15 +789,12 @@ window.runMermaid = runMermaid;</script>
     <span class="n">IPA</span><span class="p">,</span>
     <span class="n">TranscriptSegment</span><span class="p">,</span>
     <span class="n">WordTiming</span><span class="p">,</span>
-    <span class="n">align_words</span><span class="p">,</span>
     <span class="n">cut_spans</span><span class="p">,</span>
     <span class="n">from_transcript_object</span><span class="p">,</span>
-    <span class="n">normalize_text</span><span class="p">,</span>
     <span class="n">parse_transcript</span><span class="p">,</span>
     <span class="n">parse_transcript_text</span><span class="p">,</span>
     <span class="n">rebase_words</span><span class="p">,</span>
     <span class="n">segment_lines</span><span class="p">,</span>
-    <span class="n">tokens_of</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">VoiceMeta</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -936,6 +933,8 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.audio.recorded.html#an.audio.normalize_key_text">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_key_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The form a line's text is matched by: :func:`~an.audio.transcripts.normalize_text`."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_text</span>  <span class="c1"># lazy: mixing (an#837)</span>
+
     <span class="k">return</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
 
@@ -2162,6 +2161,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; [(s.text, s.start, s.end) for s in _rough_line_intervals(lines, words, total=3.0, pad_s=0.25)]</span>
 <span class="sd">    [('Hello there.', 0.25, 1.55), ('Hi.', 1.75, 2.55)]</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">align_words</span><span class="p">,</span> <span class="n">tokens_of</span>  <span class="c1"># lazy: mixing (an#837)</span>
+
     <span class="n">per_line</span> <span class="o">=</span> <span class="p">[</span><span class="n">tokens_of</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
     <span class="n">heard</span> <span class="o">=</span> <span class="n">align_words</span><span class="p">(</span>
         <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">toks</span> <span class="ow">in</span> <span class="n">per_line</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">toks</span><span class="p">],</span> <span class="n">words</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
@@ -2331,6 +2332,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_ratio</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.transcripts</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_text</span>  <span class="c1"># lazy: mixing (an#837)</span>
+
     <span class="k">return</span> <span class="n">difflib</span><span class="o">.</span><span class="n">SequenceMatcher</span><span class="p">(</span>
         <span class="kc">None</span><span class="p">,</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">autojunk</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span><span class="o">.</span><span class="n">ratio</span><span class="p">()</span>

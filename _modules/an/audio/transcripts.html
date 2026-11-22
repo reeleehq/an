@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=c7e33964"></script>
+    <script src="../../../_static/documentation_options.js?v=639bbd7d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.412" />
+  <meta name="docsearch:version" content="0.1.413" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,6 +736,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">...                         "2\\n00:00:03,000 --&gt; 00:00:03,800\\nned: Hi.\\n")</span>
 <span class="sd">&gt;&gt;&gt; [(s.speaker, s.text, s.start, s.end) for s in segs]</span>
 <span class="sd">[('carl', 'Hello there.', 1.0, 2.5), ('ned', 'Hi.', 3.0, 3.8)]</span>
+<span class="sd">&gt;&gt;&gt; from an.audio.transcripts import align_words</span>
 <span class="sd">&gt;&gt;&gt; aligned = align_words(["Hello", "there,", "friend"],</span>
 <span class="sd">...                       [("hello", 0.5, 0.9), ("there", 0.9, 1.2), ("fred", 1.3, 1.6)])</span>
 <span class="sd">&gt;&gt;&gt; aligned.words</span>
@@ -746,7 +747,6 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">difflib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
@@ -754,6 +754,24 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">groupby</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="c1">#: What this module re-exports from `mixing.transcript` (an#837), by an's name.</span>
+<span class="c1">#: The word aligner is the fleet's one; `mixing` is imported on first use, never</span>
+<span class="c1">#: by `import an` (the firewall in tests/test_captions.py).</span>
+<span class="n">_MIXING_TRANSCRIPT_NAMES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"AlignedWords"</span><span class="p">:</span> <span class="s2">"AlignedWords"</span><span class="p">,</span>
+    <span class="s2">"align_words"</span><span class="p">:</span> <span class="s2">"align_words"</span><span class="p">,</span>
+    <span class="s2">"tokens_of"</span><span class="p">:</span> <span class="s2">"tokens_of"</span><span class="p">,</span>
+    <span class="s2">"normalize_text"</span><span class="p">:</span> <span class="s2">"normalize_word"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_MIXING_TRANSCRIPT_NAMES</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">mixing.transcript</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mt</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mt</span><span class="p">,</span> <span class="n">_MIXING_TRANSCRIPT_NAMES</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"FORMATS"</span><span class="p">,</span>
@@ -816,7 +834,6 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_SPEAKER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^\s*(?P&lt;speaker&gt;[\w-]+)\s*:\s*(?P&lt;text&gt;.*)$"</span><span class="p">)</span>
 <span class="n">_VTT_VOICE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;v(?:\.[^\s&gt;]*)?\s+(?P&lt;name&gt;[^&gt;]+)&gt;"</span><span class="p">)</span>
 <span class="n">_TAG_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;[^&gt;]+&gt;"</span><span class="p">)</span>
-<span class="n">_TOKEN_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[^\W_]+(?:'[^\W_]+)*"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TranscriptSegment">
@@ -847,24 +864,6 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">timed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Whether both ``start`` and ``end`` are known."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
-
-
-
-<div class="viewcode-block" id="AlignedWords">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.AlignedWords">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">AlignedWords</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">""":func:`align_words`'s result: the reference words timed, and how many</span>
-<span class="sd">    of them a transcribed word actually anchored (the rest are interpolated)."""</span>
-
-    <span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span>
-    <span class="n">matched</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">coverage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The share of reference words anchored by a transcribed word, 0..1."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="k">else</span> <span class="mf">1.0</span></div>
 
 
 
@@ -1823,20 +1822,6 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># --- matching words ------------------------------------------------------------</span>
 
 
-<div class="viewcode-block" id="tokens_of">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.tokens_of">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">tokens_of</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The words of ``text`` as written: punctuation dropped, an apostrophe</span>
-<span class="sd">    inside a word kept, case kept. What a line's words are timed as</span>
-<span class="sd">    (:func:`segment_lines`).</span>
-
-<span class="sd">    &gt;&gt;&gt; tokens_of("Hello, there — it's ME!")</span>
-<span class="sd">    ['Hello', 'there', "it's", 'ME']</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">_TOKEN_RE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
-
-
-
 <div class="viewcode-block" id="normalize_tokens">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_tokens">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -1845,84 +1830,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; normalize_tokens("Hello, there — it's ME!")</span>
 <span class="sd">    ['hello', 'there', "it's", 'me']</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">tokens_of</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span></div>
-
-
-
-<div class="viewcode-block" id="normalize_text">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.normalize_text">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">normalize_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">""":func:`normalize_tokens` joined by single spaces (what two lines are compared by)."""</span>
-    <span class="k">return</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">normalize_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">))</span></div>
-
-
-
-<div class="viewcode-block" id="align_words">
-<a class="viewcode-back" href="../../../_autosummary/an.audio.transcripts.html#an.audio.transcripts.align_words">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">align_words</span><span class="p">(</span>
-    <span class="n">reference</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">timed</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">],</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AlignedWords</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Time the ``reference`` words (the text the performer was meant to say) by a</span>
-<span class="sd">    transcriber's ``timed`` words of the same audio.</span>
-
-<span class="sd">    Reference words that a transcribed word matches (same normalized form, in</span>
-<span class="sd">    sequence — :class:`difflib.SequenceMatcher`) take that word's times. A run</span>
-<span class="sd">    the transcriber heard differently (``friend`` heard as ``fred``) is spread</span>
-<span class="sd">    over the misheard words' span; a run it did not hear at all is spread over</span>
-<span class="sd">    the gap to the next anchor, in proportion to word length — so a misheard or</span>
-<span class="sd">    dropped word still gets a plausible slot. ``bounds`` (``(start, end)`` of</span>
-<span class="sd">    the audio) time the ends when no anchor does; without it the first and last</span>
-<span class="sd">    transcribed words do. Words come back in reference order with</span>
-<span class="sd">    non-decreasing starts.</span>
-
-<span class="sd">    &gt;&gt;&gt; align_words(["I", "did", "NOT", "ask"], [("i", 0.0, 0.1), ("did", 0.1, 0.3), ("ask", 0.6, 0.9)]).words</span>
-<span class="sd">    [('I', 0.0, 0.1), ('did', 0.1, 0.3), ('NOT', 0.3, 0.6), ('ask', 0.6, 0.9)]</span>
-<span class="sd">    """</span>
-    <span class="n">ref</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_text</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">]</span>
-    <span class="n">asr</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_text</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">timed</span><span class="p">]</span>
-    <span class="n">first</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">bounds</span> <span class="k">else</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">timed</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="n">last</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">bounds</span> <span class="k">else</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="k">if</span> <span class="n">timed</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTiming</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">matched</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">prev_end</span> <span class="o">=</span> <span class="n">first</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">spread</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="nb">range</span><span class="p">,</span> <span class="n">lo</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">nonlocal</span> <span class="n">prev_end</span>
-        <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">prev_end</span><span class="p">)</span>
-        <span class="n">hi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">lo</span><span class="p">)</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
-        <span class="n">total</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">))</span> <span class="ow">or</span> <span class="mf">1.0</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">lo</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
-            <span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reference</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">length</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
-            <span class="n">t</span> <span class="o">+=</span> <span class="n">length</span>
-        <span class="n">prev_end</span> <span class="o">=</span> <span class="n">hi</span>
-
-    <span class="n">opcodes</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">SequenceMatcher</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">asr</span><span class="p">,</span> <span class="n">autojunk</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">get_opcodes</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">j1</span><span class="p">,</span> <span class="n">j2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">opcodes</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">"equal"</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i2</span> <span class="o">-</span> <span class="n">i1</span><span class="p">):</span>
-                <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j1</span> <span class="o">+</span> <span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j1</span> <span class="o">+</span> <span class="n">k</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
-                <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">prev_end</span><span class="p">)</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reference</span><span class="p">[</span><span class="n">i1</span> <span class="o">+</span> <span class="n">k</span><span class="p">],</span> <span class="n">start</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">start</span><span class="p">)))</span>
-                <span class="n">prev_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
-                <span class="n">matched</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">"replace"</span><span class="p">:</span>
-            <span class="n">spread</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j1</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]))</span>
-        <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s2">"delete"</span><span class="p">:</span>
-            <span class="c1"># Not heard at all: the gap up to the next transcribed word, or the end.</span>
-            <span class="n">nxt</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">op</span><span class="p">[</span><span class="mi">3</span><span class="p">]][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcodes</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="k">if</span> <span class="n">op</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">op</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span>
-                <span class="n">last</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">spread</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">),</span> <span class="n">prev_end</span><span class="p">,</span> <span class="n">nxt</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># "insert": words the transcriber heard that the text lacks — time passes</span>
-            <span class="n">prev_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">prev_end</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">timed</span><span class="p">[</span><span class="n">j2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]))</span> <span class="k">if</span> <span class="n">j2</span> <span class="o">&gt;</span> <span class="n">j1</span> <span class="k">else</span> <span class="n">prev_end</span>
-    <span class="k">return</span> <span class="n">AlignedWords</span><span class="p">(</span><span class="n">words</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">matched</span><span class="o">=</span><span class="n">matched</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="s2">"tokens_of"</span><span class="p">)(</span><span class="n">text</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span></div>
 
 
 
@@ -1944,6 +1852,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; [(s.speaker, s.start, s.end, len(s.words)) for s in segment_lines(lines, timed)]</span>
 <span class="sd">    [('carl', 0.5, 1.3, 2), ('ned', 2.0, 2.3, 1)]</span>
 <span class="sd">    """</span>
+    <span class="n">tokens_of</span><span class="p">,</span> <span class="n">align_words</span> <span class="o">=</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="s2">"tokens_of"</span><span class="p">),</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="s2">"align_words"</span><span class="p">)</span>
     <span class="n">per_line</span> <span class="o">=</span> <span class="p">[</span><span class="n">tokens_of</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
     <span class="n">flat</span> <span class="o">=</span> <span class="p">[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">toks</span> <span class="ow">in</span> <span class="n">per_line</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">toks</span><span class="p">]</span>
     <span class="n">aligned</span> <span class="o">=</span> <span class="n">align_words</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="n">timed</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span><span class="o">.</span><span class="n">words</span>

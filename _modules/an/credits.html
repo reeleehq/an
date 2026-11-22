@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=c7e33964"></script>
+    <script src="../../_static/documentation_options.js?v=639bbd7d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.412" />
+  <meta name="docsearch:version" content="0.1.413" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1058,7 +1058,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    files a source covers."""</span>
     <span class="n">out</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="n">extra</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">extra</span> <span class="ow">or</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">SPEECH_EXTRA_MODEL</span> <span class="ow">in</span> <span class="n">extra</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">SPEECH_PREFIX</span><span class="p">):</span>
+    <span class="c1"># By the asset prefix, never by an `extra` key: a generated image's</span>
+    <span class="c1"># `extra['model']` is not a speech take (an#772).</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">SPEECH_PREFIX</span><span class="p">):</span>
         <span class="n">bits</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">id</span> <span class="k">else</span> <span class="s2">""</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">extra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SPEECH_EXTRA_MODEL</span><span class="p">):</span>
             <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"model </span><span class="si">{</span><span class="n">extra</span><span class="p">[</span><span class="n">SPEECH_EXTRA_MODEL</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
