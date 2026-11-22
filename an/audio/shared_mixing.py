@@ -164,9 +164,7 @@ def mixing_problem() -> str | None:
             from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
     except RuntimeError as e:
         return str(e)
-    return keywords_too_old(
-        loudness.level_group, LEVEL_GROUP_KEYWORDS, needed_for="an"
-    )
+    return keywords_too_old(loudness.level_group, LEVEL_GROUP_KEYWORDS, needed_for="an")
 
 
 @lru_cache(maxsize=None)
