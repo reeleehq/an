@@ -40,8 +40,8 @@ The measuring and the limiter are the fleet's shared loudness component,
 :func:`mixing.loudness.group_lufs` measures a voice's lines back to back (looped
 to :data:`MIN_MEASURE_S`, channels kept when they agree), and
 :func:`mixing.loudness.level_group` does the same and caps the gain, its
-``GainCappedWarning`` said again of the voice as a :class:`VoiceLoudnessWarning`
-(an#699). Lines at another rate than the voice's highest are resampled to it by
+``GainCappedWarning`` naming the voice (``subject=``, mixing#171) and re-issued
+as a :class:`VoiceLoudnessWarning` (an#699, an#765). Lines at another rate than the voice's highest are resampled to it by
 ffmpeg, one call per rate (mixing's own resampler needs scipy, an#578). The meter injected into both is :data:`METER`, ffmpeg's
 ``ebur128`` run by the ffmpeg on ``PATH`` (required: never the pip-bundled build
 ``mixing`` would otherwise prefer, an#578), so ``an`` takes no scipy.
@@ -64,7 +64,11 @@ from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass
 from typing import Any
 
-from an.audio.shared_mixing import mixing_too_old
+from an.audio.shared_mixing import (
+    LEVEL_GROUP_KEYWORDS,
+    keywords_too_old,
+    mixing_too_old,
+)
 
 #: Bumped whenever a leveled line's bytes would change for the same inputs
 #: (the limiter, its window, the encoding); part of every leveled line's key.
@@ -133,10 +137,16 @@ def _require_ffmpeg(doing: str) -> str:
 def _component() -> Any:
     """:mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed
     ``mixing`` predates it or the parts used here: ``group_lufs`` and
-    ``GainCappedWarning`` (mixing#85, an#699)."""
+    ``GainCappedWarning`` (mixing#85, an#699), ``level_group(subject=)``
+    (mixing#171, an#765)."""
     with mixing_too_old(needed_for="leveling voices", error=VoiceLoudnessError):
         from mixing import loudness
         from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
+    problem = keywords_too_old(
+        loudness.level_group, LEVEL_GROUP_KEYWORDS, needed_for="leveling voices"
+    )
+    if problem:
+        raise VoiceLoudnessError(problem)
     return loudness
 
 
@@ -212,9 +222,21 @@ def _group_args(pcms: list[_Pcm]) -> tuple[list[Any], int]:
     return segments, rate
 
 
-def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
+#: What a capped gain's warning names when the caller does not say:
+#: ``mixing.loudness.level_group``'s own default.
+DFLT_LEVEL_SUBJECT: str = "group"
+
+
+def _level_group(
+    pcms: list[_Pcm],
+    *,
+    target_lufs: float,
+    max_gain_db: float,
+    subject: str = DFLT_LEVEL_SUBJECT,
+):
     """:func:`mixing.loudness.level_group` over a voice's decoded lines:
-    ``(gain_db, measured_lufs)``, measured by :data:`METER`."""
+    ``(gain_db, measured_lufs)``, measured by :data:`METER`; a capped gain's
+    warning names ``subject`` (mixing#171)."""
     segments, rate = _group_args(pcms)
     return _component().level_group(
         segments,
@@ -223,32 +245,7 @@ def _level_group(pcms: list[_Pcm], *, target_lufs: float, max_gain_db: float):
         meter=_meter,
         max_gain_db=max_gain_db,
         min_measure_s=MIN_MEASURE_S,
-    )
-
-
-def _capped_message(voice: str, capped: Any) -> str:
-    """What ``mixing``'s ``GainCappedWarning`` says (of a "group"), said of
-    ``voice`` from its fields (an#699); its own words, prefixed with the voice,
-    when a field is missing.
-
-    Goes once ``level_group`` takes the subject to name (reeleehq/mixing#171).
-
-    >>> class Capped(UserWarning):
-    ...     measured_lufs, target_lufs = -62.0, -16.0
-    ...     requested_gain_db, max_gain_db = 46.0, 24.0
-    >>> _capped_message("kid", Capped())
-    "voice 'kid' measures -62.0 LUFS: reaching -16 would take 46.0 dB, mostly noise; capped at +24 dB"
-    >>> Capped.target_lufs = None  # a field missing: mixing's own words
-    >>> _capped_message("kid", Capped("group measures -62.0 LUFS"))
-    "voice 'kid': group measures -62.0 LUFS"
-    """
-    fields = ("measured_lufs", "target_lufs", "requested_gain_db", "max_gain_db")
-    if any(getattr(capped, f, None) is None for f in fields):
-        return f"voice {voice!r}: {capped}"
-    return (
-        f"voice {voice!r} measures {capped.measured_lufs:.1f} LUFS: reaching "
-        f"{capped.target_lufs:g} would take {capped.requested_gain_db:.1f} dB, "
-        f"mostly noise; capped at +{capped.max_gain_db:g} dB"
+        subject=subject,
     )
 
 
@@ -478,15 +475,14 @@ def level_voices(
                 [_decode(src) for src in sources],
                 target_lufs=target,
                 max_gain_db=MAX_GAIN_DB,
+                subject=f"voice {voice!r}",
             )
         level = VoiceLevel(voice, lufs, lines=len(lines))
         levels.append(level)
         for caught in capped:
             if issubclass(caught.category, _component().GainCappedWarning):
-                warnings.warn(
-                    _capped_message(voice, caught.message),
-                    VoiceLoudnessWarning,
-                    stacklevel=3,
+                warnings.warn(  # mixing's words, naming the voice (mixing#171)
+                    str(caught.message), VoiceLoudnessWarning, stacklevel=3
                 )
             else:  # anything else is not ours to relabel: pass it on as it was
                 warnings.warn_explicit(

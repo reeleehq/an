@@ -7,6 +7,12 @@ of that failure, used around the lazy imports in :mod:`an.audio.loudness`
 imports themselves stay written out where they are, so the licence firewall
 (``tests/test_captions.py::test_an_never_imports_mixing``) still reads them.
 
+A keyword ``an`` passes cannot be found by importing a name: an older function
+takes the call and fails on it. :func:`lacks_keywords` asks the function's
+signature instead (``level_group(subject=)``, mixing#171, an#765), and
+:func:`mixing_problem` and :mod:`an.audio.loudness` word a missing one as a
+``mixing`` too old, like a missing part.
+
 >>> with mixing_too_old(needed_for="testing", error=RuntimeError):
 ...     from mixing import no_such_part
 Traceback (most recent call last):
@@ -26,7 +32,7 @@ from __future__ import annotations
 
 import re
 import warnings
-from collections.abc import Iterator
+from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from functools import lru_cache
 
@@ -35,6 +41,9 @@ MIXING: str = "mixing"
 UPGRADE_HINT: str = "pip install -U mixing"
 #: ... and when it is not installed at all (an install with ``--no-deps``).
 INSTALL_HINT: str = "pip install mixing"
+#: The keywords ``an`` passes to :func:`mixing.loudness.level_group`: ``subject``
+#: names the voice in its ``GainCappedWarning`` (mixing#171, an#765).
+LEVEL_GROUP_KEYWORDS: tuple[str, ...] = ("subject",)
 #: How Python words ``from mixing import part`` failing on ``part``.
 _CANNOT_IMPORT = re.compile(r"cannot import name '(\w+)'")
 
@@ -95,10 +104,56 @@ def mixing_too_old(*, needed_for: str, error: type[Exception]) -> Iterator[None]
         ) from e
 
 
+def lacks_keywords(func: Callable[..., object], keywords: Iterable[str]) -> list[str]:
+    """The ``keywords`` ``func`` does not take (none when it takes ``**kwargs``,
+    or when its signature cannot be read: the call then says for itself).
+
+    >>> def old(segments, rate, *, target_lufs): ...
+    >>> lacks_keywords(old, ["target_lufs", "subject"])
+    ['subject']
+    >>> lacks_keywords(lambda *a, **kw: None, ["subject"])
+    []
+    """
+    import inspect
+
+    try:
+        params = inspect.signature(func).parameters
+    except (TypeError, ValueError):
+        return []
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return []
+    return [k for k in keywords if k not in params]
+
+
+def keywords_too_old(
+    func: Callable[..., object], keywords: Iterable[str], *, needed_for: str
+) -> str | None:
+    """Why ``func`` (a function of ``mixing``) cannot serve ``needed_for``: the
+    keywords of ``keywords`` it does not take, worded as a ``mixing`` too old;
+    ``None`` when it takes them all.
+
+    >>> def level_group(segments, rate): ...
+    >>> level_group.__module__ = "mixing.loudness"
+    >>> keywords_too_old(level_group, ["subject"], needed_for="testing")
+    'testing needs mixing.loudness.level_group(subject=), which the installed mixing is too old to have: `pip install -U mixing`'
+    """
+    missing = lacks_keywords(func, keywords)
+    if not missing:
+        return None
+    module = getattr(func, "__module__", MIXING)
+    name = f"{module}.{getattr(func, '__qualname__', func)}"
+    said = ", ".join(f"{k}=" for k in missing)
+    return (
+        f"{needed_for} needs {name}({said}), which the installed {MIXING} is too "
+        f"old to have: `{UPGRADE_HINT}`"
+    )
+
+
 def mixing_problem() -> str | None:
     """Why the installed ``mixing`` cannot serve ``an``: a part it uses is
     missing (``mixing.loudness`` with ``group_lufs`` and ``GainCappedWarning``,
-    an#699; ``mixing.filtergraph``), or it is absent;
+    an#699; ``mixing.filtergraph``), a keyword ``an`` passes is not taken
+    (``level_group(subject=)``, an#765), or it is absent;
     ``None`` when it can. Asked of the code, not of a version number: an
     editable install's metadata keeps the version it was installed at (an#644).
     """
@@ -109,7 +164,9 @@ def mixing_problem() -> str | None:
             from mixing.loudness import GainCappedWarning, group_lufs  # noqa: F401
     except RuntimeError as e:
         return str(e)
-    return None
+    return keywords_too_old(
+        loudness.level_group, LEVEL_GROUP_KEYWORDS, needed_for="an"
+    )
 
 
 @lru_cache(maxsize=None)

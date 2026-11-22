@@ -596,3 +596,23 @@ def test_a_voice_of_lines_at_different_rates_and_channels_is_measured_as_one():
     assert abs(lufs - group_loudness(one_rate)) < 0.5
     _, measured = _level_group(mixed, target_lufs=-16.0, max_gain_db=24.0)
     assert measured == pytest.approx(lufs)
+
+
+def test_a_mixing_whose_level_group_takes_no_subject_is_said_too_old(monkeypatch):
+    """A keyword cannot be found by importing a name (an#765): a `level_group`
+    without `subject=` (before mixing#171) is a mixing too old, said before
+    anything is leveled, not a TypeError mid-render."""
+    from mixing import loudness as component
+
+    from an.audio.loudness import VoiceLoudnessError, _component
+    from an.audio.shared_mixing import mixing_problem
+
+    assert mixing_problem() is None
+
+    def old_level_group(segments, rate, *, target_lufs, meter=None, max_gain_db=24.0, min_measure_s=None):
+        raise AssertionError("never called")
+
+    monkeypatch.setattr(component, "level_group", old_level_group)
+    assert "level_group(subject=)" in (mixing_problem() or "")
+    with pytest.raises(VoiceLoudnessError, match=r"level_group\(subject=\).*too old"):
+        _component()
