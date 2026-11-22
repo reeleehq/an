@@ -880,9 +880,7 @@ def _layout_string(
         box = group[0][0].bbox().union(group[0][1].bbox)
         for run, outline in group[1:]:
             box = box.union(run.bbox()).union(outline.bbox)
-        inks.append(
-            [b for _, outline in group for b in _contour_boxes(outline.d)]
-        )
+        inks.append([b for _, outline in group for b in _contour_boxes(outline.d)])
         halo = _unit_halo(desc, group)
         # The outline reaches `stroke_width` past the ink (an#313), the
         # halo its `reach` (an#701); the box holds the further of the two.
