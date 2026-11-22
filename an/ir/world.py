@@ -3813,7 +3813,12 @@ def _environment_planes(
             continue
         try:
             raw = store[member.ref]
-        except (KeyError, TypeError, ValueError, OSError):  # JSONDecodeError is a ValueError
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+            OSError,
+        ):  # JSONDecodeError is a ValueError
             continue
         if (
             not isinstance(raw, dict)
