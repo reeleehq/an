@@ -576,7 +576,7 @@ def test_a_long_item_carried_through_the_floor_line_is_called_sunk(tmp_path):
     assert len(findings) == 1, findings
     assert "hangs through the floor line (y 200)" in findings[0]
     assert f"from {sunk['from']:.2f} s to {sunk['to']:.2f} s" in findings[0]
-    assert "align: false" in findings[0]
+    assert "`align: false` on the grasp" in findings[0]
     let_go = [m for s, m in _lint(project, only={"floating_item"}) if s == "warning"]
     assert any("below the floor line" in m for m in let_go), let_go
 
@@ -601,7 +601,7 @@ def test_an_item_held_from_the_start_through_the_floor_is_sunk_from_the_start(tm
     assert sunk["where"] == "entities/2/overrides/held_by"
     (finding,) = _lint(project, only={"sunk_item"})
     assert finding[0] == "warning" and "held_rotation" in finding[1]
-    assert "align: false" not in finding[1]
+    assert "align: false" not in finding[1] and "Let go" not in finding[1]
 
 
 def test_a_place_ends_the_carry_it_lays_down(tmp_path):
@@ -1244,3 +1244,20 @@ def test_a_rig_whose_root_bone_is_its_middle_is_not_standing_on_it(tmp_path):
     doc = _compile(load(root))
     lowest = _lowest_ink(doc, "stick", 2.9)
     assert lowest == pytest.approx(200.0 + 75.0 * K, abs=1.0), lowest
+
+
+def test_an_item_lifted_from_a_lower_floor_line_is_not_sunk_while_it_rises(tmp_path):
+    """Review of an#806: a figure standing further back (its floor 30 px
+    higher on screen) picks up what fell on the nearer floor. The item lies
+    below the carrier's floor at the take, and is judged only from the frame
+    it clears it (it never does here, so nothing is said)."""
+    entities = _long_stick(scale=0.5) + (
+        "- {kind: prop, id: fig2, store: props, ref: figure, stage: {at: [120, 170]}}\n"
+    )
+    actions = (
+        "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5, align: false}\n"
+        "- {kind: release, item: stick, at: 1.5}\n"
+        "- {kind: grasp, by: fig2/arm_l, item: stick, start: 2.4, align: false, lean: 60}"
+    )
+    project = _project(tmp_path, actions, entities=entities, shot="duration: 4.0")
+    assert _holds(_compile(project))["sunk"] == []

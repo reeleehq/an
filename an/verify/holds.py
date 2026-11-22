@@ -209,29 +209,28 @@ def check_sunk_item(ctx: Any) -> None:
             f"{ctx.path}/{s['where']}",
             f"{s['item']!r} hangs through the floor line (y {s['ground']:g}) while "
             f"{s['by']!r} carries it, {span}: {s['below']:.0f} px below it at "
-            f"{s['at']:.2f} s. {_sunk_fix(s)}. Let go like that, it falls over its low "
-            "end and lies in front of the line.",
+            f"{s['at']:.2f} s. {_sunk_fix(s)}.",
         )
 
 
 def _sunk_fix(s: dict[str, Any]) -> str:
-    """How to carry a sunk item higher, by the verb that put it where it hangs."""
-    opened = s.get("opened")
-    if opened == "held_by":
+    """How to carry a sunk item higher: by the holder (a hand moves, a socket
+    does not) and the verb that put it there."""
+    if s.get("role") != "hand":
+        aim = " (`held_rotation` on it)" if s.get("opened") == "held_by" else ""
         return (
-            "Carry it higher: aim it up (`held_rotation` on it), or a tween of the "
-            "arm lifts it"
+            f"Hold it higher: aim it up{aim}, put it in a socket that clears the "
+            "floor, or raise what holds it"
         )
-    if opened == "place":
-        return (
-            "Hold it higher: put it in a socket that clears the floor, or at a "
-            "`rotation` that does"
-        )
-    return (
-        "Carry it higher: `align: false` on the grasp keeps the angle it was taken "
-        "at, a tween of the arm lifts it, or take it by a point nearer its low end "
-        f"(`item: {s['item']}@<point>`)"
-    )
+    ways = ["a tween of the arm that holds it lifts it"]
+    if s.get("align"):
+        verb = "grasp" if s.get("opened") == "grasp" else "handover"
+        ways.insert(0, f"`align: false` on the {verb} keeps the angle it was taken at")
+    if s.get("opened") == "held_by":
+        ways.insert(0, "aim it up (`held_rotation` on it)")
+    if s.get("opened") == "grasp":
+        ways.append(f"take it by a point nearer its low end (`item: {s['item']}@<point>`)")
+    return "Carry it higher: " + ", ".join(ways[:-1]) + (" or " if len(ways) > 1 else "") + ways[-1]
 
 
 SUNK_ITEM = Constraint(
