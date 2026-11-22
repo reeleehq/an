@@ -75,15 +75,12 @@ from an.audio.transcripts import (
     IPA,
     TranscriptSegment,
     WordTiming,
-    align_words,
     cut_spans,
     from_transcript_object,
-    normalize_text,
     parse_transcript,
     parse_transcript_text,
     rebase_words,
     segment_lines,
-    tokens_of,
 )
 from an.audio.tts import AudioClip, VoiceMeta
 from an.stores.transcripts import (
@@ -208,6 +205,8 @@ class AlignmentError(RecordedVoicesError):
 
 def normalize_key_text(text: str) -> str:
     """The form a line's text is matched by: :func:`~an.audio.transcripts.normalize_text`."""
+    from an.audio.transcripts import normalize_text  # lazy: mixing (an#837)
+
     return normalize_text(text)
 
 
@@ -1382,6 +1381,8 @@ def _rough_line_intervals(
     >>> [(s.text, s.start, s.end) for s in _rough_line_intervals(lines, words, total=3.0, pad_s=0.25)]
     [('Hello there.', 0.25, 1.55), ('Hi.', 1.75, 2.55)]
     """
+    from an.audio.transcripts import align_words, tokens_of  # lazy: mixing (an#837)
+
     per_line = [tokens_of(line.text) for line in lines]
     heard = align_words(
         [t for toks in per_line for t in toks], words, bounds=(0.0, total)
@@ -1551,6 +1552,8 @@ def _speaker_of(
 
 
 def _ratio(a: str, b: str) -> float:
+    from an.audio.transcripts import normalize_text  # lazy: mixing (an#837)
+
     return difflib.SequenceMatcher(
         None, normalize_text(a), normalize_text(b), autojunk=False
     ).ratio()

@@ -609,6 +609,7 @@ MIXING_IMPORT_ALLOWED = {
         "mixing.loudness.GainCappedWarning",  # an#699: the parts it uses
         "mixing.loudness.group_lufs",
     },
+    "audio/transcripts.py": {"mixing.transcript"},  # an#837: the re-exports, on first use
     "audio/effects.py": {
         "mixing.filtergraph",
         "mixing.filtergraph.resample_pitch_filter",
