@@ -13,12 +13,15 @@ did in ``meta.extensions.solve.holds``):
 - ``floating_item`` (warning): an item that a hand takes from the floor (or
   from a body's surface the holds name: ``crate@surface``, an#536) hovers
   above it (or sinks into it) before it is taken, and a released item
-  with no ground below it or no gravity, that stays in the air.
+  with no ground below it or no gravity, that stays in the air;
+- ``sunk_item`` (warning): a carried item that hangs through its carrier's
+  floor line (a long musket in a short arm's hand), with the span it does so
+  and how to carry it higher (an#806).
 
-All three are silent for a shot that holds nothing.
+All four are silent for a shot that holds nothing.
 
 >>> [c.name for c in HOLD_CONSTRAINTS]
-['hold_conflict', 'unreachable_hold', 'floating_item']
+['hold_conflict', 'unreachable_hold', 'floating_item', 'sunk_item']
 """
 
 from __future__ import annotations
@@ -29,7 +32,13 @@ from typing import Any
 from an.genres.registry import CORE_OWNER, check_names, register_check
 from an.verify.constraints import Constraint
 
-__all__ = ["HOLD_CONSTRAINTS", "HOLD_CONFLICT", "UNREACHABLE_HOLD", "FLOATING_ITEM"]
+__all__ = [
+    "HOLD_CONSTRAINTS",
+    "HOLD_CONFLICT",
+    "UNREACHABLE_HOLD",
+    "FLOATING_ITEM",
+    "SUNK_ITEM",
+]
 
 #: Where the hold checks run within a shot: with the joint checks (250).
 HOLD_CHECK_ORDER: float = 255.0
@@ -182,11 +191,61 @@ FLOATING_ITEM = Constraint(
     description="an item taken from the floor lies on it, and a released item comes down (catalogue A1)",
 )
 
+def check_sunk_item(ctx: Any) -> None:
+    """A carried item does not hang through its carrier's floor line."""
+    if not _declares(ctx):
+        return
+    report, _error = _holds(ctx)
+    if not report:
+        return
+    for s in report.get("sunk") or ():
+        span = (
+            f"at {s['from']:.2f} s"
+            if s["from"] == s["to"]
+            else f"from {s['from']:.2f} s to {s['to']:.2f} s"
+        )
+        ctx.report.add(
+            "warning",
+            f"{ctx.path}/{s['where']}",
+            f"{s['item']!r} hangs through the floor line (y {s['ground']:g}) while "
+            f"{s['by']!r} carries it, {span}: {s['below']:.0f} px below it at "
+            f"{s['at']:.2f} s. {_sunk_fix(s)}.",
+        )
+
+
+def _sunk_fix(s: dict[str, Any]) -> str:
+    """How to carry a sunk item higher: by the holder (a hand moves, a socket
+    does not) and the verb that put it there."""
+    if s.get("role") != "hand":
+        aim = " (`held_rotation` on it)" if s.get("opened") == "held_by" else ""
+        return (
+            f"Hold it higher: aim it up{aim}, put it in a socket that clears the "
+            "floor, or raise what holds it"
+        )
+    ways = ["a tween of the arm that holds it lifts it"]
+    if s.get("align"):
+        verb = "grasp" if s.get("opened") == "grasp" else "handover"
+        ways.insert(0, f"`align: false` on the {verb} keeps the angle it was taken at")
+    if s.get("opened") == "held_by":
+        ways.insert(0, "aim it up (`held_rotation` on it)")
+    if s.get("opened") == "grasp":
+        ways.append(f"take it by a point nearer its low end (`item: {s['item']}@<point>`)")
+    return "Carry it higher: " + ", ".join(ways[:-1]) + (" or " if len(ways) > 1 else "") + ways[-1]
+
+
+SUNK_ITEM = Constraint(
+    "sunk_item",
+    check_sunk_item,
+    order=HOLD_CHECK_ORDER,
+    description="a carried item does not hang through its carrier's floor line (an#806)",
+)
+
 #: The hold checks, in the order they run.
 HOLD_CONSTRAINTS: tuple[Constraint, ...] = (
     HOLD_CONFLICT,
     UNREACHABLE_HOLD,
     FLOATING_ITEM,
+    SUNK_ITEM,
 )
 
 
