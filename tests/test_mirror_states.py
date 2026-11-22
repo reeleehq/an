@@ -123,25 +123,13 @@ def test_an_item_carried_by_a_carrier_that_turns_round_shows_its_mirror_state(tm
     """The case of the issue: the hold layer mirrors what a hand holds with its
     carrier (the item's own channels are not negative before the turn, its
     world is after), so the stick shows its mirror drawing from the turn on."""
-    import warnings
+    def lettered(d):
+        drawings = d["skins"]["default"]["slots"]["body"]
+        drawings["flipped"] = dict(drawings["body"])
+        d["asset_sets"] = {"label": {"plain": "body", "flipped": "flipped"}}
+        d["metadata"] = {"mirror_states": {"plain": "flipped"}, "lettering": True}
 
-    from tests._hold_fixture import make_project, scene
-
-    actions = """- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}
-- {kind: tween, target: fig, property: scale_x, from: 1.0, to: -1.0, duration: 0.4, start: 2.0}"""
-    root = tmp_path / "p"
-    make_project(root, scene(actions))
-    art = root / "assets" / "props" / "stick" / "prop.json"
-    doc = json.loads(art.read_text())
-    drawings = doc["skins"]["default"]["slots"]["body"]
-    drawings["flipped"] = dict(drawings["body"])
-    doc["asset_sets"] = {"label": {"plain": "body", "flipped": "flipped"}}
-    doc["metadata"] = {"mirror_states": {"plain": "flipped"}, "lettering": True}
-    art.write_text(json.dumps(doc))
-    project = load(root)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        compiled = compile_shot(project.scene.timeline[0], project.mall, fps=24, width=640, height=480)
+    project, compiled = _carried_stick(tmp_path, lettered)
     [(target, prop, keys)] = _mirror_channel(compiled)
     assert (target, prop) == ("stick/body", "label")
     assert keys[0] == (0.0, "plain") and keys[1][1] == "flipped" and len(keys) == 2
@@ -150,3 +138,52 @@ def test_an_item_carried_by_a_carrier_that_turns_round_shows_its_mirror_state(tm
         project.scene, available_props=project.mall["props"], only={"lettering"}
     )
     assert report.findings == []
+
+
+TURN = """- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}
+- {kind: tween, target: fig, property: scale_x, from: 1.0, to: -1.0, duration: 0.4, start: 2.0}"""
+
+
+def _carried_stick(tmp_path: Path, mutate):
+    """The hold fixture's stick, carried by a figure that turns round at 2.0 s,
+    its art changed by ``mutate(document)``."""
+    import warnings
+
+    from tests._hold_fixture import make_project, scene
+
+    root = tmp_path / "p"
+    make_project(root, scene(TURN))
+    art = root / "assets" / "props" / "stick" / "prop.json"
+    doc = json.loads(art.read_text())
+    mutate(doc)
+    art.write_text(json.dumps(doc))
+    project = load(root)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        compiled = compile_shot(project.scene.timeline[0], project.mall, fps=24, width=640, height=480)
+    return project, compiled
+
+
+def test_a_slot_whose_set_lacks_the_mirror_key_is_left_alone(tmp_path):
+    """Review of an#819: a swap set projected onto a slot holds only the keys its
+    drawings resolve, so a second slot can hold `plain` without `flipped`. The
+    pair applies where the set can show both; the compile does not fail."""
+
+    def two_slots(d):
+        drawings = d["skins"]["default"]["slots"]
+        drawings["shadow"] = {"body": dict(drawings["body"]["body"])}
+        drawings["body"]["flipped"] = dict(drawings["body"]["body"])
+        d["slots"].append({"name": "shadow", "bone": "root", "draw_order": 1, "attachment": "body"})
+        d["asset_sets"] = {"label": {"plain": "body", "flipped": "flipped"}}
+        d["metadata"] = {"mirror_states": {"plain": "flipped"}}
+
+    _, compiled = _carried_stick(tmp_path, two_slots)
+    assert [(t, p) for t, p, _ in _mirror_channel(compiled)] == [("stick/body", "label")]
+
+
+def test_lettering_on_art_with_no_swap_set_is_judged_too(tmp_path):
+    """Review of an#819: a one-drawing sign with lettering, carried mirrored, has
+    no mirror state to swap in, so it reads backwards and says so."""
+    project, _ = _carried_stick(tmp_path, lambda d: d.update(metadata={"lettering": True}))
+    (f,) = _lettering(project)
+    assert "drawn mirrored from 2.21 s" in f.description and "'stick/body'" in f.description

@@ -35,7 +35,7 @@ reads a shaded side.
 from __future__ import annotations
 
 import warnings
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -101,16 +101,19 @@ def is_mirrored(matrix: Sequence[float]) -> bool:
 
 @dataclass(frozen=True)
 class DrawingState:
-    """What one swap-set drawing of an entity shows at one instant."""
+    """What one drawing of an entity shows at one instant."""
 
     t: float
-    path: str  # the node carrying the swap set
-    swap_set: str | None  # ``None``: the node shows a drawing outside its sets
+    path: str  # the drawing's node
+    swap_set: str | None  # ``None``: a drawing outside any swap set (or none)
     key: str | None
     mirrored: bool
+    #: More than one of its swap sets written at this instant: which one shows
+    #: is the runtime's write-group call, so nothing is swapped on it.
+    ambiguous: bool = False
 
 
-def _drawings(root: Any, entity_id: str) -> list[tuple[str, Any]]:
+def _drawings(root: Any, entity_id: str, *, swap_sets_only: bool) -> list[tuple[str, Any]]:
     from an.stage.tree import walk_children
 
     prefix = entity_id + "/"
@@ -119,44 +122,63 @@ def _drawings(root: Any, entity_id: str) -> list[tuple[str, Any]]:
         for path, node in walk_children(root)
         if (path == entity_id or path.startswith(prefix))
         and node.visual is not None
-        and node.visual.asset_sets
+        and (node.visual.asset_sets or not swap_sets_only)
     ]
 
 
 def _rest(visual: Any) -> tuple[str | None, str | None]:
     """The (set, key) whose drawing the node is built with."""
-    for name, keys in visual.asset_sets.items():
+    for name, keys in (visual.asset_sets or {}).items():
         for key, asset in keys.items():
             if asset == visual.asset_id:
                 return name, key
     return None, None
 
 
+def applicable_pairs(states: Mapping[str, str], keys: Collection[str]) -> dict[str, str]:
+    """The pairs of ``states`` one swap set can show: both the key and its mirror
+    key are among the set's ``keys`` (a set projected onto a slot holds only the
+    keys that slot's drawings resolve, so another slot may hold one and not the
+    other).
+
+    >>> applicable_pairs({"plain": "flipped", "x": "y"}, {"plain", "flipped", "x"})
+    {'plain': 'flipped'}
+    """
+    return {k: v for k, v in states.items() if k in keys and v in keys}
+
+
 def drawing_states(
-    doc: Any, entity_id: str, times: Sequence[float]
+    doc: Any, entity_id: str, times: Sequence[float], *, swap_sets_only: bool = True
 ) -> Iterator[DrawingState]:
-    """Each swap-set drawing of ``entity_id`` in the compiled (or assembled)
-    document ``doc`` at each of ``times``: the set and key in force (the
-    timeline's, else the drawing it is built with) and whether it is drawn
-    mirrored on the set (before the camera)."""
+    """Each drawing of ``entity_id`` in the compiled (or assembled) document
+    ``doc`` at each of ``times``: the swap set and key in force (the timeline's,
+    else the drawing it is built with) and whether it is drawn mirrored on the
+    set (before the camera). ``swap_sets_only=False`` includes the drawings
+    with no swap set (their set and key are ``None``)."""
     from an.stage.solve import _node_index, _world_matrices
     from an.stage.timeline import timeline_from_scene
-    from an.timing.timeline import evaluate_timeline
+    from an.timing.timeline import cut_timeline, evaluate_timeline
 
-    drawings = _drawings(doc.scene, entity_id)
+    drawings = _drawings(doc.scene, entity_id, swap_sets_only=swap_sets_only)
     if not drawings:
         return
     nodes = _node_index(doc)
-    timeline = timeline_from_scene(doc)
     paths = [p for p, _ in drawings]
+
+    def on_a_chain(target: str, _prop: str) -> bool:  # a drawing, or a node holding one
+        return any(p == target or p.startswith(target + "/") for p in paths)
+
+    timeline = cut_timeline(timeline_from_scene(doc), where=on_a_chain)
     for t in times:
         pose = evaluate_timeline(timeline, t)
         world = _world_matrices(doc, paths, pose, nodes)
         for path, node in drawings:
-            sets = node.visual.asset_sets
+            sets = node.visual.asset_sets or {}
             written = [(s, pose[(path, s)]) for s in sets if (path, s) in pose]
-            swap_set, key = written[-1] if written else _rest(node.visual)
-            yield DrawingState(t, path, swap_set, key, is_mirrored(world[path]))
+            swap_set, key = written[0] if len(written) == 1 else _rest(node.visual)
+            yield DrawingState(
+                t, path, swap_set, key, is_mirrored(world[path]), len(written) > 1
+            )
 
 
 def mirror_channels(
@@ -168,46 +190,67 @@ def mirror_channels(
     shot_id: str = "",
 ) -> dict[tuple[str, str], list[tuple[float, str]]]:
     """``{(node path, swap set): [(t, key), ...]}``: for each drawing of
-    ``entity_id`` that is ever mirrored with a key ``states`` maps, its key at
-    each change of ``times``, the mirror key wherever it is drawn mirrored.
-    Empty when nothing needs to change."""
+    ``entity_id`` that is ever mirrored showing a key with a mirror state its
+    set can show (:func:`applicable_pairs`), its key at each change of
+    ``times``, the mirror key wherever it is drawn mirrored. Empty when nothing
+    needs to change. A mirror key no swap set of the entity holds raises: the
+    declaration names a drawing that does not exist."""
+    from an.stage.solve import _node_index
+
+    nodes = _node_index(doc)
+    held = {
+        k
+        for path, _ in _drawings(doc.scene, entity_id, swap_sets_only=True)
+        for keys in nodes[path].visual.asset_sets.values()
+        for k in keys
+    }
+    missing = sorted({v for k, v in states.items() if k in held and v not in held})
+    if missing:
+        raise MirrorStatesError(
+            f"shot {shot_id!r}: {entity_id!r} declares mirror state(s) {missing} that "
+            f"none of its swap sets has (their keys: {sorted(held)}); a mirror "
+            "drawing is a key of the same set as the key it mirrors"
+        )
     by_drawing: dict[str, list[DrawingState]] = {}
     for s in drawing_states(doc, entity_id, times):
         by_drawing.setdefault(s.path, []).append(s)
     out: dict[tuple[str, str], list[tuple[float, str]]] = {}
     for path, seq in by_drawing.items():
-        if not any(s.mirrored and s.key in states for s in seq):
+        sets = nodes[path].visual.asset_sets
+        pairs = {name: applicable_pairs(states, keys) for name, keys in sets.items()}
+        if not any(s.mirrored and s.key in pairs.get(s.swap_set, {}) for s in seq):
             continue
         used = {s.swap_set for s in seq}
-        if len(used) != 1 or None in used:
+        if len(used) != 1 or None in used or any(s.ambiguous for s in seq):
             warnings.warn(
                 f"shot {shot_id!r}: {path!r} is drawn mirrored with a key that has a "
-                f"mirror state, but it shows {'a drawing outside its swap sets' if None in used else 'several swap sets'} "
-                "in this shot; its mirror state is not applied (one set per drawing is)",
+                "mirror state, but it shows several swap sets (or a drawing outside "
+                "them) in this shot; its mirror state is not applied (one set per "
+                "drawing is)",
                 MirrorStatesWarning,
                 stacklevel=2,
             )
             continue
         (swap_set,) = used
-        keys = _set_keys(doc, path, swap_set)
-        missing = sorted({states[s.key] for s in seq if s.key in states} - keys)
-        if missing:
-            raise MirrorStatesError(
-                f"shot {shot_id!r}: {entity_id!r} declares mirror state(s) {missing} that "
-                f"swap set {swap_set!r} of {path!r} does not have (its keys: "
-                f"{sorted(keys)}); a mirror drawing is a key of the same set"
-            )
-        values = [states.get(s.key, s.key) if s.mirrored else s.key for s in seq]
+        mapped = pairs[swap_set]
+        values = [mapped.get(s.key, s.key) if s.mirrored else s.key for s in seq]
         out[(path, swap_set)] = [
-            (s.t, v) for i, (s, v) in enumerate(zip(seq, values)) if i == 0 or v != values[i - 1]
+            (s.t, v)
+            for i, (s, v) in enumerate(zip(seq, values))
+            if i == 0 or v != values[i - 1]
         ]
     return out
 
 
-def _set_keys(doc: Any, path: str, swap_set: str) -> set[str]:
-    from an.stage.solve import _node_index
-
-    return set(_node_index(doc)[path].visual.asset_sets[swap_set])
+def mirror_channel_targets(doc: Any) -> set[tuple[str, str]]:
+    """The ``(node path, swap set)`` pairs the ``mirror_states`` pass wrote a
+    channel for in the compiled ``doc``."""
+    return {
+        (c.target, c.property)
+        for name, clip in doc.animations.items()
+        if name.startswith(MIRROR_TRACK)
+        for c in clip.channels
+    }
 
 
 def mirror_states_pass(state: Any) -> None:
