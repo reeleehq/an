@@ -41,7 +41,6 @@ _SHAPES = (
     "foo/",
     "a/*",
     ".env",
-    "cache//",
 )
 
 
@@ -64,8 +63,9 @@ def test_gitignored_agrees_with_git_check_ignore(tmp_path, lines):
 
 
 def test_a_line_it_cannot_read_as_git_does_is_refused():
+    # since the facade over dol (an#800): `//` and a malformed `[...]` too
     for line in ("!keep.me", "artifacts/**/x", "# note", "\\*.md", "[^a].txt", "foo ",
-                 "[[:alpha:]]x", "", "/"):
+                 "[[:alpha:]]x", "", "/", "cache//", "a//b", "[ab", "[]", "[a/b]", "[z-a]"):
         with pytest.raises(ValueError, match="cannot use"):
             gitignore_matcher((line,))
     with pytest.raises(TypeError, match="not one str"):
