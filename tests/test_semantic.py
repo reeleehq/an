@@ -565,3 +565,72 @@ def test_a_genre_needing_another_genres_capability_loads_in_any_order():
         with pytest.raises(GenreError, match="limbs.legs"):
             load(entry_points=eps[:1], builtin=False)
 
+
+
+def test_the_orbit_view_space_and_the_orbit_kind_are_one_declaration():
+    """an#788 (from the an#257 spike): ``ORBIT_3D`` declared radian scalars and
+    a flattened target, which matched neither the kernel's ``OrbitKind`` nor
+    previz's camera. Both now derive from ``ORBIT_DECL``: the view space's one
+    field carries the kind, its schema is the kind's value schema, and the
+    space read as a property space interpolates an orbit exactly as the kind does."""
+    from an.semantic.views import ORBIT_3D, ORBIT_DECL
+    from an.timing.kinds import OrbitKind, Segment
+
+    (field,) = ORBIT_3D.fields
+    assert field.kind is ORBIT_DECL.kind == OrbitKind()
+    props = ORBIT_3D.entry.params["properties"]["orbit"]
+    assert props["kind"] == {"kind": "orbit"} and props["unit"] == "deg"
+    assert props["properties"] == OrbitKind().value_schema()["properties"]
+    space = ORBIT_3D.property_space()
+    assert space.kind_of("orbit") == OrbitKind() and space.unit_of("orbit") == "deg"
+    a = {"azimuth": 350.0, "elevation": 10.0, "distance": 2.0, "target": [0.0, 0.0, 0.0]}
+    b = {"azimuth": 10.0, "elevation": 30.0, "distance": 8.0, "target": [1.0, 0.0, 0.0]}
+    seg = Segment(0.5, 0.0, 1.0)
+    assert space.kind_of("orbit").interpolate(a, b, 0.5, seg) == OrbitKind().interpolate(
+        a, b, 0.5, seg
+    )
+    assert ORBIT_3D.entry.version == "2"
+
+
+def test_a_scalar_view_field_reads_as_its_number_or_angle_kind():
+    """The framing space's axes, read as a property space: a log zoom, a
+    shortest-arc roll, linear x and y (an#788)."""
+    from an.semantic.views import FRAMING_2D
+    from an.timing.kinds import AngleKind, NumberKind
+
+    space = FRAMING_2D.property_space()
+    assert space.kind_of("zoom") == NumberKind(space="log")
+    assert space.kind_of("rotation") == AngleKind(unit="rad")
+    assert space.kind_of("x") == NumberKind()
+    assert FRAMING_2D.entry.params["properties"]["zoom"]["scale"] == "log"  # unchanged
+
+
+def test_the_orbit_rest_moves_smoothly_to_any_key_and_the_schema_agrees_with_check():
+    """an#847 review: the rest pose carries a target, so a move from it to a key
+    with a target interpolates the target instead of switching at half way; the
+    published schema bounds elevation as ``OrbitKind.check`` does, and lists the
+    kind's members in order."""
+    from an.semantic.views import ORBIT_3D
+    from an.timing.kinds import ORBIT_MEMBERS, OrbitKind, Segment
+
+    kind, rest = OrbitKind(), ORBIT_3D.fields[0].rest
+    key = {"azimuth": 90.0, "elevation": 0.0, "distance": 4.0, "target": [4.0, 0.0, 0.0]}
+    mid = kind.interpolate(rest, key, 0.25, Segment(0.25, 0.0, 1.0))
+    assert mid["target"] == [1.0, 0.0, 0.0] and kind.check(mid) is None
+    schema = kind.value_schema()
+    assert tuple(schema["properties"]) == ORBIT_MEMBERS
+    elevation = schema["properties"]["elevation"]
+    assert (elevation["minimum"], elevation["maximum"]) == (-90.0, 90.0)
+    assert kind.check({"azimuth": 0, "elevation": 91.0, "distance": 1}) is not None
+
+
+def test_a_view_field_refuses_what_it_would_misread():
+    """an#847 review: an angle in an unknown unit, and a scale beside a kind."""
+    import pytest
+
+    from an.semantic.views import ORBIT_DECL, ViewField
+
+    with pytest.raises(ValueError, match="unit"):
+        ViewField("tilt", "degrees", "angle").field_kind
+    with pytest.raises(ValueError, match="scale"):
+        ViewField("o", "deg", "log", kind=ORBIT_DECL.kind)
