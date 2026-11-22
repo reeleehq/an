@@ -124,3 +124,21 @@ def test_an_outline_that_covers_the_neighbouring_word_is_said():
             width=W,
             height=H,
         )
+
+
+@pytest.mark.parametrize("unit", ["word", "line"])
+def test_descenders_over_ascenders_at_tight_leading_cover_nothing(unit):
+    """Stacked lines are judged by their glyphs' ink, not union boxes: the
+    first line's descenders and the second's ascenders overlap as boxes at
+    `leading: 1.0` whatever the reach, yet a 1 px outline touches nothing
+    (an#781)."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", TextOutlineWarning)
+        layout_text(
+            TextDescriptor(
+                name="t", text="Typography:\nglyphs", size=0.15, unit=unit,
+                leading=1.0, stroke_width=1.0,
+            ),
+            width=W,
+            height=H,
+        )  # fmt: skip

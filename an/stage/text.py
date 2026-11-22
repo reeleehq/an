@@ -875,14 +875,14 @@ def _layout_string(
     else:
         groups = [[pair] for pair in inked]
     units: list[TextUnit] = []
-    inks = []  # each unit's ink box, parallel to `units`
+    inks = []  # each unit's contour boxes (its glyphs' ink), parallel to `units`
     for group in groups:
         box = group[0][0].bbox().union(group[0][1].bbox)
-        ink = group[0][1].bbox
         for run, outline in group[1:]:
             box = box.union(run.bbox()).union(outline.bbox)
-            ink = ink.union(outline.bbox)
-        inks.append(ink)
+        inks.append(
+            [b for _, outline in group for b in _contour_boxes(outline.d)]
+        )
         halo = _unit_halo(desc, group)
         # The outline reaches `stroke_width` past the ink (an#313), the
         # halo its `reach` (an#701); the box holds the further of the two.
@@ -990,6 +990,68 @@ class TextHaloWarning(UserWarning):
     """A unit's halo reaches far enough to dim a neighbouring unit's glyphs."""
 
 
+_PATH_TOKEN_RE = re.compile(r"[MLHVQCZ]|-?\d*\.?\d+(?:e-?\d+)?")
+
+
+def _contour_boxes(d: str) -> list[tuple[float, float, float, float]]:
+    """The ``(x0, y0, x1, y1)`` box of each contour of an outline path ``d``
+    (the absolute ``M L H V Q C Z`` commands fontTools writes), control points
+    included: the glyphs' ink, finer than one box per line (an#781).
+
+    >>> _contour_boxes("M0 0L10 0L10 5Z M20 1H30V8Z")
+    [(0.0, 0.0, 10.0, 5.0), (20.0, 1.0, 30.0, 8.0)]
+    """
+    boxes: list[tuple[float, float, float, float]] = []
+    xs: list[float] = []
+    ys: list[float] = []
+    cmd, args, pos = "", [], [0.0, 0.0]
+
+    def flush_point() -> None:
+        xs.append(pos[0])
+        ys.append(pos[1])
+
+    def close() -> None:
+        if xs:
+            boxes.append((min(xs), min(ys), max(xs), max(ys)))
+            xs.clear()
+            ys.clear()
+
+    arity = {"M": 2, "L": 2, "H": 1, "V": 1, "Q": 4, "C": 6}
+    for tok in _PATH_TOKEN_RE.findall(d):
+        if tok.isalpha():
+            if tok == "M":
+                close()
+            cmd, args = tok, []
+            if tok == "Z":
+                close()
+            continue
+        args.append(float(tok))
+        if cmd in arity and len(args) == arity[cmd]:
+            if cmd == "H":
+                pos[0] = args[0]
+            elif cmd == "V":
+                pos[1] = args[0]
+            else:
+                for k in range(0, len(args) - 2, 2):  # control points bound the curve
+                    xs.append(args[k])
+                    ys.append(args[k + 1])
+                pos[0], pos[1] = args[-2], args[-1]
+            flush_point()
+            args = []
+    close()
+    return boxes
+
+
+def _inks_within(a_boxes, b_boxes, r: float) -> bool:
+    """Whether some glyph of ``a_boxes`` comes within ``r`` of one of ``b_boxes``
+    (both on x and on y: the Chebyshev-style gap the warning has always used)."""
+    for ax0, ay0, ax1, ay1 in a_boxes:
+        for bx0, by0, bx1, by1 in b_boxes:
+            if max(ax0 - bx1, bx0 - ax1) < r and max(ay0 - by1, by0 - ay1) < r:
+                return True
+    return False
+
+
 def _warn_if_underlay_covers(
     desc: TextDescriptor,
     units: Sequence[TextUnit],
@@ -1010,7 +1072,7 @@ def _warn_if_underlay_covers(
 
     ``reach(unit)`` is how close two inks may come before the unit's
     underlay shows on the other (``None``: the unit draws none); ``inks``
-    are the units' ink boxes, parallel to ``units``.
+    are each unit's glyph (contour) boxes, parallel to ``units``.
     """
     import warnings
 
@@ -1023,9 +1085,7 @@ def _warn_if_underlay_covers(
         if not r:
             continue
         for unit_a, ink_a in zip(units[:j], inks[:j]):
-            gap_x = max(ink_a.x0 - ink_b.x1, ink_b.x0 - ink_a.x1)
-            gap_y = max(ink_a.y0 - ink_b.y1, ink_b.y0 - ink_a.y1)
-            if gap_x < r and gap_y < r:
+            if _inks_within(ink_a, ink_b, r):
                 warnings.warn(
                     f"text {desc.name!r}: the {noun} of {unit_b.text!r} covers "
                     f"part of the one before it, {unit_a.text!r}: their inks are "
