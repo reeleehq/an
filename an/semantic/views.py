@@ -36,6 +36,7 @@ __all__ = [
     "FRAMING_2D",
     "MULTIPLANE",
     "ORBIT_3D",
+    "ORBIT_DECL",
     "ViewField",
     "ViewSpace",
     "view_space",
@@ -48,25 +49,79 @@ SCALES: tuple[str, ...] = ("linear", "log", "angle")
 
 @dataclass(frozen=True)
 class ViewField:
-    """One axis of a view space: its name, unit, how it interpolates, its rest value."""
+    """One axis of a view space: its name, unit, how it interpolates, its rest value.
+
+    A scalar axis says how it interpolates with ``scale``; an axis whose value
+    is not one number (an orbit, a colour, a vector) carries its field
+    ``kind`` (:mod:`an.timing.kinds`) instead, built from the property
+    declaration it shares with an engine's property space
+    (:meth:`from_decl`), so the two are one thing (an#788).
+    """
 
     name: str
     unit: str
     scale: str = "linear"
-    rest: float = 0.0
+    rest: Any = 0.0
     description: str = ""
+    kind: Any = None  # an an.timing.kinds.FieldKind, or None for a scalar
 
     def __post_init__(self) -> None:
         if self.scale not in SCALES:
             raise ValueError(f"view field {self.name!r}: scale must be one of {SCALES}")
 
+    @classmethod
+    def from_decl(cls, decl: Any, *, rest: Any) -> "ViewField":
+        """The view field a property declaration (:class:`an.timing.spaces.FieldDecl`)
+        makes: its name, kind, unit and description, at ``rest``."""
+        return cls(
+            decl.pattern,
+            decl.unit or "",
+            rest=rest,
+            description=decl.description,
+            kind=decl.kind,
+        )
+
+    @property
+    def field_kind(self) -> Any:
+        """The field kind that interpolates this axis: its own, else the one its
+        ``scale`` names (``linear`` and ``log`` numbers, a shortest-arc angle).
+
+        >>> ViewField("zoom", "ratio", "log").field_kind
+        NumberKind(space='log')
+        >>> ViewField("roll", "rad", "angle").field_kind
+        AngleKind(unit='rad', wrap=True)
+        """
+        from an.timing.kinds import ANGLE_UNITS, AngleKind, NumberKind
+
+        if self.kind is not None:
+            return self.kind
+        if self.scale == "angle":
+            return AngleKind(unit=self.unit if self.unit in ANGLE_UNITS else "rad")
+        return NumberKind(space=self.scale)
+
+    def decl(self) -> Any:
+        """This axis as a property declaration (:class:`an.timing.spaces.FieldDecl`)."""
+        from an.timing.spaces import FieldDecl
+
+        return FieldDecl(
+            self.name, self.field_kind, unit=self.unit or None, description=self.description
+        )
+
     def schema(self) -> dict[str, Any]:
-        out = {
-            "type": "number",
-            "unit": self.unit,
-            "scale": self.scale,
-            "default": self.rest,
-        }
+        if self.kind is not None:
+            out = {
+                **self.kind.value_schema(),
+                "kind": self.kind.to_spec(),
+                "unit": self.unit,
+                "default": self.rest,
+            }
+        else:
+            out = {
+                "type": "number",
+                "unit": self.unit,
+                "scale": self.scale,
+                "default": self.rest,
+            }
         if self.description:
             out["description"] = self.description
         return out
@@ -78,10 +133,27 @@ class ViewSpace:
 
     entry: Entry
     capability: Capability
+    fields: tuple[ViewField, ...] = ()
 
     @property
     def requirement(self) -> str:
         return self.capability.name
+
+    def property_space(self) -> Any:
+        """The space as an engine's property space (:class:`an.timing.spaces.PropertySpace`,
+        ``view.<name>``): each axis's declaration, the one an engine whose state
+        this view space moves registers (an#788).
+
+        >>> [(d.pattern, d.kind.to_spec()) for d in ORBIT_3D.property_space().fields]
+        [('orbit', {'kind': 'orbit'})]
+        """
+        from an.timing.spaces import PropertySpace
+
+        return PropertySpace(
+            self.entry.id,
+            tuple(f.decl() for f in self.fields),
+            description=self.entry.description,
+        )
 
 
 def view_space(
@@ -103,7 +175,11 @@ def view_space(
         version=version,
         name=name,
         description=description,
-        usage="axes: " + ", ".join(f"{f.name} ({f.unit}, {f.scale})" for f in fields),
+        usage="axes: "
+        + ", ".join(
+            f"{f.name} ({f.unit}, {f.kind.name if f.kind is not None else f.scale})"
+            for f in fields
+        ),
         params={"type": "object", "properties": {f.name: f.schema() for f in fields}},
         levels=frozenset({"a"}),
     )
@@ -113,7 +189,7 @@ def view_space(
         f"render with an engine that lowers the {name} view space",
         subject="engine",
     )
-    return ViewSpace(entry, capability)
+    return ViewSpace(entry, capability, fields)
 
 
 #: The 2D framing space: where the frame is, how close, how rolled. Every
@@ -148,20 +224,37 @@ MULTIPLANE: ViewSpace = view_space(
     description="a 2D framing that also travels in depth through planes (a dolly)",
 )
 
-#: The 3D orbit space: a camera on a sphere around a target (previz's turntable).
+#: The orbit camera, declared ONCE (an#788): the field kind the timing kernel
+#: interpolates (:class:`an.timing.kinds.OrbitKind`, degrees, as previz's camera
+#: field), and the one axis of the ``orbit3d`` view space. An engine whose state
+#: an orbit moves registers it in its property space
+#: (``ORBIT_3D.property_space()``).
+def _orbit_decl() -> Any:
+    from an.timing.kinds import OrbitKind
+    from an.timing.spaces import FieldDecl
+
+    return FieldDecl(
+        "orbit",
+        OrbitKind(),
+        unit="deg",
+        description="a camera on a sphere around its target: {azimuth, elevation, distance, target?}",
+    )
+
+
+ORBIT_DECL: Any = _orbit_decl()
+
+#: The 3D orbit space: a camera on a sphere around a target (previz's turntable),
+#: one ``orbit`` value, version 2 (version 1 split it into radian scalars and a
+#: flattened target, which matched neither the kernel's kind nor previz).
 ORBIT_3D: ViewSpace = view_space(
     "orbit3d",
     (
-        ViewField("azimuth", "rad", "angle", description="around the target"),
-        ViewField(
-            "elevation", "rad", "angle", description="above the target's horizon"
+        ViewField.from_decl(
+            ORBIT_DECL, rest={"azimuth": 0.0, "elevation": 0.0, "distance": 1.0}
         ),
-        ViewField("distance", "scene units", "log", 1.0, "from the target"),
-        ViewField("target_x", "scene units"),
-        ViewField("target_y", "scene units"),
-        ViewField("target_z", "scene units"),
     ),
     description="an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)",
+    version="2",
 )
 
 #: The view spaces the core declares (registered by :mod:`an.semantic.seeds`).

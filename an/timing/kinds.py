@@ -141,6 +141,11 @@ class FieldKind:
         """Why ``value`` is not valid for this kind, or ``None``."""
         return None
 
+    def value_schema(self) -> dict[str, Any]:
+        """The JSON schema of one value of this kind (its shape and unit), what a
+        view space's field states (:mod:`an.semantic.views`); ``{}``: any value."""
+        return {}
+
     def to_spec(self) -> dict[str, Any]:
         out: dict[str, Any] = {"kind": self.name}
         for f in fields(self):
@@ -172,6 +177,9 @@ class NumberKind(FieldKind):
         if self.space == "log":
             return a * (b / a) ** u
         return a + (b - a) * u
+
+    def value_schema(self) -> dict[str, Any]:
+        return {"type": "number"}
 
     def check(self, value: Any) -> str | None:
         if not _is_number(value):
@@ -207,6 +215,9 @@ class AngleKind(FieldKind):
             return b
         delta = shortest_delta(a, b, self.period) if self.wrap else b - a
         return a + delta * u
+
+    def value_schema(self) -> dict[str, Any]:
+        return {"type": "number", "unit": self.unit}
 
     def check(self, value: Any) -> str | None:
         return (
@@ -244,6 +255,9 @@ class VectorKind(FieldKind):
         if u == 1:
             return b
         return _vector_lerp(a, b, u)
+
+    def value_schema(self) -> dict[str, Any]:
+        return {"type": "array", "items": {"type": "number"}}
 
     def check(self, value: Any) -> str | None:
         return _number_list(value, "a vector")
@@ -285,6 +299,10 @@ class QuaternionKind(FieldKind):
         if u == 1:
             return b
         return slerp(a, b, u)
+
+    def value_schema(self) -> dict[str, Any]:
+        n = QUATERNION_LENGTH
+        return {"type": "array", "items": {"type": "number"}, "minItems": n, "maxItems": n}
 
     def check(self, value: Any) -> str | None:
         problem = _number_list(value, "a quaternion [x, y, z, w]", QUATERNION_LENGTH)
@@ -375,6 +393,32 @@ class OrbitKind(FieldKind):
             else:
                 out[k] = q if switched else p
         return out
+
+    def value_schema(self) -> dict[str, Any]:
+        """The orbit's shape, the ONE declaration a view space reads (an#788).
+
+        >>> sorted(OrbitKind().value_schema()["properties"]), OrbitKind().value_schema()["required"]
+        (['azimuth', 'distance', 'elevation', 'target'], ['azimuth', 'elevation', 'distance'])
+        """
+        angle = {"type": "number", "unit": self.unit}
+        members = {
+            "azimuth": {**angle, "description": "around the target (shortest arc)"},
+            "elevation": {**angle, "description": "above the target's horizon, within the poles"},
+            "distance": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "unit": "scene units",
+                "description": "from the target (interpolated in log)",
+            },
+            "target": {
+                "type": "array",
+                "items": {"type": "number"},
+                "unit": "scene units",
+                "description": "what the camera looks at",
+            },
+        }
+        assert tuple(members) == ORBIT_MEMBERS
+        return {"type": "object", "properties": members, "required": list(ORBIT_KEYS)}
 
     def check(self, value: Any) -> str | None:
         if not isinstance(value, Mapping):

@@ -565,3 +565,41 @@ def test_a_genre_needing_another_genres_capability_loads_in_any_order():
         with pytest.raises(GenreError, match="limbs.legs"):
             load(entry_points=eps[:1], builtin=False)
 
+
+
+def test_the_orbit_view_space_and_the_orbit_kind_are_one_declaration():
+    """an#788 (from the an#257 spike): ``ORBIT_3D`` declared radian scalars and
+    a flattened target, which matched neither the kernel's ``OrbitKind`` nor
+    previz's camera. Both now derive from ``ORBIT_DECL``: the view space's one
+    field carries the kind, its schema is the kind's value schema, and the
+    space read as a property space interpolates an orbit exactly as the kind does."""
+    from an.semantic.views import ORBIT_3D, ORBIT_DECL
+    from an.timing.kinds import OrbitKind, Segment
+
+    (field,) = ORBIT_3D.fields
+    assert field.kind is ORBIT_DECL.kind == OrbitKind()
+    props = ORBIT_3D.entry.params["properties"]["orbit"]
+    assert props["kind"] == {"kind": "orbit"} and props["unit"] == "deg"
+    assert props["properties"] == OrbitKind().value_schema()["properties"]
+    space = ORBIT_3D.property_space()
+    assert space.kind_of("orbit") == OrbitKind() and space.unit_of("orbit") == "deg"
+    a = {"azimuth": 350.0, "elevation": 10.0, "distance": 2.0, "target": [0.0, 0.0, 0.0]}
+    b = {"azimuth": 10.0, "elevation": 30.0, "distance": 8.0, "target": [1.0, 0.0, 0.0]}
+    seg = Segment(0.5, 0.0, 1.0)
+    assert space.kind_of("orbit").interpolate(a, b, 0.5, seg) == OrbitKind().interpolate(
+        a, b, 0.5, seg
+    )
+    assert ORBIT_3D.entry.version == "2"
+
+
+def test_a_scalar_view_field_reads_as_its_number_or_angle_kind():
+    """The framing space's axes, read as a property space: a log zoom, a
+    shortest-arc roll, linear x and y (an#788)."""
+    from an.semantic.views import FRAMING_2D
+    from an.timing.kinds import AngleKind, NumberKind
+
+    space = FRAMING_2D.property_space()
+    assert space.kind_of("zoom") == NumberKind(space="log")
+    assert space.kind_of("rotation") == AngleKind(unit="rad")
+    assert space.kind_of("x") == NumberKind()
+    assert FRAMING_2D.entry.params["properties"]["zoom"]["scale"] == "log"  # unchanged

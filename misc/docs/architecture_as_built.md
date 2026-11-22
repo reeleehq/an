@@ -227,6 +227,8 @@ an/
 │   ├── matcher.py           applicable / why_not / resolve (+ substitutions)
 │   ├── views.py             view spaces (framing2d, orbit3d, declared n-dim):
 │   │                        a camera move is a path through one (an#257)
+│   │                        an axis may carry a field kind; a space reads as a
+│   │                        PropertySpace; orbit3d is ORBIT_DECL's OrbitKind (an#788)
 │   ├── describe.py          describe an asset per aspect (CLI, MCP)
 │   ├── digest.py            a shot's {entry: version} and its digest (shot key)
 │   ├── prompt.py            the `an iterate` vocabulary, generated

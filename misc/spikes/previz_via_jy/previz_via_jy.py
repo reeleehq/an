@@ -182,16 +182,31 @@ def view_paths(info: Mapping[str, Any]) -> list[str]:
 
 
 def property_space(info: Mapping[str, Any], *, name: str = "previz.view"):
-    """The sequence's previz ``Space`` as an ``an.timing`` ``PropertySpace``: same kinds, same specs."""
+    """The sequence's previz ``Space`` as an ``an.timing`` ``PropertySpace``: same kinds, same specs.
+
+    A path whose kind is a declared view space's field (previz's ``camera``, an
+    orbit: ``an.semantic.views.ORBIT_3D``) takes that one declaration, its unit
+    and description included (an#788); any other is read from its spec.
+    """
+    from an.semantic.views import CORE_VIEW_SPACES
     from an.timing.kinds import kind_from_spec
     from an.timing.spaces import FieldDecl, PropertySpace
 
+    declared = {
+        json.dumps(d.kind.to_spec(), sort_keys=True): d
+        for space in CORE_VIEW_SPACES
+        for d in space.property_space().fields
+        if d.kind.name != "number"
+    }
+
+    def decl(path: str, spec: Mapping[str, Any]) -> Any:
+        view = declared.get(json.dumps(dict(spec), sort_keys=True))
+        if view is not None:
+            return FieldDecl(path, view.kind, unit=view.unit, description=view.description)
+        return FieldDecl(path, kind_from_spec(spec))
+
     return PropertySpace(
-        name,
-        tuple(
-            FieldDecl(path, kind_from_spec(spec))
-            for path, spec in info["space"].items()
-        ),
+        name, tuple(decl(path, spec) for path, spec in info["space"].items())
     )
 
 
