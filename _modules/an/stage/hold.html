@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=54633717"></script>
+    <script src="../../../_static/documentation_options.js?v=f01bb30e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.410" />
+  <meta name="docsearch:version" content="0.1.411" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -3660,7 +3660,15 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">key</span><span class="p">:</span> <span class="n">span</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
                     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"item"</span><span class="p">,</span> <span class="s2">"where"</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">,</span> <span class="s2">"opened"</span><span class="p">,</span> <span class="s2">"role"</span><span class="p">,</span> <span class="s2">"align"</span><span class="p">)</span>
                 <span class="p">}</span>
-                <span class="n">run_</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"from"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s2">"to"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s2">"below"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span> <span class="s2">"at"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s2">"ground"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">)})</span>
+                <span class="n">run_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">"from"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span>
+                        <span class="s2">"to"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span>
+                        <span class="s2">"below"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span>
+                        <span class="s2">"at"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span>
+                        <span class="s2">"ground"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">),</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
             <span class="n">run_</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
             <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="n">run_</span><span class="p">[</span><span class="s2">"below"</span><span class="p">]:</span>
                 <span class="n">run_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">below</span><span class="o">=</span><span class="n">r2</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span> <span class="n">at</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">ground</span><span class="o">=</span><span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">))</span>
