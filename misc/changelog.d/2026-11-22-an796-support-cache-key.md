@@ -1,1 +1,0 @@
-- a test pins that a `support` beside joints leaves `solve_knobs` (the shot-cache key) equal to joints alone (an#796, part 2)
