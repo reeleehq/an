@@ -2073,6 +2073,13 @@ class CueAnchor(_IRModel):
     first). The swap's clink is ``{when: sabre, event: place}``; the drop's
     thud ``{when: musket, event: land}``.
 
+    **An authored change** (an#815): ``when`` is the node a ``set`` or a
+    ``tween`` of the shot targets and ``changes`` the property it changes;
+    ``to`` (optional) the value it changes it to. The anchor is the instant of
+    the ``nth`` such action in the shot's own actions (a ``set``'s ``at``, a
+    ``tween``'s start), so a page-turn sound follows the page wherever its
+    ``set`` is retimed: ``{when: book/body, changes: state, to: page_l}``.
+
     Resolved when the film is laid out, never written back into the scene: a
     layout or timing change moves the sound with the picture. ``offset`` is
     added after. ``shot`` names the shot to look in, for a cue in
@@ -2084,11 +2091,17 @@ class CueAnchor(_IRModel):
     'musket land'
     >>> CueAnchor(when="musket", event="land").model_dump()
     {'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}
+    >>> CueAnchor(when="book/body", changes="state", to="page_l").describe()
+    'book/body state to page_l'
     """
 
     when: str
     reaches: dict[str, float] | None = None
     event: str | None = None
+    #: The property whose authored change (a ``set``, a ``tween``) is the anchor.
+    changes: str | None = None
+    #: With ``changes``: only a change to this value counts.
+    to: Any = None
     nth: int = Field(default=1, ge=1)
     offset: float = 0.0
     shot: str | None = None
@@ -2097,11 +2110,27 @@ class CueAnchor(_IRModel):
     def _one_axis(self) -> "CueAnchor":
         from an.ir.events import ALIASES, EVENTS, event_names
 
-        if (self.reaches is None) == (self.event is None):
+        forms = [
+            f
+            for f, v in (
+                ("reaches", self.reaches),
+                ("event", self.event),
+                ("changes", self.changes),
+            )
+            if v is not None
+        ]
+        if len(forms) != 1:
             raise ValueError(
-                "a cue anchor says either `reaches: {y: px}` (a node crossing a "
-                f"frame row or column) or `event: <{event_names()}>` (an item's "
-                f"hold or topple event), not {'both' if self.event else 'neither'}"
+                "a cue anchor says one of `reaches: {y: px}` (a node crossing a "
+                f"frame row or column), `event: <{event_names()}>` (an item's "
+                "hold or topple event) or `changes: <property>` (a set or tween "
+                "of the shot changing it), not "
+                + (" and ".join(f"`{f}`" for f in forms) if forms else "none")
+            )
+        if self.to is not None and self.changes is None:
+            raise ValueError(
+                "`to:` says which value a `changes:` anchor waits for; this "
+                "anchor has no `changes:`"
             )
         if (
             self.event is not None
@@ -2123,7 +2152,7 @@ class CueAnchor(_IRModel):
     def _omit_unset(self, handler):
         # The fields the event form added leave no trace on a crossing (and
         # `nth` none at its default): an anchor stored before reads the same.
-        data = _omit_none(handler(self), "reaches", "event")
+        data = _omit_none(handler(self), "reaches", "event", "changes", "to")
         if isinstance(data, dict) and data.get("nth") == 1:
             data.pop("nth")
         return data
@@ -2132,17 +2161,20 @@ class CueAnchor(_IRModel):
     def axis(self) -> tuple[str, float]:
         """``(axis, pixels)`` of a crossing."""
         if self.reaches is None:
-            raise ValueError(
-                f"anchor {self.describe()!r} is a hold event, not a crossing"
-            )
+            what = "an authored change" if self.changes is not None else "a hold event"
+            raise ValueError(f"anchor {self.describe()!r} is {what}, not a crossing")
         ((axis, value),) = self.reaches.items()
         return axis, float(value)
 
     def describe(self) -> str:
-        """The anchor in words, for a finding: ``crawl/line_7 reached y=840``, ``musket land``."""
+        """The anchor in words, for a finding: ``crawl/line_7 reached y=840``,
+        ``musket land``, ``book/body state to page_l``."""
+        nth = f" #{self.nth}" if self.nth != 1 else ""
         if self.event is not None:
-            nth = f" #{self.nth}" if self.nth != 1 else ""
             return f"{self.when} {self.event}{nth}"
+        if self.changes is not None:
+            to = f" to {self.to}" if self.to is not None else " change"
+            return f"{self.when} {self.changes}{to}{nth}"
         axis, value = self.axis
         return f"{self.when} reached {axis}={value:g}"
 

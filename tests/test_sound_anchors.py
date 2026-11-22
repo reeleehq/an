@@ -109,3 +109,79 @@ def test_validate_accepts_an_anchored_cue(tmp_path):
     root = _project(tmp_path, shot_sounds=[{"sound": "scratch", "at": ANCHOR}])
     report = validate_semantic(load(root).scene)
     assert not [f for f in report.findings if "sounds" in f.ir_path and f.severity == "error"]
+
+
+# -- an authored change (an#815): a sound on the frame a prop's state is set ------
+
+#: The corpus shot sets the lamp's ``lamp`` swap channel to ``on`` at 0.25 s.
+CHANGE = {"when": "lamp/body", "changes": "lamp", "to": "on"}
+
+
+def test_a_cue_lands_on_the_set_that_changes_the_state(tmp_path):
+    root = _project(tmp_path, shot_sounds=[{"sound": "scratch", "at": {**CHANGE, "offset": 0.05}}])
+    prep = _prepared(root, tmp_path)
+    assert prep.scene.timeline[0].sounds[0].at == pytest.approx(0.30)
+    (finding,) = prep.sound_findings
+    assert "lamp/body lamp to on" in finding.description
+    # The scene keeps the anchor: retiming the set moves the sound with it.
+    assert isinstance(load(root).scene.timeline[0].sounds[0].at, CueAnchor)
+    scene_md = root / "scene.md"
+    scene_md.write_text(
+        scene_md.read_text(encoding="utf-8").replace("at: 0.25", "at: 0.4", 1),
+        encoding="utf-8",
+    )
+    assert _prepared(root, tmp_path / "again").scene.timeline[0].sounds[0].at == pytest.approx(0.45)
+
+
+def test_a_change_anchor_counts_sets_and_tweens_in_time_order(tmp_path):
+    from an.ir.schema import Shot
+    from an.sound_anchors import change_in_shot
+
+    shot = Shot.model_validate(
+        {
+            "id": "s",
+            "duration": 4.0,
+            "actions": [
+                {"kind": "set", "target": "book/body", "property": "state", "value": "page_r", "at": 3.0},
+                {"kind": "sequence", "children": [
+                    {"kind": "delay", "duration": 1.0},
+                    {"kind": "set", "target": "book/body", "property": "state", "value": "page_l"},
+                ]},
+                {"kind": "tween", "target": "book", "property": "y", "to_value": 10.0, "start": 0.5},
+            ],
+        }
+    )  # fmt: skip
+    anchor = CueAnchor.model_validate
+    assert change_in_shot(shot, anchor({"when": "book/body", "changes": "state"}), where="w") == 1.0
+    assert change_in_shot(shot, anchor({"when": "book/body", "changes": "state", "nth": 2}), where="w") == 3.0
+    assert change_in_shot(shot, anchor({"when": "book/body", "changes": "state", "to": "page_r"}), where="w") == 3.0
+    with pytest.raises(SoundAnchorError, match=r"'page_l' at 1.00 s, 'page_r' at 3.00 s"):
+        change_in_shot(shot, anchor({"when": "book/body", "changes": "state", "to": "cover"}), where="w")
+    with pytest.raises(SoundAnchorError, match=r"nodes whose 'state' it changes: \['book/body'\]"):
+        change_in_shot(shot, anchor({"when": "book", "changes": "state"}), where="w")
+
+
+def test_a_change_anchor_is_one_form_and_round_trips():
+    with pytest.raises(ValueError, match="not `event` and `changes`"):
+        CueAnchor(when="lamp", event="land", changes="state")
+    with pytest.raises(ValueError, match="has no `changes:`"):
+        CueAnchor(when="lamp", event="land", to="on")
+    a = CueAnchor(when="book/body", changes="state", to="page_l", nth=2)
+    assert a.model_dump() == {"when": "book/body", "changes": "state", "to": "page_l", "nth": 2, "offset": 0.0, "shot": None}
+    assert CueAnchor.model_validate(a.model_dump()) == a
+    # an anchor without the new fields stores as it did before
+    assert "changes" not in CueAnchor(when="m", event="land").model_dump()
+
+
+def test_validate_names_a_cued_change_the_shot_does_not_have(tmp_path):
+    from an.ir.validate import validate_semantic
+
+    def cue_event(anchor):
+        root = _project(tmp_path / str(len(list(tmp_path.iterdir()))), shot_sounds=[{"sound": "scratch", "at": anchor}])
+        report = validate_semantic(load(root).scene, only={"cue_event"})
+        return [(f.severity, f.description) for f in report.findings]
+
+    ((severity, text),) = cue_event(CHANGE)
+    assert severity == "info" and "0.25 s" in text
+    ((severity, text),) = cue_event({**CHANGE, "to": "off"})
+    assert severity == "error" and "'on' at 0.25 s" in text
