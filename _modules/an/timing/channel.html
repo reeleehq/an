@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=a32ce920"></script>
+    <script src="../../../_static/documentation_options.js?v=ccddfdf4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.402" />
+  <meta name="docsearch:version" content="0.1.404" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -770,12 +770,15 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">bisect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrgetter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasingSpec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">VALUE_TYPED_CALLS</span><span class="p">,</span> <span class="n">VALUE_TYPED_EASINGS</span><span class="p">,</span> <span class="n">apply_easing</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldKind</span><span class="p">,</span> <span class="n">FieldKindError</span><span class="p">,</span> <span class="n">Segment</span>
+
+<span class="n">_time</span> <span class="o">=</span> <span class="n">attrgetter</span><span class="p">(</span><span class="s2">"time"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Keyframe">
@@ -831,13 +834,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">kfs</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">keyframes</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kfs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">kfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="n">kf</span><span class="o">.</span><span class="n">time</span> <span class="k">for</span> <span class="n">kf</span> <span class="ow">in</span> <span class="n">kfs</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="n">kfs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">kfs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">kfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">kfs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-    <span class="c1"># Binary search: find rightmost index i such that times[i] &lt;= t.</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="c1"># Binary search: the rightmost index i such that kfs[i].time &lt;= t, read</span>
+    <span class="c1"># through `key` so no list of times is built per call (an#783: a</span>
+    <span class="c1"># shutter-keyed camera is ~30k keys a channel, evaluated at every sample).</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="n">kfs</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_time</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">kfs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">kfs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">span</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="n">a</span><span class="o">.</span><span class="n">time</span>
