@@ -177,3 +177,20 @@ def test_importing_an_and_reading_a_source_does_not_load_lacing():
         [sys.executable, "-c", code], capture_output=True, text=True, check=True
     )
     assert out.stdout.strip() == "False"
+
+
+def test_a_model_key_on_a_non_speech_entry_is_not_a_speech_take():
+    """A generated image's ``extra['model']`` keeps its provider-terms
+    restriction and is not worded as a voice (an#772)."""
+    from an.credits import _detail
+
+    image = CreditEntry(
+        asset="environments/x/planes/sky",
+        source=AssetSource(provider="openai", license="cc0-1.0", extra={"model": "gpt-image-1"}),
+    )
+    assert "voice" not in _detail(image) and "model gpt-image-1" not in _detail(image)
+    speech = CreditEntry(
+        asset="speech/ana",
+        source=AssetSource(provider="eleven", id="ana", license="private", extra={"model": "m1"}),
+    )
+    assert "voice ana" in _detail(speech) and "model m1" in _detail(speech)

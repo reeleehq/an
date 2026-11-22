@@ -1,0 +1,1 @@
+- `an credits` words a speech take by its `speech/` asset prefix, not by an `extra['model']` key, so a generated image's line keeps its provider-terms restriction (an#772, part 2)
