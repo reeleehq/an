@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- View spaces: an axis may carry a field kind and a view space reads as a property space; `view.orbit3d` (version 2) is one `orbit` field derived from `OrbitKind` (contract 3.0.0) (an#788).
 - World paint order: a walker crosses an `after` loop through an attachment (`right.after: hat`, `hat` on `right`), whose entities are now keyed by depth (an#776).
 - `an validate`: `depth_order` warns when a walker is painted under a floor prop that stands farther back than its feet (an#820).
 - a test pins that a `support` beside joints leaves `solve_knobs` (the shot-cache key) equal to joints alone (an#796, part 2)
