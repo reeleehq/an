@@ -136,7 +136,7 @@ def test_descenders_over_ascenders_at_tight_leading_cover_nothing(unit):
         warnings.simplefilter("error", TextOutlineWarning)
         layout_text(
             TextDescriptor(
-                name="t", text="Typography:\nglyphs", size=0.2, unit=unit,
+                name="t", text="Typography:\nglyphs", size=0.15, unit=unit,
                 leading=1.0, stroke_width=1.0,
             ),
             width=W,
