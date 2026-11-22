@@ -537,3 +537,32 @@ def test_an_outside_engine_renders_a_playable_mp4(tmp_path):
     )
     assert int(probe.stdout.strip()) == 6
     assert result.provenance["x264_args"] and result.provenance["pix_fmt"] == "yuv420p"
+
+
+def test_a_renderer_affords_the_view_spaces_its_engine_declares():
+    """an#786 (from the an#257 spike): what an engine declares on itself
+    (``view_spaces``, ``paint_orders``, ``svg_filters``) is read through the
+    renderer built from it, so a previz engine's ``space.orbit3d`` is not lost."""
+    import copy
+    import pickle
+
+    from an.capabilities.subjects import engine_affordances
+
+    class Orbiting(GreyRamp):
+        name = "orbiting"
+        view_spaces = ("orbit3d",)
+        paint_orders = ("depth",)
+
+    renderer = frame_stage_renderer(Orbiting())
+    afforded = engine_affordances(renderer)
+    assert "space.orbit3d" in afforded
+    assert afforded["engine.paint_order"] == {"keys": ["depth"]}
+    # an engine declaring none affords none, and the wrapper invents nothing
+    plain = frame_stage_renderer(GreyRamp())
+    assert not hasattr(plain, "view_spaces") and not hasattr(plain, "svg_filters")
+    assert not [k for k in engine_affordances(plain) if k.startswith("space.")]
+    with pytest.raises(AttributeError):
+        plain.no_such_member
+    # still copyable and picklable (a parallel render ships renderers to workers)
+    assert copy.copy(renderer).view_spaces == ("orbit3d",)
+    assert pickle.loads(pickle.dumps(frame_stage_renderer(GreyRamp()))).name == "grey-ramp"

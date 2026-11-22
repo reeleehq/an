@@ -47,7 +47,9 @@ states)``              per round trip (an#286); the core evaluates them
 
 And on the ``Engine`` itself: ``check(ctx)`` validates the engine's own knobs
 before anything launches (a typo must fail in microseconds, not after a browser
-started).
+started); ``view_spaces`` (the view spaces it lowers, ``("orbit3d",)``),
+``paint_orders`` and ``svg_filters`` declare what it affords, and the renderer
+:func:`~an.engines.frame_stage_renderer` builds from it affords the same (an#786).
 
 >>> class _Still:
 ...     def frame(self, t): return b"png"
