@@ -281,10 +281,19 @@ UNSEEN_ALPHA: float = 1e-3
 #: stream slot it is, what holds it and at what angle, the world's plane
 #: factors. Bookkeeping about the entity, not fields of its asset document, so
 #: a resolver that validates overrides against its document (a stroked path,
-#: a text block) leaves them out (an#516); ``tests/test_world.py`` holds the
+#: a text block) leaves them out (an#516). With them, the keys a core check or
+#: the solve reads off the entity itself (an#801): ``rigid`` and
+#: ``preserve_volume`` (the rigidity check), ``shaded_side`` (the light check),
+#: ``free`` and ``fixed`` (the solve), so declaring one on a path or a text
+#: entity no longer fails its compile. ``tests/test_world.py`` holds the
 #: owners' constants to this set.
 CORE_OVERRIDE_KEYS: frozenset[str] = frozenset(
     {
+        "rigid",
+        "preserve_volume",
+        "shaded_side",
+        "free",
+        "fixed",
         "attached",
         STREAM_OVERRIDE,
         "held_by",

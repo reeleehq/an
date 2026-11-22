@@ -447,6 +447,40 @@ def test_an_unknown_override_key_raises_rather_than_vanishing():
         _compile(_shot(overrides={"trim_ends": 0.0}))
 
 
+#: What a core check or the solve reads off an entity, never a field of its
+#: document (an#801), with a value each accepts.
+CHECK_OVERRIDES = {
+    "rigid": True,
+    "preserve_volume": True,
+    "shaded_side": "left",
+    "free": True,
+    "fixed": True,
+}
+
+
+@pytest.mark.parametrize("key", sorted(CHECK_OVERRIDES))
+def test_a_check_s_override_on_a_path_or_a_text_compiles(key):
+    """an#801: the resolvers merge overrides into the document and refuse what it
+    does not know, so a check's own key made the compile fail."""
+    from an.stage.paths import resolve_path
+    from an.stage.text import resolve_text
+
+    value = CHECK_OVERRIDES[key]
+    assert resolve_path(_doc(), {key: value}).points == L_POINTS
+    text = {"kind": "TextDescriptor", "name": "label"}
+    assert resolve_text(text, {"text": "Paris", key: value}).text == "Paris"
+    _compile(_shot(overrides={key: value}))
+
+
+def test_the_rigidity_check_still_sees_rigid_on_a_path():
+    stretch = TweenAction(
+        target="route", property="scale_x", from_value=1.0, to_value=1.5, duration=1.0
+    )
+    shot = _shot(overrides={"rigid": True}, actions=[stretch])
+    msgs = [f.description for f in _validate(shot).findings]
+    assert any("'route'" in m and "proportions" in m for m in msgs), msgs
+
+
 def test_a_cubic_path_reaches_the_wire_flattened():
     pts = [(-100, 0), (-50, -80), (50, 80), (100, 0)]
     scene = _compile(_shot(), {"points": pts, "curve": "cubic", "samples_per_segment": 8})

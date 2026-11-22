@@ -1269,6 +1269,8 @@ def test_the_core_override_keys_are_the_owners_constants():
     )
     from an.ir.world import ATTACHED_OVERRIDE, STREAM_OVERRIDE
     from an.stage.hold import AIM_OVERRIDE, ON_OVERRIDE
+    from an.stage.solve import FIXED_OVERRIDE, FREE_OVERRIDE
+    from an.verify.constraints import RIGID_OVERRIDE, SHADED_SIDE_KEY, VOLUME_OVERRIDE
 
     owners = {
         ATTACHED_OVERRIDE,
@@ -1280,6 +1282,11 @@ def test_the_core_override_keys_are_the_owners_constants():
         BESIDE_HOST_OVERRIDE,
         SWAY_OVERRIDE,
         GROUND_OVERRIDE,
+        RIGID_OVERRIDE,
+        VOLUME_OVERRIDE,
+        SHADED_SIDE_KEY,
+        FREE_OVERRIDE,
+        FIXED_OVERRIDE,
     }
     assert owners == set(CORE_OVERRIDE_KEYS)
 
