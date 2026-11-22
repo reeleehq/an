@@ -1214,6 +1214,13 @@ def _topple_pass(state: CompileState) -> None:
     topple_pass(state)
 
 
+def _mirror_states_pass(state: CompileState) -> None:
+    """The ``mirror_states`` pass (after ``topple``): see :mod:`an.stage.mirror_states`."""
+    from an.stage.mirror_states import mirror_states_pass
+
+    mirror_states_pass(state)
+
+
 def _camera_follow_pass(state: CompileState) -> None:
     """A following camera (an#445): its keys, from where the target IS.
 
@@ -1754,6 +1761,12 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
         _topple_pass,
         order=535,
         description="rigid bodies falling over about their foot, one knocking the next (an.ir.topple)",
+    ),
+    CompilePass(
+        "mirror_states",
+        _mirror_states_pass,
+        order=540,
+        description="art drawn mirrored shows its declared mirror drawing (lettering reads, an#819)",
     ),
     CompilePass(
         "camera_follow",

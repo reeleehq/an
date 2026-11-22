@@ -737,6 +737,7 @@ def test_the_report_order_is_pinned():
         "causality",  # catalogue B7: a sound is not ahead of its named cause
         "cue_event",  # a cue timed by a hold event names one the shot has
         "light",  # catalogue D1: art is shaded away from the scene's one light
+        "lettering",  # an#819: art with lettering is not drawn mirrored without its mirror drawing
         "facing_travel",  # an#818: art does not travel the other way to where it faces
         # ADR 0008 (an#512): the joint checks, after the catalogue's lints (order 250)
         "unknown_body",
