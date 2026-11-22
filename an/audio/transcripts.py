@@ -59,6 +59,7 @@ def __getattr__(name: str):
         return getattr(mt, _MIXING_TRANSCRIPT_NAMES[name])
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
+
 __all__ = [
     "FORMATS",
     "TranscriptSegment",
