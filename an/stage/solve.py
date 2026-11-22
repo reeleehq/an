@@ -186,7 +186,9 @@ def solved_key_tolerances(
     levers = _levers(puppet, children, local=local, own_scales=own_scales)
     out: dict[str, dict[str, float]] = {}
     for path, b in bodies.items():
-        chain = depth(path) + descent(path) - 1  # bodies on the longest chain through it
+        chain = (
+            depth(path) + descent(path) - 1
+        )  # bodies on the longest chain through it
         share = budget / ((math.sqrt(2.0) + chain) * scale)
         tol = {"rotation": share / max(1.0, levers[path])}
         if b.parent_body is None:
