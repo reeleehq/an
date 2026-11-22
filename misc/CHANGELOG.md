@@ -4,6 +4,8 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- World paint order: a walker crosses an `after` loop through an attachment (`right.after: hat`, `hat` on `right`), whose entities are now keyed by depth (an#776).
+- `an validate`: `depth_order` warns when a walker is painted under a floor prop that stands farther back than its feet (an#820).
 - a test pins that a `support` beside joints leaves `solve_knobs` (the shot-cache key) equal to joints alone (an#796, part 2)
 - the underlay-cover warning (outline and halo) measures stacked text by each glyph's ink contour, not one box per line, so descenders over ascenders at tight leading no longer warn falsely (an#781)
 - `an.audio.transcripts` re-exports `mixing.transcript`'s `align_words`, `tokens_of`, `AlignedWords` (and `normalize_text` is `normalize_word`) instead of a local copy: heard compounds (`twenty-five`, `U.S.`) now match, typographic apostrophes match, out-of-order heard times are refused; `AlignedWords` gains `anchors` (an#837)
