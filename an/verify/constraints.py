@@ -78,8 +78,10 @@ The core's constraints:
   (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and
   lip-sync consistency are not built.
 - ``cue_event``: a shot sound cue timed by a hold event (``at: {when: musket,
-  event: land}``) names an event the compiled shot has (error, listing the
-  item's events, else an ``info`` line with its second).
+  event: land}``) names an event the compiled shot has, and one timed by an
+  authored change (``at: {when: book/body, changes: state, to: page_l}``,
+  an#815) a ``set`` or ``tween`` the shot has (error, listing what there is,
+  else an ``info`` line with its second).
 - ``light`` (catalogue D1): under the scene's one ``meta.light``, a member whose
   art declares ``metadata.shaded_side`` (or ``overrides.shaded_side``) is shaded
   on the side facing away from it, read where that side faces on screen as the
@@ -1872,13 +1874,17 @@ def check_causality(ctx: Any) -> None:
     ]
     if not cues:
         return
+    from an.stage import draws_on_stage
+
     doc = compiled_shot(ctx)
-    if doc is None:
-        return
+    if doc is None and draws_on_stage(ctx.shot):
+        return  # a stage shot that did not compile: `not_compiled` says so
     from an.sound_anchors import SoundAnchorError, anchor_in_document
 
     for j, cue in cues:
         where = f"{ctx.path}/sounds/{j}"
+        if doc is None and cue.cause.changes is None:
+            continue  # a crossing or an event needs the picture
         try:
             cause_t = anchor_in_document(
                 doc,
@@ -1887,6 +1893,8 @@ def check_causality(ctx: Any) -> None:
                 fps=_fps(ctx),
                 duration=ctx.shot.duration,
                 where=where,
+                shot=ctx.shot,
+                mall=ctx.stores,
             )
         except SoundAnchorError as e:
             ctx.report.add("error", f"{where}/cause", str(e))
@@ -1912,6 +1920,8 @@ def check_causality(ctx: Any) -> None:
             + (
                 f"{{when: {cue.cause.when}, event: {cue.cause.event}}}`."
                 if cue.cause.event is not None
+                else _change_text(cue.cause)
+                if cue.cause.changes is not None
                 else "{when: ..., reaches: ...}`."
             ),
         )
@@ -1924,27 +1934,56 @@ CAUSALITY = Constraint(
 )
 
 
+def _change_text(anchor: Any) -> str:
+    """A ``changes`` anchor as the YAML a cue's ``at`` would say (``to``
+    quoted, so ``on`` stays a string when pasted back)."""
+    import json
+
+    to = f", to: {json.dumps(anchor.to)}" if anchor.to is not None else ""
+    nth = f", nth: {anchor.nth}" if anchor.nth != 1 else ""
+    return f"{{when: {anchor.when}, changes: {anchor.changes}{to}{nth}}}`."
+
+
 def check_cue_event(ctx: Any) -> None:
     """The core's ``cue_event`` check: each shot cue timed by a hold event
-    (``at: {when: musket, event: land}``) names one the shot has; it says when."""
+    (``at: {when: musket, event: land}``) or by an authored change
+    (``at: {when: book/body, changes: state, to: page_l}``, an#815) names one
+    the shot has; it says when."""
     from an.ir.schema import CueAnchor
 
     cues = [
         (j, c)
         for j, c in enumerate(ctx.shot.sounds)
-        if isinstance(c.at, CueAnchor) and c.at.event is not None
+        if isinstance(c.at, CueAnchor)
+        and (c.at.event is not None or c.at.changes is not None)
     ]
     if not cues:
         return
+    # An authored change is read from the shot's actions: it needs the compiled
+    # document only for its play extent (none, in a shot no stage draws: the
+    # default extent). A stage shot that did not compile: `not_compiled` says so.
+    from an.stage import draws_on_stage
+
     doc = compiled_shot(ctx)
-    if doc is None:
+    if doc is None and draws_on_stage(ctx.shot):
         return
-    from an.sound_anchors import SoundAnchorError, event_in_document
+    from an.sound_anchors import SoundAnchorError, anchor_in_document
 
     for j, cue in cues:
         where = f"{ctx.path}/sounds/{j}/at"
+        if doc is None and cue.at.event is not None:
+            continue  # a shot that did not compile: `not_compiled` says so
         try:
-            t = event_in_document(doc, cue.at, shot_id=ctx.shot.id, where=where)
+            t = anchor_in_document(
+                doc,
+                cue.at,
+                shot_id=ctx.shot.id,
+                fps=_fps(ctx),
+                duration=ctx.shot.duration,
+                where=where,
+                shot=ctx.shot,
+                mall=ctx.stores,
+            )
         except SoundAnchorError as e:
             ctx.report.add("error", where, str(e))
             continue
@@ -1958,7 +1997,7 @@ def check_cue_event(ctx: Any) -> None:
 CUE_EVENT = Constraint(
     "cue_event",
     check_cue_event,
-    description="a sound cue timed by a hold event (`at: {when: item, event: land}`) names an event the shot has",
+    description="a sound cue timed by a hold event (`at: {when: item, event: land}`) or an authored change (`at: {when: node, changes: state}`) names one the shot has",
 )
 
 

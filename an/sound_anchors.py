@@ -18,6 +18,11 @@ when the film is laid out:
   ``topple``'s, :mod:`an.stage.topple`), ``nth`` picking the n-th; plus
   ``offset``. A swap's clink lands on the frame the sabre reaches the socket,
   wherever the timing of the reach moves it;
+- ``at: {when: book/body, changes: state, to: page_l}`` — the instant of the
+  shot's ``nth`` ``set`` (or ``tween``) of that node's property (to that value,
+  when ``to`` is given), read from the shot's own actions: no stage document
+  is needed, so it works in any shot (an#815); plus ``offset``. A page-turn
+  sound follows the page wherever its ``set`` is retimed;
 - ``until: {cue: scratch, offset: 0.12}`` — the cue ends at that cue's start
   plus ``offset`` (its ``duration`` is derived).
 
@@ -45,6 +50,7 @@ from an.verify._base import Finding
 __all__ = [
     "SoundAnchorError",
     "anchor_in_document",
+    "change_in_shot",
     "crossing_in_document",
     "event_in_document",
     "resolve_cue_anchors",
@@ -177,6 +183,101 @@ def event_in_document(
     )
 
 
+_NO_VALUE = object()
+
+
+#: How YAML 1.1 spells a boolean: an unquoted ``to: on`` in ``scene.md`` reads
+#: as ``True``, while the ``set`` it means stores ``value: 'on'``.
+_YAML_BOOLS: dict[bool, frozenset[str]] = {
+    True: frozenset({"on", "yes", "y", "true"}),
+    False: frozenset({"off", "no", "n", "false"}),
+}
+
+
+def _same_value(a: Any, b: Any) -> bool:
+    """Whether an action's value is the anchor's ``to``: numbers within float
+    noise, a boolean never a number, and a boolean the string YAML read it from.
+
+    >>> _same_value("on", True), _same_value(True, "Off"), _same_value(1, True)
+    (True, False, False)
+    >>> _same_value(0.1 + 0.2, 0.3)
+    True
+    """
+    import math
+
+    if isinstance(a, bool) or isinstance(b, bool):
+        if isinstance(a, bool) and isinstance(b, bool):
+            return a is b
+        flag, word = (a, b) if isinstance(a, bool) else (b, a)
+        return isinstance(word, str) and word.strip().lower() in _YAML_BOOLS[flag]
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return math.isclose(float(a), float(b), rel_tol=1e-9, abs_tol=1e-9)
+    return a == b
+
+
+def change_in_shot(
+    shot: Any,
+    anchor: CueAnchor,
+    *,
+    where: str,
+    play_extent: Any = None,
+) -> float:
+    """Shot-local seconds of ``anchor``'s authored change: the start of the
+    ``nth`` ``set`` or ``tween`` of ``shot`` whose target is ``anchor.when``
+    and property ``anchor.changes`` (and whose value, a set's ``value`` or a
+    tween's ``to_value``, is ``anchor.to`` when given), in time order.
+    ``play_extent`` is the compile's (:func:`an.stage.compile.play_extent_of`),
+    so a ``set`` after a natural-length ``play`` in a ``sequence`` is timed
+    where the picture has it.
+
+    >>> from an.ir.schema import SetAction, Shot
+    >>> shot = Shot(id="s", actions=[
+    ...     SetAction(target="book/body", property="state", value="page_l", at=1.5),
+    ...     SetAction(target="book/body", property="state", value="page_r", at=3.0),
+    ... ])
+    >>> change_in_shot(shot, CueAnchor(when="book/body", changes="state", to="page_r"), where="x")
+    3.0
+    >>> change_in_shot(shot, CueAnchor(when="book/body", changes="state", nth=2), where="x")
+    3.0
+    """
+    from an.ir.compose import flatten
+
+    changes = []
+    for action in shot.actions:
+        for flat in flatten(action, play_extent=play_extent):
+            a = flat.action
+            if getattr(a, "property", None) != anchor.changes:
+                continue
+            value = getattr(a, "value", getattr(a, "to_value", _NO_VALUE))
+            if value is _NO_VALUE:
+                continue
+            changes.append((float(flat.start), getattr(a, "target", None), value))
+    changes.sort(key=lambda c: c[0])
+    mine = [c for c in changes if c[1] == anchor.when]
+    matching = [
+        c for c in mine if anchor.to is None or _same_value(c[2], anchor.to)
+    ]
+    if len(matching) >= anchor.nth:
+        return matching[anchor.nth - 1][0]
+    if mine:
+        have = ", ".join(f"{v!r} at {t:.2f} s" for t, _w, v in mine)
+        found = f"its {anchor.changes!r} changes in shot {shot.id!r}: {have}"
+    else:
+        targets = sorted({str(w) for _t, w, _v in changes})
+        found = (
+            f"no set or tween of {anchor.when}:{anchor.changes} in shot {shot.id!r}"
+            + (
+                f"; the nodes whose {anchor.changes!r} it changes: {targets}"
+                if targets
+                else ""
+            )
+        )
+    raise SoundAnchorError(
+        f"{where}: {anchor.describe()!r} does not happen ({len(matching)} such "
+        f"change(s), #{anchor.nth} asked): {found}"
+    )
+
+
 def anchor_in_document(
     doc: Any,
     anchor: CueAnchor,
@@ -185,8 +286,13 @@ def anchor_in_document(
     fps: float,
     duration: float,
     where: str,
+    shot: Any = None,
+    mall: Any = None,
 ) -> float:
-    """Shot-local seconds of ``anchor`` (an event, or a crossing), before its ``offset``."""
+    """Shot-local seconds of ``anchor`` (an event, an authored change of
+    ``shot``, or a crossing), before its ``offset``."""
+    if anchor.changes is not None:
+        return _change(doc, shot, anchor, where=where, mall=mall)
     if anchor.event is not None:
         return event_in_document(doc, anchor, shot_id=shot_id, where=where)
     return crossing_in_document(
@@ -194,10 +300,35 @@ def anchor_in_document(
     )
 
 
+def _change(
+    doc: Any, shot: Any, anchor: CueAnchor, *, where: str, mall: Any = None
+) -> float:
+    """:func:`change_in_shot`, with the play extent ``doc`` was compiled with
+    when there is one (a shot no stage draws flattens with the default)."""
+    if shot is None:
+        raise SoundAnchorError(
+            f"{where}: {anchor.describe()!r} is read from the shot's actions, "
+            "and none were given"
+        )
+    extent = None
+    if doc is not None:
+        from an.stage.compile import play_extent_of
+
+        extent = play_extent_of(doc, shot, mall)
+    return change_in_shot(shot, anchor, where=where, play_extent=extent)
+
+
 def _crossing(
     shot: Any, ctx: Any, renderer: Any, anchor: CueAnchor, *, where: str
 ) -> float:
-    """Shot-local seconds of ``anchor``: its event, or when ``anchor.when``'s centre first reaches ``anchor.reaches``."""
+    """Shot-local seconds of ``anchor``: its authored change, its event, or
+    when ``anchor.when``'s centre first reaches ``anchor.reaches``."""
+    if anchor.changes is not None:
+        from an.stage import draws_on_stage
+        from an.stage.cache_key import compiled_document
+
+        doc = compiled_document(shot, ctx) if draws_on_stage(shot) else None
+        return _change(doc, shot, anchor, where=where, mall=getattr(ctx, "mall", None))
     return anchor_in_document(
         _stage_document(shot, ctx, renderer),
         anchor,
@@ -220,9 +351,20 @@ def _shot_with(
             )
         return ids.index(anchor.shot)
     root = anchor.when.split("/", 1)[0].split("@", 1)[0]
-    for i, shot in enumerate(scene.timeline):
-        if any(e.id == root for e in shot.entities):
+    casting = [
+        i
+        for i, shot in enumerate(scene.timeline)
+        if any(e.id == root for e in shot.entities)
+    ]
+    if anchor.changes is not None:  # the first shot that has the change (an#815)
+        for i in casting:
+            try:
+                change_in_shot(scene.timeline[i], anchor, where="")
+            except SoundAnchorError:
+                continue
             return i
+    if casting:
+        return casting[0]
     raise SoundAnchorError(
         f"meta.sounds anchor {anchor.when!r}: no shot casts {root!r}; add "
         f"`shot: <id>` to the anchor (the shots are {ids})"
