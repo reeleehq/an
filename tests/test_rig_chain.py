@@ -418,3 +418,15 @@ def test_an_old_document_is_not_posed_by_the_helper_either(tmp_path):
             stored[slot].apply(0.0, 0.0), abs=1e-6
         ), slot
     assert any(t.posed for t in rest_world_transforms(doc).values())  # unversioned reading: posed
+
+
+def test_rotation_rad_pose_measures_as_rotation(tmp_path):
+    """The runtime applies a ``rotation_rad`` pose entry as ``rotation``, so a
+    Python pose measurement must too (an#771)."""
+    scene = compile_shot(_shot(), mall=_mall(tmp_path))
+    path, point = "lamp/base/upper", (0.0, -150 * K)
+    half_turn = math.pi
+    plain = screen_position(scene, path, point=point, pose={(path, "rotation"): half_turn})
+    aliased = screen_position(scene, path, point=point, pose={(path, "rotation_rad"): half_turn})
+    assert aliased == pytest.approx(plain)
+    assert aliased != pytest.approx(screen_position(scene, path, point=point))

@@ -25,6 +25,7 @@ from an.base import PLANE_REST_VALUES
 from an.stage.serialize import TransformJSON
 from an.timing.channel import Channel, Keyframe
 from an.timing.clip import Clip, LoopMode, Pose, merge_poses
+from an.timing.spaces import STAGE_NODE_ALIASES
 from an.timing.timeline import (
     SWAP_WRITE_GROUP,
     PlacedClip,
@@ -243,6 +244,8 @@ def transform_of(
         for (_target, prop), value in pose.items():
             if not isinstance(value, (int, float)):
                 continue
+            # The runtime assigns `rotation_rad` as `rotation` (an#771).
+            prop = STAGE_NODE_ALIASES.get(prop, prop)
             if prop in values:
                 values[prop] = float(value)
             elif prop == "perspective":
