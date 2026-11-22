@@ -2913,7 +2913,15 @@ def _sunk(ctx: _Ctx, run: Run, walk: Walk) -> list[dict[str, Any]]:
                     key: span[key]
                     for key in ("item", "where", "by", "opened", "role", "align")
                 }
-                run_.update({"from": t, "to": t, "below": r2(depth), "at": t, "ground": r2(ground)})
+                run_.update(
+                    {
+                        "from": t,
+                        "to": t,
+                        "below": r2(depth),
+                        "at": t,
+                        "ground": r2(ground),
+                    }
+                )
             run_["to"] = t
             if depth > run_["below"]:
                 run_.update(below=r2(depth), at=t, ground=r2(ground))

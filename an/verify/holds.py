@@ -191,6 +191,7 @@ FLOATING_ITEM = Constraint(
     description="an item taken from the floor lies on it, and a released item comes down (catalogue A1)",
 )
 
+
 def check_sunk_item(ctx: Any) -> None:
     """A carried item does not hang through its carrier's floor line."""
     if not _declares(ctx):
@@ -229,8 +230,15 @@ def _sunk_fix(s: dict[str, Any]) -> str:
     if s.get("opened") == "held_by":
         ways.insert(0, "aim it up (`held_rotation` on it)")
     if s.get("opened") == "grasp":
-        ways.append(f"take it by a point nearer its low end (`item: {s['item']}@<point>`)")
-    return "Carry it higher: " + ", ".join(ways[:-1]) + (" or " if len(ways) > 1 else "") + ways[-1]
+        ways.append(
+            f"take it by a point nearer its low end (`item: {s['item']}@<point>`)"
+        )
+    return (
+        "Carry it higher: "
+        + ", ".join(ways[:-1])
+        + (" or " if len(ways) > 1 else "")
+        + ways[-1]
+    )
 
 
 SUNK_ITEM = Constraint(
