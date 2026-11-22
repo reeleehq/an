@@ -4,6 +4,8 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- `transform_of` resolves pose keys through `STAGE_NODE_ALIASES`, so a `rotation_rad` pose entry turns Python pose measurements as the runtime draws it (an#771)
+- `an credits` words a speech take by its `speech/` asset prefix, not by an `extra['model']` key, so a generated image's line keeps its provider-terms restriction (an#772, part 2)
 - Voice leveling passes the voice to `mixing`'s `level_group(subject=)` and re-issues its warning as is, dropping an's re-wording; a `mixing` without the keyword is said too old (an#765).
 - The dialogue layout `an validate` uses is public: `an.ir.dialogue_layout(shot)` gives each line's `LinePlacement` (start, end, estimated), so a genre's check no longer imports a private helper (an#767).
 - `an validate` warns when a carried item hangs through its carrier's floor line (`sunk_item`), naming the span, how deep, and how to carry it higher (an#806).

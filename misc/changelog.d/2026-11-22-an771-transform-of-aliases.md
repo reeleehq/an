@@ -1,1 +1,0 @@
-- `transform_of` resolves pose keys through `STAGE_NODE_ALIASES`, so a `rotation_rad` pose entry turns Python pose measurements as the runtime draws it (an#771)
