@@ -118,32 +118,128 @@ SOLVED_POSE_TOLERANCE_PX: float = 0.05
 
 
 def solved_key_tolerances(
-    puppet: Any, *, budget: float = SOLVED_POSE_TOLERANCE_PX, scale: float = 1.0
-) -> dict[str, float]:
-    """``{channel: tolerance}`` for compacting ``puppet``'s solved keys so no
-    point of any body strays more than ``budget`` px from the solve (an#636).
+    puppet: Any,
+    *,
+    budget: float = SOLVED_POSE_TOLERANCE_PX,
+    scale: float = 1.0,
+    local: Sequence[Mapping[str, tuple[float, float, float]]] | None = None,
+) -> dict[str, dict[str, float]]:
+    """``{body: {channel: tolerance}}`` for compacting ``puppet``'s solved keys
+    so no point of any body strays more than ``budget`` px from the solve
+    (an#636, per body since an#779).
 
-    The errors add along a chain: a point moves at most ``tolerance`` × (√2 for
-    the root's x and y, plus one per rotating body down to it) × its scale, a
-    rotation's tolerance being the positional one over the puppet's whole
-    reach (every body's box end to end, its lever at most). So each channel
-    gets ``budget`` over the longest chain's count, at the largest scale:
-    ``scale``, the largest any body or its parent is drawn at over the shot
-    (an authored scale animates it), else the rest pose's.
+    The errors add along a chain: a point moves at most its root's position
+    tolerance × √2 (its x and y), plus, for each body on its chain, that body's
+    rotation tolerance × the point's distance from the body's pivot, all × the
+    scale it is drawn at. That distance is at most the body's own **lever**
+    (:func:`_levers`: what it carries within its own entity, its box and its
+    child bodies' pivots and levers), not the whole puppet's reach, so a nested
+    rig moving by its rotations alone compacts too. Each body gets ``budget``
+    over (√2 + the number of bodies on the longest chain through it), so any
+    chain's shares add up to at most ``budget``; a root's ``x`` and ``y`` the
+    same over the longest chain from it. ``scale`` is the largest any body or
+    its parent is drawn at over the shot (an authored scale animates it), else
+    the rest pose's. ``local``: the solved local channels per frame
+    (``Run.local``), whose child offsets the levers take the farthest of; else
+    the rest pose's.
+
+    >>> from types import SimpleNamespace as NS
+    >>> def body(path, parent=None):
+    ...     return NS(path=path, entity="arm", parent_body=parent, box=(-5.0, 0.0, 10.0, 100.0),
+    ...               pivot=(0.0, 0.0), sx=1.0, sy=1.0)
+    >>> nodes = {p: NS(transform=NS(x=0.0, y=y, scale_x=1.0, scale_y=1.0))
+    ...          for p, y in (("arm/upper", 0.0), ("arm/fore", 100.0))}
+    >>> puppet = NS(nodes=nodes, bodies={
+    ...     "arm/upper": body("arm/upper"), "arm/fore": body("arm/fore", "arm/upper")})
+    >>> tol = solved_key_tolerances(puppet, budget=1.0)
+    >>> round(tol["arm/upper"]["x"], 4), round(1 / tol["arm/upper"]["rotation"], 1)
+    (0.2929, 683.3)
+    >>> round(1 / tol["arm/fore"]["rotation"], 1)  # its own lever: about half the upper's
+    341.8
+    >>> "x" in tol["arm/fore"]  # a child body's x and y are not solved
+    False
     """
-    bodies = list(puppet.bodies.values())
+    bodies = puppet.bodies
+    children: dict[str, list[str]] = {}
+    for path, b in bodies.items():
+        if b.parent_body is not None and b.parent_body in bodies:
+            children.setdefault(b.parent_body, []).append(path)
 
-    def chain(b: Any) -> int:
-        n, cursor = 1, b.parent_body
-        while cursor is not None and n <= len(bodies):
-            n, cursor = n + 1, puppet.bodies[cursor].parent_body
+    def depth(path: str) -> int:
+        n, cursor = 1, bodies[path].parent_body
+        while cursor is not None and cursor in bodies and n <= len(bodies):
+            n, cursor = n + 1, bodies[cursor].parent_body
         return n
 
-    longest = max((chain(b) for b in bodies), default=1)
-    scale = max([1.0, scale] + [max(abs(b.sx), abs(b.sy)) for b in bodies])
-    reach = max(1.0, sum(math.hypot(b.box[2], b.box[3]) for b in bodies))
-    position = budget / ((math.sqrt(2.0) + longest) * scale)
-    return {"x": position, "y": position, "rotation": position / reach}
+    below: dict[str, int] = {}
+
+    def descent(path: str, seen: frozenset[str] = frozenset()) -> int:
+        if path not in below:
+            kids = [c for c in children.get(path, ()) if c not in seen]
+            below[path] = 1 + max((descent(c, seen | {path}) for c in kids), default=0)
+        return below[path]
+
+    scale = max([1.0, scale] + [max(abs(b.sx), abs(b.sy)) for b in bodies.values()])
+    levers = _levers(puppet, children, local=local)
+    out: dict[str, dict[str, float]] = {}
+    for path, b in bodies.items():
+        chain = depth(path) + descent(path) - 1  # bodies on the longest chain through it
+        share = budget / ((math.sqrt(2.0) + chain) * scale)
+        tol = {"rotation": share / max(1.0, levers[path])}
+        if b.parent_body is None:
+            tol["x"] = tol["y"] = share
+        out[path] = tol
+    return out
+
+
+def _levers(
+    puppet: Any,
+    children: Mapping[str, list[str]],
+    *,
+    local: Sequence[Mapping[str, tuple[float, float, float]]] | None = None,
+) -> dict[str, float]:
+    """Per body, the farthest any point it carries within its own entity lies
+    from its pivot, in its own local units (an#779): its box's farthest corner,
+    and each child body's pivot (where the child is placed in it, the farthest
+    over ``local``'s frames, else at rest) plus that child's lever in the
+    child's units times its own scale. A held item of another entity is not
+    carried here: its own channels are compacted at its own tolerances."""
+    bodies = puppet.bodies
+    nodes = getattr(puppet, "nodes", None) or {}
+    memo: dict[str, float] = {}
+
+    def offset(child: str) -> float:
+        places = [(f[child][0], f[child][1]) for f in (local or ()) if child in f]
+        node = nodes.get(child)
+        if node is not None:
+            places.append((float(node.transform.x), float(node.transform.y)))
+        px, py = bodies[bodies[child].parent_body].pivot
+        return max((math.hypot(x - px, y - py) for x, y in places), default=0.0)
+
+    def own_scale(child: str) -> float:
+        node = nodes.get(child)
+        if node is None:
+            return 1.0
+        t = node.transform
+        return max(abs(float(t.scale_x)), abs(float(t.scale_y)))
+
+    def lever(path: str, seen: frozenset[str] = frozenset()) -> float:
+        if path in memo:
+            return memo[path]
+        b = bodies[path]
+        left, top, w, h = b.box
+        px, py = b.pivot
+        reach = max(
+            math.hypot(x - px, y - py) for x in (left, left + w) for y in (top, top + h)
+        )
+        for c in children.get(path, ()):
+            if c in seen or bodies[c].entity != b.entity:
+                continue
+            reach = max(reach, offset(c) + own_scale(c) * lever(c, seen | {path}))
+        memo[path] = reach
+        return reach
+
+    return {path: lever(path) for path in bodies}
 
 
 def compact_keys(
@@ -2239,11 +2335,14 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
-    tolerance = solved_key_tolerances(puppet, scale=run.max_scale)
+    tolerance = solved_key_tolerances(puppet, scale=run.max_scale, local=run.local)
 
-    def keyframes(vs: Sequence[float], prop: str) -> list[Any]:
+    def keyframes(vs: Sequence[float], path: str, prop: str) -> list[Any]:
         kept = compact_keys(
-            run.times, vs, tolerance=tolerance.get(prop, 0.0), stepped=stepped
+            run.times,
+            vs,
+            tolerance=tolerance.get(path, {}).get(prop, 0.0),
+            stepped=stepped,
         )
         return [
             KeyframeJSON(time=_q(run.times[k], 1e-9), value=vs[k], easing=easing)
@@ -2258,7 +2357,7 @@ def _emit(
             continue  # the solve leaves it where the document already has it
         root = path.split("/", 1)[0]
         clips.setdefault(root, []).append(
-            ChannelJSON(target=path, property=prop, keyframes=keyframes(qs, prop))
+            ChannelJSON(target=path, property=prop, keyframes=keyframes(qs, path, prop))
         )
         emitted.add((path, prop))
     for (path, prop), (vs, shown) in sorted((extra or {}).items()):

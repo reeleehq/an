@@ -997,3 +997,63 @@ def test_an_animated_scale_is_in_the_compaction_budget(tmp_path):
     for t in _times(0.5):
         a, b = _hand_and_grip(compact, t)[0], _hand_and_grip(full, t)[0]
         assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)
+
+
+def _every_corner(doc, t):
+    """The stage position of every solved node's box corners at ``t``."""
+    from an.stage.solve import SOLVE_CLIP_PREFIX, _local_box
+
+    pose = evaluate_timeline(timeline_from_scene(doc), t)
+    nodes = dict(walk_children(doc.scene))
+    targets = sorted(
+        {
+            ch.target
+            for aid, anim in doc.animations.items()
+            if aid.startswith(SOLVE_CLIP_PREFIX)
+            for ch in anim.channels
+        }
+    )
+    out = []
+    for path in targets:
+        left, top, w, h = _local_box(nodes[path])
+        for x in (left, left + w):
+            for y in (top, top + h):
+                out.append(screen_position(doc, path, pose=pose, point=(x, y)))
+    return out
+
+
+@pytest.mark.parametrize("nesting", ["flat", "bones"])
+def test_a_nested_rig_moving_by_its_rotations_compacts_too(tmp_path, nesting):
+    """an#779: a rotation's tolerance is its own body's lever (what it carries
+    in its own entity), not the whole puppet's reach, so the nested rig, a
+    chain moving by its rotations alone, drops most of its keys over a 2 s
+    reach (it kept 65 of 98; now 32), and every corner of every solved body
+    stays within `SOLVED_POSE_TOLERANCE_PX` of the uncompacted solve at every
+    frame. (Over the fixture's 0.5 s reach its two rotations curve too much for
+    any key to go within the budget: 26 of 26 either way.)"""
+    import an.stage.solve as solve
+    from an.stage.solve import SOLVE_CLIP_PREFIX, SOLVED_POSE_TOLERANCE_PX
+
+    def keys(doc):
+        return sum(
+            len(ch.keyframes)
+            for aid, anim in doc.animations.items()
+            if aid.startswith(SOLVE_CLIP_PREFIX)
+            for ch in anim.channels
+        )
+
+    project = _project(tmp_path, nesting=None if nesting == "flat" else nesting)
+    acts = project.scene.timeline[0].model_dump()["actions"]
+    acts[0]["duration"] = 2.0  # the torso's turn, which the arm follows to the grip
+    shot = _shot(project, duration=2.0, actions=acts)
+    compact = _compile(project, shot)
+    real = solve.compact_keys
+    try:
+        solve.compact_keys = lambda times, values, **kw: list(range(len(values)))
+        full = _compile(project, shot)
+    finally:
+        solve.compact_keys = real
+    assert keys(compact) < keys(full) / 2, (keys(compact), keys(full))
+    for t in _times(2.0):
+        for a, b in zip(_every_corner(compact, t), _every_corner(full, t)):
+            assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)
