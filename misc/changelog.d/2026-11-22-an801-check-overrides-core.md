@@ -1,0 +1,1 @@
+- `rigid`, `preserve_volume`, `shaded_side`, `free` and `fixed` join `an.base.CORE_OVERRIDE_KEYS`, so a check's or the solve's override on a path or a text entity no longer fails its compile as an unknown document field (an#801).
