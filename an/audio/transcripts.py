@@ -22,6 +22,7 @@ All times are seconds from the start of the recording they describe.
 ...                         "2\\n00:00:03,000 --> 00:00:03,800\\nned: Hi.\\n")
 >>> [(s.speaker, s.text, s.start, s.end) for s in segs]
 [('carl', 'Hello there.', 1.0, 2.5), ('ned', 'Hi.', 3.0, 3.8)]
+>>> from an.audio.transcripts import align_words
 >>> aligned = align_words(["Hello", "there,", "friend"],
 ...                       [("hello", 0.5, 0.9), ("there", 0.9, 1.2), ("fred", 1.3, 1.6)])
 >>> aligned.words
@@ -40,10 +41,23 @@ from itertools import groupby
 from pathlib import Path
 from typing import Any
 
-# The word aligner is the fleet's one, in `mixing.transcript` (an#837): stdlib-only
-# and light, so importing it here costs nothing. Re-exported under an's names.
-from mixing.transcript import AlignedWords, align_words, tokens_of
-from mixing.transcript import normalize_word as normalize_text
+#: What this module re-exports from `mixing.transcript` (an#837), by an's name.
+#: The word aligner is the fleet's one; `mixing` is imported on first use, never
+#: by `import an` (the firewall in tests/test_captions.py).
+_MIXING_TRANSCRIPT_NAMES = {
+    "AlignedWords": "AlignedWords",
+    "align_words": "align_words",
+    "tokens_of": "tokens_of",
+    "normalize_text": "normalize_word",
+}
+
+
+def __getattr__(name: str):
+    if name in _MIXING_TRANSCRIPT_NAMES:
+        import mixing.transcript as mt
+
+        return getattr(mt, _MIXING_TRANSCRIPT_NAMES[name])
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     "FORMATS",
@@ -1061,7 +1075,7 @@ def normalize_tokens(text: str) -> list[str]:
     >>> normalize_tokens("Hello, there — it's ME!")
     ['hello', 'there', "it's", 'me']
     """
-    return tokens_of(text.casefold())
+    return __getattr__("tokens_of")(text.casefold())
 
 
 def segment_lines(
@@ -1080,6 +1094,7 @@ def segment_lines(
     >>> [(s.speaker, s.start, s.end, len(s.words)) for s in segment_lines(lines, timed)]
     [('carl', 0.5, 1.3, 2), ('ned', 2.0, 2.3, 1)]
     """
+    tokens_of, align_words = __getattr__("tokens_of"), __getattr__("align_words")
     per_line = [tokens_of(line.text) for line in lines]
     flat = [tok for toks in per_line for tok in toks]
     aligned = align_words(flat, timed, bounds=bounds).words
