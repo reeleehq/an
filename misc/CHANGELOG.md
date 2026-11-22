@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- the underlay-cover warning (outline and halo) measures stacked text by each glyph's ink contour, not one box per line, so descenders over ascenders at tight leading no longer warn falsely (an#781)
 - `an.audio.transcripts` re-exports `mixing.transcript`'s `align_words`, `tokens_of`, `AlignedWords` (and `normalize_text` is `normalize_word`) instead of a local copy: heard compounds (`twenty-five`, `U.S.`) now match, typographic apostrophes match, out-of-order heard times are refused; `AlignedWords` gains `anchors` (an#837)
 - `transform_of` resolves pose keys through `STAGE_NODE_ALIASES`, so a `rotation_rad` pose entry turns Python pose measurements as the runtime draws it (an#771)
 - `an credits` words a speech take by its `speech/` asset prefix, not by an `extra['model']` key, so a generated image's line keeps its provider-terms restriction (an#772, part 2)
