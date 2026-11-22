@@ -36,7 +36,7 @@ How it reads a shot. A **floor prop** is an item whose holder at that instant
 place on the set: ``ground``, ``ground@x``, ``world@x,y`` (an item put down,
 let fall, or staged with ``overrides: {held_by: world@x,y}``), so a cup on a
 table or a novel on a desk that nothing holds is not one; nor is one whose foot
-rests on another solid standing lower than it (``world@`` on a counter top,
+rests on another solid's top (``world@`` on a counter top,
 :func:`rests_on`). An item is held, and not judged, while its ``paint_after``
 channel names a body's part (an#537). Floor props are chosen in ONE place,
 :func:`held_on_floor`, handed to :func:`depth_inversions` as ``on_floor``. A
@@ -473,33 +473,24 @@ def stands_behind(
     return feet - foot
 
 
-def rests_on(
-    prop_box: tuple[float, ...],
-    other_box: tuple[float, ...],
-    *,
-    margin_share: float = DEPTH_MARGIN_SHARE,
-) -> bool:
-    """Whether a prop's foot (the middle of its box's bottom) lies on another
-    solid that stands lower than it: inside ``other_box``, whose own bottom is
-    more than ``margin_share`` of the prop's height below the foot. A cup on a
-    counter top, a book on a shelf: the place it rests at is not the floor.
+def rests_on(prop_box: tuple[float, ...], other_box: tuple[float, ...]) -> bool:
+    """Whether a prop's foot (the middle of its box's bottom) rests on another
+    solid: it lies inside ``other_box``, in its upper half (on its top, not at
+    its foot in front of it). A cup on a counter top, a book on a shelf: the
+    place it rests at is not the floor.
 
     >>> counter = (0, 100, 200, 200)
-    >>> rests_on((80, 70, 120, 100), counter)  # a cup standing on its top
+    >>> rests_on((80, 70, 120, 102), counter)  # a cup standing on its top
     True
     >>> rests_on((80, 170, 120, 198), counter)  # a box at its foot, in front
     False
-    >>> rests_on((300, 70, 340, 100), counter)  # beside it
+    >>> rests_on((300, 70, 340, 102), counter)  # beside it
     False
     """
     x = (prop_box[0] + prop_box[2]) / 2
     foot = prop_box[3]
-    margin = margin_share * (prop_box[3] - prop_box[1])
-    return (
-        other_box[0] <= x <= other_box[2]
-        and other_box[1] <= foot
-        and other_box[3] > foot + margin
-    )
+    top, bottom = other_box[1], other_box[3]
+    return other_box[0] <= x <= other_box[2] and top <= foot <= (top + bottom) / 2
 
 
 def floor_holder_at(timeline: list[list[Any]], t: float) -> bool:
@@ -644,7 +635,7 @@ def depth_inversions(
                 if up is None:
                     continue
                 if any(
-                    rests_on(boxes[prop], boxes[o], margin_share=margin_share)
+                    rests_on(boxes[prop], boxes[o])
                     for o in boxes
                     if o not in (prop, walker)
                 ):
