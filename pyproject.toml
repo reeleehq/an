@@ -84,8 +84,9 @@ dependencies = [
     # tags, and how a cue reads on one that does not (a pause becomes real
     # silence), is `voxy.direction`'s table, not a second copy here. A sibling
     # package (MIT); its base install is numpy, dol, config2py, i2 and ps (no
-    # torch: that is its `local` extra). Imported when a dialect is asked for,
-    # never by `import an`.
+    # torch: that is its `local` extra). Core rather than the `tts` extra because
+    # `an validate` reads a voice's dialect without the ElevenLabs SDK. Imported
+    # when a dialect is asked for, never by `import an`.
     "voxy",
 ]
 
