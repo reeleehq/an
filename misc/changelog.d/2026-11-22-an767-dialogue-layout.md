@@ -1,0 +1,1 @@
+- The dialogue layout `an validate` uses is public: `an.ir.dialogue_layout(shot)` gives each line's `LinePlacement` (start, end, estimated), so a genre's check no longer imports a private helper (an#767).
