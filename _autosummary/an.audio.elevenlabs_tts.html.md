@@ -10,7 +10,12 @@ If you want real speech, `pip install elevenlabs` and set
 declare, beside `voice_id`, the `model_id` it speaks with, its
 `voice_settings` and a sampling `seed`; a dialogue line’s `[emotion]` and
 `{direction}` reach a model that takes inline audio tags (`eleven_v3`,
-`eleven_v4` and their variants) as `[excited] Hi!`.
+`eleven_v4` and their variants) as `[excited] Hi!`. Which models those are is
+voxy’s knowledge, not this module’s (an#822): `voxy.dialect_for("elevenlabs",
+model_id)` names each model’s *dialect*, and a model outside the inline-tags one
+still honours a line’s pause cues (`{beat}`, `{pause}`) as real silence,
+rendered by `voxy.direction.plan_directions`; its other cues are dropped with a
+warning.
 [`ElevenLabsTTS.synthesis_options()`](#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options) turns those into the keyword arguments
 [`ElevenLabsTTS.synthesize()`](#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize) takes — the audio pipeline keys its cache on
 exactly that dict, and a voice declaring none of them yields `{}`, so no
@@ -32,15 +37,16 @@ existing cache key moves.
 
 | [`ELEVENLABS_STOCK_CATEGORY`](#an.audio.elevenlabs_tts.ELEVENLABS_STOCK_CATEGORY)   | The category ElevenLabs gives its stock voices, the ones any account holds and nobody designed: `VoiceMeta.is_stock` (an#712).   |
 |------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| [`AUDIO_TAG_MODEL_PREFIXES`](#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES)    | Model ids that read inline audio tags (`[excited]`, `[sighs]`).                                                                  |
 | [`VOICE_SETTINGS_RANGES`](#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES)       | The `voice_settings` keys the API takes, with the range each accepts (`None` = a boolean).                                       |
 
 ### Functions
 
-| [`normalize_voice_settings`](#an.audio.elevenlabs_tts.normalize_voice_settings)(raw)              | The canonical `voice_settings` dict — only what was declared, key-sorted.   |
-|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [`tagged_text`](#an.audio.elevenlabs_tts.tagged_text)(text, tags)                    | `text` with each tag prefixed as `[tag]` — what an audio-tag model reads.   |
-| [`takes_audio_tags`](#an.audio.elevenlabs_tts.takes_audio_tags)(model_id, \*[, prefixes]) | Whether `model_id` reads inline audio tags.                                 |
+| [`model_dialect`](#an.audio.elevenlabs_tts.model_dialect)(model_id, \*[, backend])    | How `backend`'s model `model_id` takes delivery direction: voxy's answer.                                                                                            |
+|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`model_native_break_s`](#an.audio.elevenlabs_tts.model_native_break_s)(model_id)            | The longest SSML `<break>` ElevenLabs model `model_id` renders itself, in seconds: voxy's table (0 for a model it does not list, and for v3/v4, which take no SSML). |
+| [`normalize_voice_settings`](#an.audio.elevenlabs_tts.normalize_voice_settings)(raw)             | The canonical `voice_settings` dict — only what was declared, key-sorted.                                                                                            |
+| [`tagged_text`](#an.audio.elevenlabs_tts.tagged_text)(text, tags)                   | `text` with each tag prefixed as `[tag]` — what an audio-tag model reads.                                                                                            |
+| [`takes_audio_tags`](#an.audio.elevenlabs_tts.takes_audio_tags)(model_id, \*[, backend]) | Whether `model_id` reads inline audio tags.                                                                                                                          |
 
 ### Classes
 
@@ -53,12 +59,6 @@ existing cache key moves.
 |-------------------------------------------------------------------------------|-------------------------------------------------------------------|
 | [`ElevenLabsVoiceError`](#an.audio.elevenlabs_tts.ElevenLabsVoiceError)         | A voice document declares ElevenLabs settings that are malformed. |
 
-### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('eleven_v3', 'eleven_v4')*
-
-Model ids that read inline audio tags (`[excited]`, `[sighs]`). Matched
-as prefixes, so `eleven_v3_conversational` and `eleven_v4_turbo` count.
-Every other model would speak the brackets, so it never receives a tag.
-
 ### an.audio.elevenlabs_tts.ELEVENLABS_STOCK_CATEGORY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'premade'*
 
 The category ElevenLabs gives its stock voices, the ones any account holds
@@ -66,7 +66,7 @@ and nobody designed: `VoiceMeta.is_stock` (an#712). A voice an account
 added from ElevenLabs’ shared Voice Library has another category, and is
 not stock.
 
-### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
+### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(\*, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', dialect=<function model_dialect>, native_break_s=<function model_native_break_s>, client_factory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -83,12 +83,13 @@ what may never run in memory).
 * **Type:**
   Every request is charged (an#311
 
-#### billed_characters(text, , audio_tags=None, \*\*\_options)
+#### billed_characters(text, , audio_tags=None, model_id=None, \*\*\_options)
 
 Characters one request bills: the text as sent, audio tags included.
 
 ```pycon
->>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+>>> tts = ElevenLabsTTS(api_key="unused")
+>>> tts.billed_characters("Hi!", audio_tags=["excited"], model_id="eleven_v3")
 13
 ```
 
@@ -108,6 +109,13 @@ request of a render, so nothing is half-synthesized (an#305).
 
 `api_key -> client`; tests inject a fake so nothing reaches the API.
 
+#### dialect
+
+how a model takes direction (voxy’s registry).
+
+* **Type:**
+  `model_id -> Dialect`
+
 #### list_voices(, search=None)
 
 The account’s voices (its own plus the ones it saved), newest API.
@@ -119,6 +127,13 @@ fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 * **Return type:**
   [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
+#### native_break_s
+
+the longest SSML break a model renders (voxy’s table).
+
+* **Type:**
+  `model_id -> seconds`
+
 #### synthesis_options(voice, , emotion=None, direction=None)
 
 The `synthesize` keyword arguments a voice document and a line imply.
@@ -126,9 +141,11 @@ The `synthesize` keyword arguments a voice document and a line imply.
 Only what is declared appears (`{}` for a plain voice), so the audio
 cache key — which includes this dict when it is non-empty — is unchanged
 for every voice that declares nothing new. `audio_tags` are the line’s
-`[emotion]` (unless `neutral`) then its `direction` cues, and only
-on a model that reads tags; elsewhere a direction is dropped with a
-warning and the emotion stays a face-only cue, as before.
+`[emotion]` (unless `neutral`) then its `direction` cues, all of
+them on a model that reads tags. Elsewhere only the direction’s pause
+cues are kept (sent as SSML breaks, when the model renders a break that
+long: voxy’s table), any other direction cue is dropped with a warning,
+and the emotion stays a face-only cue, as before.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -175,6 +192,32 @@ A voice document declares ElevenLabs settings that are malformed.
 The `voice_settings` keys the API takes, with the range each accepts
 (`None` = a boolean). `speed` is the API’s documented 0.7–1.2.
 
+### an.audio.elevenlabs_tts.model_dialect(model_id, , backend='elevenlabs')
+
+How `backend`’s model `model_id` takes delivery direction: voxy’s answer.
+
+```pycon
+>>> model_dialect("eleven_v3").name, model_dialect("eleven_turbo_v2_5").name
+('inline-tags', 'plain')
+```
+
+* **Return type:**
+  `Dialect`
+
+### an.audio.elevenlabs_tts.model_native_break_s(model_id)
+
+The longest SSML `<break>` ElevenLabs model `model_id` renders itself, in
+seconds: voxy’s table (0 for a model it does not list, and for v3/v4, which
+take no SSML).
+
+```pycon
+>>> model_native_break_s("eleven_turbo_v2_5"), model_native_break_s("eleven_v3")
+(3.0, 0.0)
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.audio.elevenlabs_tts.normalize_voice_settings(raw)
 
 The canonical `voice_settings` dict — only what was declared, key-sorted.
@@ -201,13 +244,15 @@ an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['st
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.elevenlabs_tts.takes_audio_tags(model_id, , prefixes=('eleven_v3', 'eleven_v4'))
+### an.audio.elevenlabs_tts.takes_audio_tags(model_id, , backend='elevenlabs')
 
 Whether `model_id` reads inline audio tags.
 
 ```pycon
->>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")
-(True, False)
+>>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_v4_turbo")
+(True, True)
+>>> takes_audio_tags("eleven_turbo_v2_5")
+False
 ```
 
 * **Return type:**

@@ -9,13 +9,14 @@ an.audio.elevenlabs\_tts
    .. autosummary::
    
       ELEVENLABS_STOCK_CATEGORY
-      AUDIO_TAG_MODEL_PREFIXES
       VOICE_SETTINGS_RANGES
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      model_dialect
+      model_native_break_s
       normalize_voice_settings
       tagged_text
       takes_audio_tags

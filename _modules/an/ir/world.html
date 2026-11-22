@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=cd4fff6d"></script>
+    <script src="../../../_static/documentation_options.js?v=30ace753"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.399" />
+  <meta name="docsearch:version" content="0.1.400" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -4588,7 +4588,8 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">WorldMember</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""``(member, plane name)`` for every plane of the world's environment</span>
 <span class="sd">    members whose descriptor ``environments`` holds and reads; an unreadable</span>
-<span class="sd">    one is another check's to report."""</span>
+<span class="sd">    one is another check's to report: a missing entry, and one the store cannot</span>
+<span class="sd">    read (broken JSON, an unreadable file) alike (an#766)."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
         <span class="n">environment_from_document</span><span class="p">,</span>
@@ -4601,7 +4602,12 @@ window.runMermaid = runMermaid;</script>
             <span class="k">continue</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">raw</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">ref</span><span class="p">]</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">except</span> <span class="p">(</span>
+            <span class="ne">KeyError</span><span class="p">,</span>
+            <span class="ne">TypeError</span><span class="p">,</span>
+            <span class="ne">ValueError</span><span class="p">,</span>
+            <span class="ne">OSError</span><span class="p">,</span>
+        <span class="p">):</span>  <span class="c1"># JSONDecodeError is a ValueError</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>

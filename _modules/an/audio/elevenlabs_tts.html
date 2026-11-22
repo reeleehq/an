@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=cd4fff6d"></script>
+    <script src="../../../_static/documentation_options.js?v=30ace753"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.399" />
+  <meta name="docsearch:version" content="0.1.400" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -722,7 +722,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">declare, beside ``voice_id``, the ``model_id`` it speaks with, its</span>
 <span class="sd">``voice_settings`` and a sampling ``seed``; a dialogue line's ``[emotion]`` and</span>
 <span class="sd">``{direction}`` reach a model that takes inline audio tags (``eleven_v3``,</span>
-<span class="sd">``eleven_v4`` and their variants) as ``[excited] Hi!``.</span>
+<span class="sd">``eleven_v4`` and their variants) as ``[excited] Hi!``. Which models those are is</span>
+<span class="sd">voxy's knowledge, not this module's (an#822): ``voxy.dialect_for("elevenlabs",</span>
+<span class="sd">model_id)`` names each model's *dialect*, and a model outside the inline-tags one</span>
+<span class="sd">still honours a line's pause cues (``{beat}``, ``{pause}``) as real silence,</span>
+<span class="sd">rendered by ``voxy.direction.plan_directions``; its other cues are dropped with a</span>
+<span class="sd">warning.</span>
 <span class="sd">:meth:`ElevenLabsTTS.synthesis_options` turns those into the keyword arguments</span>
 <span class="sd">:meth:`ElevenLabsTTS.synthesize` takes — the audio pipeline keys its cache on</span>
 <span class="sd">exactly that dict, and a voice declaring none of them yields ``{}``, so no</span>
@@ -745,9 +750,12 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">VoiceMeta</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># voxy is imported when a dialect is asked for, never by `import an`</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">voxy.direction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dialect</span>
 
 
 <span class="n">_DEFAULT_MODEL_ID</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"eleven_turbo_v2_5"</span>
@@ -759,10 +767,11 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: not stock.</span>
 <span class="n">ELEVENLABS_STOCK_CATEGORY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"premade"</span>
 
-<span class="c1">#: Model ids that read inline audio tags (``[excited]``, ``[sighs]``). Matched</span>
-<span class="c1">#: as prefixes, so ``eleven_v3_conversational`` and ``eleven_v4_turbo`` count.</span>
-<span class="c1">#: Every other model would speak the brackets, so it never receives a tag.</span>
-<span class="n">AUDIO_TAG_MODEL_PREFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"eleven_v3"</span><span class="p">,</span> <span class="s2">"eleven_v4"</span><span class="p">)</span>
+<span class="c1">#: The name voxy's dialect registry knows this engine by (``voxy.dialect_for``).</span>
+<span class="c1">#: Which ElevenLabs models read inline audio tags (``[excited]``, ``[sighs]``) is</span>
+<span class="c1">#: voxy's table (``eleven_v3*``, ``eleven_v4*``), extended with</span>
+<span class="c1">#: ``voxy.register_dialect``; there is no second copy here (an#822).</span>
+<span class="n">_VOXY_BACKEND</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"elevenlabs"</span>
 
 <span class="c1">#: The ``voice_settings`` keys the API takes, with the range each accepts</span>
 <span class="c1">#: (``None`` = a boolean). ``speed`` is the API's documented 0.7–1.2.</span>
@@ -795,18 +804,90 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="model_dialect">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.model_dialect">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">model_dialect</span><span class="p">(</span><span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_VOXY_BACKEND</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Dialect"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How ``backend``'s model ``model_id`` takes delivery direction: voxy's answer.</span>
+
+<span class="sd">    &gt;&gt;&gt; model_dialect("eleven_v3").name, model_dialect("eleven_turbo_v2_5").name</span>
+<span class="sd">    ('inline-tags', 'plain')</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">voxy.direction</span><span class="w"> </span><span class="kn">import</span> <span class="n">dialect_for</span>
+
+    <span class="k">return</span> <span class="n">dialect_for</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">model_id</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="model_native_break_s">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.model_native_break_s">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">model_native_break_s</span><span class="p">(</span><span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The longest SSML ``&lt;break&gt;`` ElevenLabs model ``model_id`` renders itself, in</span>
+<span class="sd">    seconds: voxy's table (0 for a model it does not list, and for v3/v4, which</span>
+<span class="sd">    take no SSML).</span>
+
+<span class="sd">    &gt;&gt;&gt; model_native_break_s("eleven_turbo_v2_5"), model_native_break_s("eleven_v3")</span>
+<span class="sd">    (3.0, 0.0)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">voxy.elevenlabs_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ELEVENLABS_NATIVE_BREAK_S</span>
+
+    <span class="k">return</span> <span class="n">ELEVENLABS_NATIVE_BREAK_S</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_id</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="takes_audio_tags">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.takes_audio_tags">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">takes_audio_tags</span><span class="p">(</span>
-    <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefixes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">AUDIO_TAG_MODEL_PREFIXES</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">takes_audio_tags</span><span class="p">(</span><span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_VOXY_BACKEND</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Whether ``model_id`` reads inline audio tags.</span>
 
-<span class="sd">    &gt;&gt;&gt; takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")</span>
-<span class="sd">    (True, False)</span>
+<span class="sd">    &gt;&gt;&gt; takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_v4_turbo")</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    &gt;&gt;&gt; takes_audio_tags("eleven_turbo_v2_5")</span>
+<span class="sd">    False</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">model_dialect</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span><span class="o">.</span><span class="n">inline_tags</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pause_s</span><span class="p">(</span><span class="n">cue</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds of silence ``cue`` asks for in voxy's vocabulary (0: not a pause)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">voxy.direction</span><span class="w"> </span><span class="kn">import</span> <span class="n">direction</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">direction</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span><span class="o">.</span><span class="n">pause_s</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"pause"</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_dialect</span><span class="p">(</span><span class="n">dialect</span><span class="p">:</span> <span class="s2">"Dialect"</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dialect</span><span class="o">.</span><span class="n">inline_tags</span> <span class="ow">and</span> <span class="n">dialect</span><span class="o">.</span><span class="n">instruction_param</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"model </span><span class="si">{</span><span class="n">model_id</span><span class="si">!r}</span><span class="s2"> is declared to take direction through "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">dialect</span><span class="o">.</span><span class="n">instruction_param</span><span class="si">!r}</span><span class="s2">, a parameter ElevenLabs does not have; "</span>
+            <span class="s2">"declare it inline-tags or plain"</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_directed_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dialect</span><span class="p">:</span> <span class="s2">"Dialect"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What is sent for ``text`` with ``tags`` to a model speaking ``dialect``.</span>
+
+<span class="sd">    An inline-tags model reads the tags as written; any other gets the pause tags</span>
+<span class="sd">    as SSML breaks before the words and the rest removed (``voxy.direction``).</span>
+<span class="sd">    Only the cues are rendered: the words are sent exactly as written.</span>
+
+<span class="sd">    &gt;&gt;&gt; from voxy.direction import INLINE, PLAIN</span>
+<span class="sd">    &gt;&gt;&gt; _directed_text("Hi!", ["excited"], INLINE)</span>
+<span class="sd">    '[excited] Hi!'</span>
+<span class="sd">    &gt;&gt;&gt; _directed_text("I said [sic] that.", ["beat"], PLAIN)</span>
+<span class="sd">    '&lt;break time="0.45s" /&gt; I said [sic] that.'</span>
+<span class="sd">    &gt;&gt;&gt; _directed_text("Hi!", None, PLAIN)</span>
+<span class="sd">    'Hi!'</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="k">if</span> <span class="n">dialect</span><span class="o">.</span><span class="n">inline_tags</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tagged_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">voxy.direction</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLAIN</span><span class="p">,</span> <span class="n">plan_directions</span>
+
+    <span class="p">(</span><span class="n">cues</span><span class="p">,)</span> <span class="o">=</span> <span class="n">plan_directions</span><span class="p">(</span><span class="n">tagged_text</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">PLAIN</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cues</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">cues</span><span class="o">.</span><span class="n">text</span> <span class="k">else</span> <span class="n">text</span>
 
 
 <div class="viewcode-block" id="normalize_voice_settings">
@@ -888,7 +969,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_DEFAULT_MODEL_ID</span><span class="p">,</span>
         <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_DEFAULT_OUTPUT_FORMAT</span><span class="p">,</span>
-        <span class="n">audio_tag_model_prefixes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">AUDIO_TAG_MODEL_PREFIXES</span><span class="p">,</span>
+        <span class="n">dialect</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="s2">"Dialect"</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_dialect</span><span class="p">,</span>
+        <span class="n">native_break_s</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_native_break_s</span><span class="p">,</span>
         <span class="n">client_factory</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="p">(</span>
@@ -898,7 +980,10 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">model_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">=</span> <span class="n">output_format</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">audio_tag_model_prefixes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">audio_tag_model_prefixes</span><span class="p">)</span>
+        <span class="c1">#: ``model_id -&gt; Dialect``: how a model takes direction (voxy's registry).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialect</span> <span class="o">=</span> <span class="n">dialect</span>
+        <span class="c1">#: ``model_id -&gt; seconds``: the longest SSML break a model renders (voxy's table).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native_break_s</span> <span class="o">=</span> <span class="n">native_break_s</span>
         <span class="c1">#: ``api_key -&gt; client``; tests inject a fake so nothing reaches the API.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="o">=</span> <span class="n">client_factory</span>
 
@@ -941,9 +1026,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        Only what is declared appears (``{}`` for a plain voice), so the audio</span>
 <span class="sd">        cache key — which includes this dict when it is non-empty — is unchanged</span>
 <span class="sd">        for every voice that declares nothing new. ``audio_tags`` are the line's</span>
-<span class="sd">        ``[emotion]`` (unless ``neutral``) then its ``direction`` cues, and only</span>
-<span class="sd">        on a model that reads tags; elsewhere a direction is dropped with a</span>
-<span class="sd">        warning and the emotion stays a face-only cue, as before.</span>
+<span class="sd">        ``[emotion]`` (unless ``neutral``) then its ``direction`` cues, all of</span>
+<span class="sd">        them on a model that reads tags. Elsewhere only the direction's pause</span>
+<span class="sd">        cues are kept (sent as SSML breaks, when the model renders a break that</span>
+<span class="sd">        long: voxy's table), any other direction cue is dropped with a warning,</span>
+<span class="sd">        and the emotion stays a face-only cue, as before.</span>
 <span class="sd">        """</span>
         <span class="n">opts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_id"</span><span class="p">)</span>
@@ -967,14 +1054,35 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="n">tags</span> <span class="o">+=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">direction</span> <span class="ow">or</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
         <span class="n">effective_model</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_id"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">tags</span> <span class="ow">and</span> <span class="n">takes_audio_tags</span><span class="p">(</span>
-            <span class="n">effective_model</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">audio_tag_model_prefixes</span>
-        <span class="p">):</span>
+        <span class="n">dialect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialect</span><span class="p">(</span><span class="n">effective_model</span><span class="p">)</span>
+        <span class="n">_check_dialect</span><span class="p">(</span><span class="n">dialect</span><span class="p">,</span> <span class="n">effective_model</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tags</span> <span class="ow">and</span> <span class="n">dialect</span><span class="o">.</span><span class="n">inline_tags</span><span class="p">:</span>
             <span class="n">opts</span><span class="p">[</span><span class="s2">"audio_tags"</span><span class="p">]</span> <span class="o">=</span> <span class="n">tags</span>
-        <span class="k">elif</span> <span class="n">direction</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">opts</span>
+        <span class="c1"># a pause cue is kept as real silence when the model renders a break that long</span>
+        <span class="n">longest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_break_s</span><span class="p">(</span><span class="n">effective_model</span><span class="p">)</span>
+        <span class="n">pauses</span><span class="p">,</span> <span class="n">dropped</span><span class="p">,</span> <span class="n">unbreakable</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">direction</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">cue</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">pause</span> <span class="o">=</span> <span class="n">_pause_s</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pause</span><span class="p">:</span>
+                <span class="n">dropped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">pause</span> <span class="o">&lt;=</span> <span class="n">longest</span><span class="p">:</span>
+                <span class="n">pauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">unbreakable</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pauses</span><span class="p">:</span>
+            <span class="n">opts</span><span class="p">[</span><span class="s2">"audio_tags"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pauses</span>
+        <span class="k">if</span> <span class="n">dropped</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"direction </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span><span class="si">}</span><span class="s2"> is dropped: model </span><span class="si">{</span><span class="n">effective_model</span><span class="si">!r}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"direction </span><span class="si">{</span><span class="n">dropped</span><span class="si">}</span><span class="s2"> is dropped: model </span><span class="si">{</span><span class="n">effective_model</span><span class="si">!r}</span><span class="s2"> "</span>
                 <span class="s2">"does not read audio tags (declare model_id: eleven_v3 on the voice)"</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">unbreakable</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"pause </span><span class="si">{</span><span class="n">unbreakable</span><span class="si">}</span><span class="s2"> is dropped: model </span><span class="si">{</span><span class="n">effective_model</span><span class="si">!r}</span><span class="s2"> renders "</span>
+                <span class="sa">f</span><span class="s2">"no SSML break that long (its longest: </span><span class="si">{</span><span class="n">longest</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s)"</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">opts</span></div>
@@ -1002,15 +1110,29 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="ElevenLabsTTS.billed_characters">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.billed_characters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">billed_characters</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">_options</span><span class="p">:</span> <span class="n">Any</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">audio_tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">_options</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Characters one request bills: the text as sent, audio tags included.</span>
 
-<span class="sd">        &gt;&gt;&gt; ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])</span>
+<span class="sd">        &gt;&gt;&gt; tts = ElevenLabsTTS(api_key="unused")</span>
+<span class="sd">        &gt;&gt;&gt; tts.billed_characters("Hi!", audio_tags=["excited"], model_id="eleven_v3")</span>
 <span class="sd">        13</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">tagged_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sent_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">,</span> <span class="n">model_id</span><span class="p">))</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sent_text</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span>
+        <span class="n">dialect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialect</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">_check_dialect</span><span class="p">(</span><span class="n">dialect</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_directed_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">,</span> <span class="n">dialect</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ElevenLabsTTS.synthesize">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.synthesize">[docs]</a>
@@ -1036,7 +1158,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="n">request</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">voice_id</span><span class="o">=</span><span class="n">effective_voice</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="n">tagged_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">),</span>
+            <span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sent_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">,</span> <span class="n">model_id</span><span class="p">),</span>
             <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">,</span>
             <span class="n">output_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="p">,</span>
         <span class="p">)</span>

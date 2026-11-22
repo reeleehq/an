@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=cd4fff6d"></script>
+    <script src="../_static/documentation_options.js?v=30ace753"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.399" />
+  <meta name="docsearch:version" content="0.1.400" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -800,7 +800,7 @@ transcription, and the audio pipeline stamps them on the line.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.ElevenLabsTTS">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">ElevenLabsTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eleven_turbo_v2_5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mp3_44100_128'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tag_model_prefixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('eleven_v3',</span> <span class="pre">'eleven_v4')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">ElevenLabsTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eleven_turbo_v2_5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mp3_44100_128'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">model_dialect&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">native_break_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">model_native_break_s&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to <code class="docutils literal notranslate"><span class="pre">ELEVEN_API_KEY</span></code> / <code class="docutils literal notranslate"><span class="pre">ELEVENLABS_API_KEY</span></code>).</p>
@@ -821,9 +821,10 @@ transcription, and the audio pipeline stamps them on the line.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.billed_characters">
-<span class="sig-name descname"><span class="pre">billed_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.billed_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.billed_characters" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">billed_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.billed_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.billed_characters" title="Link to this definition">#</a></dt>
 <dd><p>Characters one request bills: the text as sent, audio tags included.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">billed_characters</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">,</span> <span class="n">audio_tags</span><span class="o">=</span><span class="p">[</span><span class="s2">"excited"</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span> <span class="o">=</span> <span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span><span class="o">.</span><span class="n">billed_characters</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">,</span> <span class="n">audio_tags</span><span class="o">=</span><span class="p">[</span><span class="s2">"excited"</span><span class="p">],</span> <span class="n">model_id</span><span class="o">=</span><span class="s2">"eleven_v3"</span><span class="p">)</span>
 <span class="go">13</span>
 </pre></div>
 </div>
@@ -853,6 +854,17 @@ request of a render, so nothing is half-synthesized (an#305).</p>
 <dd><p><code class="docutils literal notranslate"><span class="pre">api_key</span> <span class="pre">-&gt;</span> <span class="pre">client</span></code>; tests inject a fake so nothing reaches the API.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.dialect">
+<span class="sig-name descname"><span class="pre">dialect</span></span><a class="headerlink" href="#an.audio.ElevenLabsTTS.dialect" title="Link to this definition">#</a></dt>
+<dd><p>how a model takes direction (voxy’s registry).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">model_id</span> <span class="pre">-&gt;</span> <span class="pre">Dialect</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.list_voices">
 <span class="sig-name descname"><span class="pre">list_voices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.list_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.list_voices" title="Link to this definition">#</a></dt>
@@ -867,6 +879,17 @@ fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.native_break_s">
+<span class="sig-name descname"><span class="pre">native_break_s</span></span><a class="headerlink" href="#an.audio.ElevenLabsTTS.native_break_s" title="Link to this definition">#</a></dt>
+<dd><p>the longest SSML break a model renders (voxy’s table).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">model_id</span> <span class="pre">-&gt;</span> <span class="pre">seconds</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.synthesis_options">
 <span class="sig-name descname"><span class="pre">synthesis_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">emotion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.synthesis_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.synthesis_options" title="Link to this definition">#</a></dt>
@@ -874,9 +897,11 @@ fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 <p>Only what is declared appears (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for a plain voice), so the audio
 cache key — which includes this dict when it is non-empty — is unchanged
 for every voice that declares nothing new. <code class="docutils literal notranslate"><span class="pre">audio_tags</span></code> are the line’s
-<code class="docutils literal notranslate"><span class="pre">[emotion]</span></code> (unless <code class="docutils literal notranslate"><span class="pre">neutral</span></code>) then its <code class="docutils literal notranslate"><span class="pre">direction</span></code> cues, and only
-on a model that reads tags; elsewhere a direction is dropped with a
-warning and the emotion stays a face-only cue, as before.</p>
+<code class="docutils literal notranslate"><span class="pre">[emotion]</span></code> (unless <code class="docutils literal notranslate"><span class="pre">neutral</span></code>) then its <code class="docutils literal notranslate"><span class="pre">direction</span></code> cues, all of
+them on a model that reads tags. Elsewhere only the direction’s pause
+cues are kept (sent as SSML breaks, when the model renders a break that
+long: voxy’s table), any other direction cue is dropped with a warning,
+and the emotion stays a face-only cue, as before.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
@@ -1758,7 +1783,9 @@ audio’s actual length.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.billed_characters"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.billed_characters()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.check_available"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.check_available()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.client_factory"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.client_factory</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.dialect"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.dialect</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.list_voices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.native_break_s"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.native_break_s</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesis_options()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesize()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.take_options"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.take_options()</span></code></a></li>

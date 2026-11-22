@@ -83,7 +83,7 @@ timed transcript: [`an.audio.recorded`](an.audio.recorded.html.md#module-an.audi
 lip-sync provider that aligns from words prefers these to its own
 transcription, and the audio pipeline stamps them on the line.
 
-### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
+### *class* an.audio.ElevenLabsTTS(\*, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', dialect=<function model_dialect>, native_break_s=<function model_native_break_s>, client_factory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -100,12 +100,13 @@ what may never run in memory).
 * **Type:**
   Every request is charged (an#311
 
-#### billed_characters(text, , audio_tags=None, \*\*\_options)
+#### billed_characters(text, , audio_tags=None, model_id=None, \*\*\_options)
 
 Characters one request bills: the text as sent, audio tags included.
 
 ```pycon
->>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+>>> tts = ElevenLabsTTS(api_key="unused")
+>>> tts.billed_characters("Hi!", audio_tags=["excited"], model_id="eleven_v3")
 13
 ```
 
@@ -125,6 +126,13 @@ request of a render, so nothing is half-synthesized (an#305).
 
 `api_key -> client`; tests inject a fake so nothing reaches the API.
 
+#### dialect
+
+how a model takes direction (voxy’s registry).
+
+* **Type:**
+  `model_id -> Dialect`
+
 #### list_voices(, search=None)
 
 The account’s voices (its own plus the ones it saved), newest API.
@@ -136,6 +144,13 @@ fails RAISES — an empty listing must mean “no voices”, not “it broke”.
 * **Return type:**
   [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
 
+#### native_break_s
+
+the longest SSML break a model renders (voxy’s table).
+
+* **Type:**
+  `model_id -> seconds`
+
 #### synthesis_options(voice, , emotion=None, direction=None)
 
 The `synthesize` keyword arguments a voice document and a line imply.
@@ -143,9 +158,11 @@ The `synthesize` keyword arguments a voice document and a line imply.
 Only what is declared appears (`{}` for a plain voice), so the audio
 cache key — which includes this dict when it is non-empty — is unchanged
 for every voice that declares nothing new. `audio_tags` are the line’s
-`[emotion]` (unless `neutral`) then its `direction` cues, and only
-on a model that reads tags; elsewhere a direction is dropped with a
-warning and the emotion stays a face-only cue, as before.
+`[emotion]` (unless `neutral`) then its `direction` cues, all of
+them on a model that reads tags. Elsewhere only the direction’s pause
+cues are kept (sent as SSML breaks, when the model renders a break that
+long: voxy’s table), any other direction cue is dropped with a warning,
+and the emotion stays a face-only cue, as before.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
