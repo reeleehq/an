@@ -1,1 +1,0 @@
-- Art declares the drawing it uses when drawn mirrored (`metadata.mirror_states: {key: mirror_key}`), and the new `mirror_states` compile pass swaps to it wherever the drawing is mirrored on the set (carried, placed, fallen, flipped by hand), so lettering reads; the new `lettering` check warns about `metadata.lettering: true` art drawn mirrored with no mirror state (an#819).
