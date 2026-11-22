@@ -19,7 +19,7 @@
 # Two variables are confounded in the obvious one-runner version of this
 # experiment, and separating them costs nothing on a public repo:
 #
-#   ubuntu-latest    x86-64 Linux   <- different ISA *and* different OS
+#   ubuntu-24.04     x86-64 Linux   <- different ISA *and* different OS
 #   ubuntu-24.04-arm arm64  Linux   <- same ISA as the Mac, different OS
 #   macos-latest     arm64  macOS   <- same ISA and OS as the local capture
 #
@@ -43,7 +43,7 @@
 #     gh run download <run-id> -D /tmp/crossarch
 #     python misc/bench/crossarch.py capture --out /tmp/crossarch/local
 #     python misc/bench/crossarch.py compare /tmp/crossarch/local \
-#         /tmp/crossarch/crossarch-ubuntu-latest
+#         /tmp/crossarch/crossarch-ubuntu-24.04
 #
 # NOT ON EVERY PUSH, deliberately: this is an experiment with a verdict, not a
 # gate. It becomes a gate only if the verdict says the pixels match — and that
@@ -73,7 +73,9 @@ jobs:
       # question this matrix exists to answer.
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+        # x86 Linux pinned with the rendering lane (browser-tests.yml): the pinned
+        # Playwright cannot install Chromium on the 26.04 image.
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-latest]
 
     steps:
       - uses: actions/checkout@v6
