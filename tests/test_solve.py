@@ -1057,3 +1057,46 @@ def test_a_nested_rig_moving_by_its_rotations_compacts_too(tmp_path, nesting):
     for t in _times(2.0):
         for a, b in zip(_every_corner(compact, t), _every_corner(full, t)):
             assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)
+
+
+def test_a_child_that_grows_over_the_shot_stays_in_the_compaction_budget(tmp_path):
+    """an#846 review: a child's lever is carried into its parent's units by the
+    LARGEST scale it has over the shot, not its rest scale. The forearm drawn
+    800 units long at rest scale 0.05 and tweened to 1 strayed 0.06 px from the
+    uncompacted solve when its rest scale was used."""
+    import an.stage.solve as solve
+    from an.stage.solve import SOLVED_POSE_TOLERANCE_PX
+
+    root = stage_copy(FIXTURE, tmp_path / "p")
+    desc_path = root / "assets" / "props" / "arm" / "prop.json"
+    desc = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc["nesting"] = "bones"
+    for bone in desc["bones"]:
+        if bone["name"] == "fore":
+            bone.update(scale_x=0.05, scale_y=0.05)
+    desc_path.write_text(json.dumps(desc), encoding="utf-8")
+    (root / "assets" / "props" / "arm" / "parts" / "fore.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 16" width="800" '
+        'height="16"><rect x="0" y="0" width="800" height="16" fill="#9f6f2f"/></svg>',
+        encoding="utf-8",
+    )
+    project = load(root)
+    fore = "puppet/torso/upper/fore"
+    acts = project.scene.timeline[0].model_dump()["actions"]
+    acts[0]["duration"] = 2.0
+    grow = [
+        {"kind": "tween", "target": fore, "property": p, "from_value": 0.05,
+         "to_value": 1.0, "duration": 2.0, "easing": "linear"}
+        for p in ("scale_x", "scale_y")
+    ]  # fmt: skip
+    shot = _shot(project, duration=2.0, actions=acts + grow)
+    compact = _compile(project, shot)
+    real = solve.compact_keys
+    try:
+        solve.compact_keys = lambda times, values, **kw: list(range(len(values)))
+        full = _compile(project, shot)
+    finally:
+        solve.compact_keys = real
+    for t in _times(2.0):
+        for a, b in zip(_every_corner(compact, t), _every_corner(full, t)):
+            assert math.dist(a, b) <= SOLVED_POSE_TOLERANCE_PX, (t, a, b)

@@ -668,9 +668,9 @@ def test_a_taken_item_turns_to_how_the_hand_holds_things(tmp_path):
     kept = _compile(_project(tmp_path / "k", actions.format(", align: false")))
     from an.stage.solve import SOLVED_POSE_TOLERANCE_PX
 
-    # the arm's solved keys are compacted at its own lever (an#779): its drawn
-    # angle is within the budget at its 200-unit length of the solve the stick follows
-    angle = SOLVED_POSE_TOLERANCE_PX / (200.0 * K)
+    # the arm's solved keys are compacted at its own lever (an#779): a root on a
+    # one-body chain, its share of the budget at its 200-unit length
+    angle = SOLVED_POSE_TOLERANCE_PX / ((math.sqrt(2.0) + 1.0) * 200.0 * K)
     g = _gesture(aligned, "grasp")
     contact = round(g["contact"] * 24) / 24
     for t in (g["end"] + 0.05, 2.25, 3.0):

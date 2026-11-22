@@ -123,6 +123,7 @@ def solved_key_tolerances(
     budget: float = SOLVED_POSE_TOLERANCE_PX,
     scale: float = 1.0,
     local: Sequence[Mapping[str, tuple[float, float, float]]] | None = None,
+    own_scales: Mapping[str, float] | None = None,
 ) -> dict[str, dict[str, float]]:
     """``{body: {channel: tolerance}}`` for compacting ``puppet``'s solved keys
     so no point of any body strays more than ``budget`` px from the solve
@@ -139,9 +140,11 @@ def solved_key_tolerances(
     chain's shares add up to at most ``budget``; a root's ``x`` and ``y`` the
     same over the longest chain from it. ``scale`` is the largest any body or
     its parent is drawn at over the shot (an authored scale animates it), else
-    the rest pose's. ``local``: the solved local channels per frame
-    (``Run.local``), whose child offsets the levers take the farthest of; else
-    the rest pose's.
+    the rest pose's. ``local``: the local channels per frame as the document
+    poses them (``Run.local``), whose child offsets the levers take the
+    farthest of; ``own_scales``: each body's largest own |scale| over the shot
+    (``Run.own_scales``), which a child's lever is carried into its parent's
+    units by; else the rest pose's.
 
     >>> from types import SimpleNamespace as NS
     >>> def body(path, parent=None):
@@ -180,7 +183,7 @@ def solved_key_tolerances(
         return below[path]
 
     scale = max([1.0, scale] + [max(abs(b.sx), abs(b.sy)) for b in bodies.values()])
-    levers = _levers(puppet, children, local=local)
+    levers = _levers(puppet, children, local=local, own_scales=own_scales)
     out: dict[str, dict[str, float]] = {}
     for path, b in bodies.items():
         chain = depth(path) + descent(path) - 1  # bodies on the longest chain through it
@@ -197,13 +200,14 @@ def _levers(
     children: Mapping[str, list[str]],
     *,
     local: Sequence[Mapping[str, tuple[float, float, float]]] | None = None,
+    own_scales: Mapping[str, float] | None = None,
 ) -> dict[str, float]:
     """Per body, the farthest any point it carries within its own entity lies
     from its pivot, in its own local units (an#779): its box's farthest corner,
     and each child body's pivot (where the child is placed in it, the farthest
     over ``local``'s frames, else at rest) plus that child's lever in the
-    child's units times its own scale. A held item of another entity is not
-    carried here: its own channels are compacted at its own tolerances."""
+    child's units times its largest own scale (``own_scales``, else at rest).
+    A held item is not a child body: it is drawn from its own channels."""
     bodies = puppet.bodies
     nodes = getattr(puppet, "nodes", None) or {}
     memo: dict[str, float] = {}
@@ -217,11 +221,12 @@ def _levers(
         return max((math.hypot(x - px, y - py) for x, y in places), default=0.0)
 
     def own_scale(child: str) -> float:
+        scales = [(own_scales or {}).get(child, 0.0)]
         node = nodes.get(child)
-        if node is None:
-            return 1.0
-        t = node.transform
-        return max(abs(float(t.scale_x)), abs(float(t.scale_y)))
+        if node is not None:
+            t = node.transform
+            scales += [abs(float(t.scale_x)), abs(float(t.scale_y))]
+        return max(scales) or 1.0
 
     def lever(path: str, seen: frozenset[str] = frozenset()) -> float:
         if path in memo:
@@ -233,7 +238,7 @@ def _levers(
             math.hypot(x - px, y - py) for x in (left, left + w) for y in (top, top + h)
         )
         for c in children.get(path, ()):
-            if c in seen or bodies[c].entity != b.entity:
+            if c in seen:
                 continue
             reach = max(reach, offset(c) + own_scale(c) * lever(c, seen | {path}))
         memo[path] = reach
@@ -1816,6 +1821,9 @@ class Run:
     #: The largest scale any body, or the node it hangs from, is drawn at over
     #: the run (an#636): what a solved channel's error is multiplied by.
     max_scale: float = 1.0
+    #: Per body, the largest |scale| its own transform has over the run (an#779):
+    #: what a child's lever is carried into its parent's units by.
+    own_scales: dict[str, float] = field(default_factory=dict)
     digest: str = ""
 
 
@@ -1928,6 +1936,9 @@ def run_solve(
             geometry[path] = _geometry_at(world[path], tr.scale_x)
             run.max_scale = max(
                 run.max_scale, _drawn_scale(geometry[path], tr.scale_x, tr.scale_y)
+            )
+            run.own_scales[path] = max(
+                run.own_scales.get(path, 0.0), abs(tr.scale_x), abs(tr.scale_y)
             )
         run.local.append(local_now)
         run.geometry.append(geometry)
@@ -2335,7 +2346,9 @@ def _emit(
     clips: dict[str, list[Any]] = {}
     emitted: set[tuple[str, str]] = set()
     index = {prop: i for i, prop in enumerate(SOLVED_CHANNELS)}
-    tolerance = solved_key_tolerances(puppet, scale=run.max_scale, local=run.local)
+    tolerance = solved_key_tolerances(
+        puppet, scale=run.max_scale, local=run.local, own_scales=run.own_scales
+    )
 
     def keyframes(vs: Sequence[float], path: str, prop: str) -> list[Any]:
         kept = compact_keys(
