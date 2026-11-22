@@ -1,6 +1,6 @@
-"""Staging checks: a figure faces the way it goes.
+"""Staging checks: a figure faces the way it goes, and is painted in front of what stands behind it.
 
-One constraint on the one interface (:class:`an.verify.constraints.Constraint`),
+Two constraints on the one interface (:class:`an.verify.constraints.Constraint`),
 over the compiled shot:
 
 - ``facing_travel`` (warning): an entity whose art says which way it faces
@@ -26,8 +26,38 @@ channel for a rig's rest key). ``overrides: {faces: false}`` on the entity
 turns the check off for it (a figure that backs away on purpose). The facing
 is measured at the entity's root: a part mirrored on its own is not followed.
 
+- ``depth_order`` (warning, an#820): a solid that walks past a floor prop
+  standing farther back than its feet, and is painted under it, reads as
+  walking behind it. In a shot with a floor, the foot line is the depth cue:
+  lower on the set is nearer the camera.
+
+How it reads a shot. A **floor prop** is an item whose holder at that instant
+(the hold layer's report, ``meta.extensions.solve.holds``) is the floor or a
+place on the set: ``ground``, ``ground@x``, ``world@x,y`` (an item put down,
+let fall, or staged with ``overrides: {held_by: world@x,y}``), so a cup on a
+table or a novel on a desk, which nothing says rests on the floor, is not one.
+An item is held, and not judged, while its ``paint_after`` channel names a
+body's part (an#537). A **walker** is any solid that is not an item of the
+hold layer (which carries it, or lets it fall: a falling musket does not
+walk), such as a character or a pushed crate, whose OWN travel on the set (as
+``facing_travel`` reads it: its origin's steps through its parent, so a camera
+pan or a ride is not a walk) is at least
+:data:`MIN_TRAVEL_SPEED_PX_S` at that instant. The pairs are the ``solidity``
+check's: the same boxes, the same samples (:data:`an.verify.constraints.SOLIDITY_SAMPLE_S`),
+covering more than :data:`an.verify.constraints.SOLIDITY_TOLERANCE` of the
+smaller, two members the world paints by depth skipped. A ``stage.after``
+does not excuse a pair here: a misplaced one is how the mistake is made.
+
+The prop stands farther back when its foot (its box's bottom) is between the
+walker's middle and :data:`DEPTH_MARGIN_SHARE` of the walker's height above
+the walker's feet (its box's bottom). Both are read on the canvas, which a
+camera pan and zoom move and scale alike, and the margin is a share of the
+walker's height, so a wide and a close-up agree; a camera roll is not undone.
+Equal foot lines (the margin) give no depth cue and are not judged: the
+authoring answer there is to put the prop a little upstage.
+
 >>> [c.name for c in STAGING_CONSTRAINTS]
-['facing_travel']
+['facing_travel', 'depth_order']
 """
 
 from __future__ import annotations
@@ -40,10 +70,18 @@ from typing import Any
 from an.genres.registry import CORE_OWNER, check_names, register_check
 from an.verify.constraints import (
     ART_METADATA_KEY,
+    SOLIDITY_TOLERANCE,
     Constraint,
+    _covered_fraction,
     _fps,
+    _is_solid,
+    _sample_times,
     _side_on_set,
     compiled_shot,
+    drawn_paths,
+    paint_order,
+    seen_boxes,
+    solid_candidates,
 )
 
 __all__ = [
@@ -54,6 +92,12 @@ __all__ = [
     "declared_faces",
     "art_facing_at",
     "backward_runs",
+    "DEPTH_ORDER",
+    "DEPTH_MARGIN_SHARE",
+    "FLOOR_HOLDERS",
+    "DepthInversion",
+    "stands_behind",
+    "floor_holder_at",
 ]
 
 #: Where art says which way it faces (in its store document's ``metadata``, or
@@ -76,6 +120,12 @@ MIN_HORIZONTAL_SHARE: float = 0.5
 #: A facing probe shorter than this share of the longest it is in the shot is
 #: art squashed mid-turn: it faces nowhere.
 MIN_PROBE_SHARE: float = 0.5
+#: How far above a walker's feet, as a share of its height, a floor prop's foot
+#: must stand to read as farther back: closer foot lines are no depth cue.
+DEPTH_MARGIN_SHARE: float = 0.05
+#: The holders (the hold report's text, before any ``@``) that put an item on
+#: the floor or at a place of the set, not in a hand or on a body.
+FLOOR_HOLDERS: frozenset[str] = frozenset({"ground", "world"})
 
 
 def declared_faces(entity: Any, stores: Any) -> Any:
@@ -355,8 +405,208 @@ FACING_TRAVEL = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# depth_order (an#820): a walker is painted in front of a floor prop behind it
+# -----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DepthInversion:
+    """``walker`` was painted under ``prop`` from ``start`` to ``end`` (s, the
+    sampled instants), though the prop's foot stood up to ``upstage`` px
+    farther back (higher on the canvas) than the walker's feet."""
+
+    walker: str
+    prop: str
+    start: float
+    end: float
+    upstage: float
+
+
+def stands_behind(
+    walker_box: tuple[float, ...],
+    prop_box: tuple[float, ...],
+    *,
+    margin_share: float = DEPTH_MARGIN_SHARE,
+    tolerance: float = SOLIDITY_TOLERANCE,
+) -> float | None:
+    """How many px the prop's foot stands above the walker's feet when it reads
+    as farther back and the two overlap: its foot (``prop_box``'s bottom, boxes
+    are ``(x0, y0, x1, y1)``, y down) between the walker's middle and
+    ``margin_share`` of the walker's height above its feet, and the boxes
+    covering more than ``tolerance`` of the smaller; else ``None``.
+
+    >>> stu = (0, 0, 40, 200)  # a 200 px walker, feet at y 200
+    >>> stands_behind(stu, (10, 160, 60, 180))  # a book whose foot is 20 px upstage
+    20
+    >>> stands_behind(stu, (10, 185, 60, 195)) is None  # 5 px: equal foot lines
+    True
+    >>> stands_behind(stu, (10, 40, 60, 90)) is None  # above his middle: not on his floor
+    True
+    >>> stands_behind(stu, (100, 160, 160, 180)) is None  # not where he is
+    True
+    """
+    feet, middle = walker_box[3], (walker_box[1] + walker_box[3]) / 2
+    height = walker_box[3] - walker_box[1]
+    foot = prop_box[3]
+    if not middle <= foot <= feet - margin_share * height:
+        return None
+    if _covered_fraction(walker_box, prop_box) <= tolerance:
+        return None
+    return feet - foot
+
+
+def floor_holder_at(timeline: list[list[Any]], t: float) -> bool:
+    """Whether the hold report's holder timeline of an item (``[[t, holder],
+    ...]``) has it on the floor or at a place of the set at ``t``
+    (:data:`FLOOR_HOLDERS`).
+
+    >>> tl = [[0.0, "world@-840,460"], [1.0, "stu/hand_r"], [3.0, "ground"]]
+    >>> [floor_holder_at(tl, t) for t in (0.5, 2.0, 3.5)]
+    [True, False, True]
+    """
+    holder = None
+    for start, text in timeline:
+        if float(start) <= t + 1e-9:
+            holder = str(text)
+    return holder is not None and holder.partition("@")[0] in FLOOR_HOLDERS
+
+
+def _travel_speeds(
+    doc: Any, poses: list[Mapping], chain: list[tuple[Any, str]], times: list[float]
+) -> list[float]:
+    """Per sampled instant, the larger of the own-travel speeds (set px/s) of
+    the intervals either side of it (:func:`_own_travel`)."""
+    xs = _own_travel(doc, poses, chain)
+    steps = [
+        abs(xs[i + 1] - xs[i]) / (times[i + 1] - times[i])
+        if times[i + 1] > times[i]
+        else 0.0
+        for i in range(len(times) - 1)
+    ]
+    return [
+        max(steps[i - 1] if i > 0 else 0.0, steps[i] if i < len(steps) else 0.0)
+        for i in range(len(times))
+    ]
+
+
+def depth_inversions(
+    doc: Any,
+    entities: list[Any],
+    holders: Mapping[str, list[list[Any]]],
+    *,
+    duration: float,
+    depth_sorted: frozenset[str] = frozenset(),
+    min_speed: float = MIN_TRAVEL_SPEED_PX_S,
+    margin_share: float = DEPTH_MARGIN_SHARE,
+    tolerance: float = SOLIDITY_TOLERANCE,
+) -> list[DepthInversion]:
+    """Every walker among ``entities`` painted under a floor prop that stands
+    behind it (:func:`stands_behind`) at a sampled instant, one record per
+    pair, from its first such instant to its last. ``holders`` is the hold
+    report's ``holders`` (an item's holder timeline): the items on the floor
+    are read from it (:func:`floor_holder_at`)."""
+    from an.base import PAINT_AFTER_PROPERTY
+    from an.stage.timeline import _node_chain, timeline_from_scene
+    from an.timing.timeline import evaluate_timeline
+
+    solids = [e for e in entities if _is_solid(e)]
+    props = [e for e in solids if e.id in holders]
+    if not props or len(solids) < 2:
+        return []
+    chains = {}
+    for e in solids:
+        try:
+            chains[e.id] = _node_chain(doc.scene, e.id)
+        except Exception:  # noqa: BLE001 - not drawn on the stage
+            continue
+    times = _sample_times(duration)
+    timeline = timeline_from_scene(doc)
+    poses = [evaluate_timeline(timeline, t) for t in times]
+    speeds = {eid: _travel_speeds(doc, poses, chain, times) for eid, chain in chains.items()}
+    drawn = drawn_paths(doc, [e.id for e in solids])
+    painted_at = paint_order(doc)
+
+    def held(eid: str, pose: Mapping) -> bool:
+        return bool(pose.get((eid, PAINT_AFTER_PROPERTY)))  # painted after a body's part
+
+    found: dict[tuple[str, str], list[Any]] = {}
+    for k, (t, pose) in enumerate(zip(times, poses)):
+        boxes = seen_boxes(doc, drawn, pose)
+        for prop in props:
+            if prop.id not in boxes or held(prop.id, pose):
+                continue
+            if not floor_holder_at(holders[prop.id], t):
+                continue
+            for walker in solids:
+                if walker.id in holders or walker.id not in boxes or walker.id not in speeds:
+                    continue  # an item the hold layer moves is carried or falls: it does not walk
+                if walker.id in depth_sorted and prop.id in depth_sorted:
+                    continue  # the world paints them by depth
+                if speeds[walker.id][k] < min_speed or held(walker.id, pose):
+                    continue
+                if painted_at(prop.id, pose) <= painted_at(walker.id, pose):
+                    continue  # the walker is painted over it: right
+                up = stands_behind(
+                    boxes[walker.id],
+                    boxes[prop.id],
+                    margin_share=margin_share,
+                    tolerance=tolerance,
+                )
+                if up is None:
+                    continue
+                run = found.setdefault((walker.id, prop.id), [t, t, up])
+                run[1], run[2] = t, max(run[2], up)
+    return [
+        DepthInversion(w, p, round(a, 6), round(b, 6), up)
+        for (w, p), (a, b, up) in found.items()
+    ]
+
+
+def check_depth_order(ctx: Any) -> None:
+    """The core's ``depth_order`` check (an#820): a walker is not painted under
+    a floor prop that stands farther back than its feet."""
+    from an.verify.support import _has_floor
+
+    if not _has_floor(ctx.shot):
+        return  # no floor, no foot line to read depth from
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    from an.stage.solve import solve_report
+
+    holders = (solve_report(doc).get("holds") or {}).get("holders") or {}
+    if not holders:
+        return
+    entities, depth_sorted = solid_candidates(ctx)
+    for inv in depth_inversions(
+        doc,
+        entities,
+        holders,
+        duration=float(ctx.shot.duration),
+        depth_sorted=depth_sorted,
+    ):
+        ctx.report.add(
+            "warning",
+            f"{ctx.path}/entities",
+            f"{inv.walker!r} is painted under {inv.prop!r} from {inv.start:.2f} s to "
+            f"{inv.end:.2f} s as it goes past, though {inv.prop!r} stands farther back "
+            f"(its foot {inv.upstage:.0f} px above the feet of {inv.walker!r}): it reads as "
+            f"walking behind it. Paint {inv.walker!r} after it (`stage.after: {inv.prop}`, "
+            f"or check a `stage.after` that puts {inv.walker!r} earlier), or move "
+            f"{inv.prop!r} downstage of its path.",
+        )
+
+
+DEPTH_ORDER = Constraint(
+    "depth_order",
+    check_depth_order,
+    description="a walker is not painted under a floor prop that stands farther back (an#820)",
+)
+
+
 #: The staging checks, in the order they run.
-STAGING_CONSTRAINTS: tuple[Constraint, ...] = (FACING_TRAVEL,)
+STAGING_CONSTRAINTS: tuple[Constraint, ...] = (FACING_TRAVEL, DEPTH_ORDER)
 
 
 def _register() -> None:

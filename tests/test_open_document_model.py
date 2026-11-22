@@ -739,6 +739,7 @@ def test_the_report_order_is_pinned():
         "light",  # catalogue D1: art is shaded away from the scene's one light
         "lettering",  # an#819: art with lettering is not drawn mirrored without its mirror drawing
         "facing_travel",  # an#818: art does not travel the other way to where it faces
+        "depth_order",  # an#820: a walker is not painted under a floor prop behind it
         # ADR 0008 (an#512): the joint checks, after the catalogue's lints (order 250)
         "unknown_body",
         "unreachable_pin",
