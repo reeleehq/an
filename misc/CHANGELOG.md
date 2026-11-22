@@ -4,6 +4,10 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- Voice leveling passes the voice to `mixing`'s `level_group(subject=)` and re-issues its warning as is, dropping an's re-wording; a `mixing` without the keyword is said too old (an#765).
+- The dialogue layout `an validate` uses is public: `an.ir.dialogue_layout(shot)` gives each line's `LinePlacement` (start, end, estimated), so a genre's check no longer imports a private helper (an#767).
+- `an validate` warns when a carried item hangs through its carrier's floor line (`sunk_item`), naming the span, how deep, and how to carry it higher (an#806).
+- A sound cue can be timed by an authored change of a prop: `at: {when: book/body, changes: state, to: page_l}` lands on the shot's `set` (or tween) of that property, so the sound follows a retimed page turn (an#815).
 - Art declares the drawing it uses when drawn mirrored (`metadata.mirror_states: {key: mirror_key}`), and the new `mirror_states` compile pass swaps to it wherever the drawing is mirrored on the set (carried, placed, fallen, flipped by hand), so lettering reads; the new `lettering` check warns about `metadata.lettering: true` art drawn mirrored with no mirror state (an#819).
 - The `support` and `joint_violation` checks time a `join`/`unjoin` placed after a duration-less `play` in a `sequence` by the play's natural length, as the compile does, through the new `an.stage.compile.play_extent_of(doc, shot, mall)` (an#794).
 - The stage runtime evaluates a channel by bisection instead of a linear scan, and `an.timing.channel.evaluate` bisects without building a list of times per call: a 60 s shutter-keyed follow (~30k keys a channel) no longer costs ~1e9 comparisons to render (an#783).

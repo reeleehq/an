@@ -1,1 +1,0 @@
-- A sound cue can be timed by an authored change of a prop: `at: {when: book/body, changes: state, to: page_l}` lands on the shot's `set` (or tween) of that property, so the sound follows a retimed page turn (an#815).
