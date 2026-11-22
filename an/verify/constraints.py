@@ -2303,7 +2303,11 @@ def check_lettering(ctx: Any) -> None:
         )
         if backwards is None:
             continue
-        shown = f"drawing {backwards.key!r}" if backwards.key else f"drawing {backwards.path!r}"
+        shown = (
+            f"drawing {backwards.key!r}"
+            if backwards.key
+            else f"drawing {backwards.path!r}"
+        )
         ctx.report.add(
             "warning",
             f"{ctx.path}/entities",

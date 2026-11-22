@@ -113,7 +113,9 @@ class DrawingState:
     ambiguous: bool = False
 
 
-def _drawings(root: Any, entity_id: str, *, swap_sets_only: bool) -> list[tuple[str, Any]]:
+def _drawings(
+    root: Any, entity_id: str, *, swap_sets_only: bool
+) -> list[tuple[str, Any]]:
     from an.stage.tree import walk_children
 
     prefix = entity_id + "/"
@@ -135,7 +137,9 @@ def _rest(visual: Any) -> tuple[str | None, str | None]:
     return None, None
 
 
-def applicable_pairs(states: Mapping[str, str], keys: Collection[str]) -> dict[str, str]:
+def applicable_pairs(
+    states: Mapping[str, str], keys: Collection[str]
+) -> dict[str, str]:
     """The pairs of ``states`` one swap set can show: both the key and its mirror
     key are among the set's ``keys`` (a set projected onto a slot holds only the
     keys that slot's drawings resolve, so another slot may hold one and not the
@@ -272,8 +276,7 @@ def mirror_states_pass(state: Any) -> None:
     declared = [
         (e.id, states)
         for e in state.shot.entities
-        if e.store
-        and (states := mirror_states_of(_descriptor(e, state.mall)))
+        if e.store and (states := mirror_states_of(_descriptor(e, state.mall)))
     ]
     if not declared:
         return
@@ -306,6 +309,8 @@ def mirror_states_pass(state: Any) -> None:
     state.tracks.append(
         TrackJSON(
             target_root=MIRROR_TRACK,
-            clips=[PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)],
+            clips=[
+                PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)
+            ],
         )
     )
