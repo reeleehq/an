@@ -186,10 +186,30 @@ def event_in_document(
 _NO_VALUE = object()
 
 
+#: How YAML 1.1 spells a boolean: an unquoted ``to: on`` in ``scene.md`` reads
+#: as ``True``, while the ``set`` it means stores ``value: 'on'``.
+_YAML_BOOLS: dict[bool, frozenset[str]] = {
+    True: frozenset({"on", "yes", "y", "true"}),
+    False: frozenset({"off", "no", "n", "false"}),
+}
+
+
 def _same_value(a: Any, b: Any) -> bool:
-    """Whether an action's value is the anchor's ``to`` (numbers within float noise)."""
+    """Whether an action's value is the anchor's ``to``: numbers within float
+    noise, a boolean never a number, and a boolean the string YAML read it from.
+
+    >>> _same_value("on", True), _same_value(True, "Off"), _same_value(1, True)
+    (True, False, False)
+    >>> _same_value(0.1 + 0.2, 0.3)
+    True
+    """
     import math
 
+    if isinstance(a, bool) or isinstance(b, bool):
+        if isinstance(a, bool) and isinstance(b, bool):
+            return a is b
+        flag, word = (a, b) if isinstance(a, bool) else (b, a)
+        return isinstance(word, str) and word.strip().lower() in _YAML_BOOLS[flag]
     if isinstance(a, (int, float)) and isinstance(b, (int, float)):
         return math.isclose(float(a), float(b), rel_tol=1e-9, abs_tol=1e-9)
     return a == b
@@ -331,9 +351,20 @@ def _shot_with(
             )
         return ids.index(anchor.shot)
     root = anchor.when.split("/", 1)[0].split("@", 1)[0]
-    for i, shot in enumerate(scene.timeline):
-        if any(e.id == root for e in shot.entities):
+    casting = [
+        i
+        for i, shot in enumerate(scene.timeline)
+        if any(e.id == root for e in shot.entities)
+    ]
+    if anchor.changes is not None:  # the first shot that has the change (an#815)
+        for i in casting:
+            try:
+                change_in_shot(scene.timeline[i], anchor, where="")
+            except SoundAnchorError:
+                continue
             return i
+    if casting:
+        return casting[0]
     raise SoundAnchorError(
         f"meta.sounds anchor {anchor.when!r}: no shot casts {root!r}; add "
         f"`shot: <id>` to the anchor (the shots are {ids})"

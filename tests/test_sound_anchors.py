@@ -178,10 +178,46 @@ def test_validate_names_a_cued_change_the_shot_does_not_have(tmp_path):
 
     def cue_event(anchor):
         root = _project(tmp_path / str(len(list(tmp_path.iterdir()))), shot_sounds=[{"sound": "scratch", "at": anchor}])
-        report = validate_semantic(load(root).scene, only={"cue_event"})
+        project = load(root)
+        report = validate_semantic(
+            project.scene,
+            available_props=project.mall["props"],
+            available_environments=project.mall["environments"],
+            only={"cue_event"},
+        )
         return [(f.severity, f.description) for f in report.findings]
 
     ((severity, text),) = cue_event(CHANGE)
     assert severity == "info" and "0.25 s" in text
     ((severity, text),) = cue_event({**CHANGE, "to": "off"})
     assert severity == "error" and "'on' at 0.25 s" in text
+
+
+def test_an_unquoted_on_in_scene_md_is_the_state_named_on(tmp_path):
+    """Review of an#815: YAML reads ``to: on`` as ``True``; the set it means
+    stores ``value: 'on'``. The two match (and a boolean never matches a 1)."""
+    from an.sound_anchors import _same_value
+
+    root = _project(tmp_path, shot_sounds=[{"sound": "scratch", "at": CHANGE}])
+    scene_md = root / "scene.md"
+    text = scene_md.read_text(encoding="utf-8")
+    assert "to: 'on'" in text
+    scene_md.write_text(text.replace("to: 'on'", "to: on"), encoding="utf-8")
+    assert load(root).scene.timeline[0].sounds[0].at.to is True
+    assert _prepared(root, tmp_path).scene.timeline[0].sounds[0].at == pytest.approx(0.25)
+    assert not _same_value(1, True) and not _same_value("on", False)
+
+
+def test_a_film_cue_timed_by_a_change_looks_in_the_shot_that_has_it(tmp_path):
+    """A ``meta.sounds`` change anchor with no ``shot:`` is the first shot
+    whose actions have the change, not merely the first that casts the node."""
+    from an.ir.schema import SceneIR, SoundCue
+    from an.sound_anchors import _shot_with
+
+    root = _project(tmp_path)
+    scene = load(root).scene
+    shot = scene.timeline[0]
+    bare = shot.model_copy(update={"id": "before", "actions": []})
+    two = scene.model_copy(update={"timeline": [bare, shot]})
+    anchor = SoundCue.model_validate({"sound": "scratch", "at": CHANGE}).at
+    assert _shot_with(two, anchor, [], None) == 1
