@@ -260,7 +260,9 @@ class FrameStageRenderer:
         # `space.orbit3d` is not lost through the wrapper.
         if name in ENGINE_DECLARED_MEMBERS:
             return getattr(self.engine, name)  # AttributeError when absent
-        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+        raise AttributeError(
+            f"{type(self).__name__!r} object has no attribute {name!r}"
+        )
 
     def render(self, shot: "Shot", ctx: "RenderContext") -> "RenderResult":
         """Render ``shot`` to mp4 through the engine; see the module docstring."""
