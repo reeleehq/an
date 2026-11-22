@@ -8,7 +8,12 @@ If you want real speech, ``pip install elevenlabs`` and set
 declare, beside ``voice_id``, the ``model_id`` it speaks with, its
 ``voice_settings`` and a sampling ``seed``; a dialogue line's ``[emotion]`` and
 ``{direction}`` reach a model that takes inline audio tags (``eleven_v3``,
-``eleven_v4`` and their variants) as ``[excited] Hi!``.
+``eleven_v4`` and their variants) as ``[excited] Hi!``. Which models those are is
+voxy's knowledge, not this module's (an#822): ``voxy.dialect_for("elevenlabs",
+model_id)`` names each model's *dialect*, and a model outside the inline-tags one
+still honours a line's pause cues (``{beat}``, ``{pause}``) as real silence,
+rendered by ``voxy.direction.plan_directions``; its other cues are dropped with a
+warning.
 :meth:`ElevenLabsTTS.synthesis_options` turns those into the keyword arguments
 :meth:`ElevenLabsTTS.synthesize` takes — the audio pipeline keys its cache on
 exactly that dict, and a voice declaring none of them yields ``{}``, so no
@@ -31,9 +36,12 @@ import os
 import warnings
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from an.audio.tts import AudioClip, VoiceMeta
+
+if TYPE_CHECKING:  # voxy is imported when a dialect is asked for, never by `import an`
+    from voxy.direction import Dialect
 
 
 _DEFAULT_MODEL_ID: str = "eleven_turbo_v2_5"
@@ -45,10 +53,11 @@ _DEFAULT_OUTPUT_FORMAT: str = "mp3_44100_128"
 #: not stock.
 ELEVENLABS_STOCK_CATEGORY: str = "premade"
 
-#: Model ids that read inline audio tags (``[excited]``, ``[sighs]``). Matched
-#: as prefixes, so ``eleven_v3_conversational`` and ``eleven_v4_turbo`` count.
-#: Every other model would speak the brackets, so it never receives a tag.
-AUDIO_TAG_MODEL_PREFIXES: tuple[str, ...] = ("eleven_v3", "eleven_v4")
+#: The name voxy's dialect registry knows this engine by (``voxy.dialect_for``).
+#: Which ElevenLabs models read inline audio tags (``[excited]``, ``[sighs]``) is
+#: voxy's table (``eleven_v3*``, ``eleven_v4*``), extended with
+#: ``voxy.register_dialect``; there is no second copy here (an#822).
+_VOXY_BACKEND: str = "elevenlabs"
 
 #: The ``voice_settings`` keys the API takes, with the range each accepts
 #: (``None`` = a boolean). ``speed`` is the API's documented 0.7–1.2.
@@ -75,15 +84,81 @@ class ElevenLabsUnavailableError(RuntimeError):
     """A request cannot be sent: no API key is configured."""
 
 
-def takes_audio_tags(
-    model_id: str, *, prefixes: Sequence[str] = AUDIO_TAG_MODEL_PREFIXES
-) -> bool:
+def model_dialect(model_id: str | None, *, backend: str = _VOXY_BACKEND) -> "Dialect":
+    """How ``backend``'s model ``model_id`` takes delivery direction: voxy's answer.
+
+    >>> model_dialect("eleven_v3").name, model_dialect("eleven_turbo_v2_5").name
+    ('inline-tags', 'plain')
+    """
+    from voxy.direction import dialect_for
+
+    return dialect_for(backend, model_id)
+
+
+def model_native_break_s(model_id: str | None) -> float:
+    """The longest SSML ``<break>`` ElevenLabs model ``model_id`` renders itself, in
+    seconds: voxy's table (0 for a model it does not list, and for v3/v4, which
+    take no SSML).
+
+    >>> model_native_break_s("eleven_turbo_v2_5"), model_native_break_s("eleven_v3")
+    (3.0, 0.0)
+    """
+    from voxy.elevenlabs_model import ELEVENLABS_NATIVE_BREAK_S
+
+    return ELEVENLABS_NATIVE_BREAK_S.get(model_id or "", 0.0)
+
+
+def takes_audio_tags(model_id: str, *, backend: str = _VOXY_BACKEND) -> bool:
     """Whether ``model_id`` reads inline audio tags.
 
-    >>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")
-    (True, False)
+    >>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_v4_turbo")
+    (True, True)
+    >>> takes_audio_tags("eleven_turbo_v2_5")
+    False
     """
-    return any(str(model_id).startswith(p) for p in prefixes)
+    return model_dialect(model_id, backend=backend).inline_tags
+
+
+def _pause_s(cue: str) -> float:
+    """Seconds of silence ``cue`` asks for in voxy's vocabulary (0: not a pause)."""
+    from voxy.direction import direction
+
+    d = direction(cue)
+    return d.pause_s if d.kind == "pause" else 0.0
+
+
+def _check_dialect(dialect: "Dialect", model_id: str | None) -> None:
+    if not dialect.inline_tags and dialect.instruction_param:
+        raise ElevenLabsVoiceError(
+            f"model {model_id!r} is declared to take direction through "
+            f"{dialect.instruction_param!r}, a parameter ElevenLabs does not have; "
+            "declare it inline-tags or plain"
+        )
+
+
+def _directed_text(text: str, tags: Sequence[str] | None, dialect: "Dialect") -> str:
+    """What is sent for ``text`` with ``tags`` to a model speaking ``dialect``.
+
+    An inline-tags model reads the tags as written; any other gets the pause tags
+    as SSML breaks before the words and the rest removed (``voxy.direction``).
+    Only the cues are rendered: the words are sent exactly as written.
+
+    >>> from voxy.direction import INLINE, PLAIN
+    >>> _directed_text("Hi!", ["excited"], INLINE)
+    '[excited] Hi!'
+    >>> _directed_text("I said [sic] that.", ["beat"], PLAIN)
+    '<break time="0.45s" /> I said [sic] that.'
+    >>> _directed_text("Hi!", None, PLAIN)
+    'Hi!'
+    """
+    if not tags:
+        return text
+    if dialect.inline_tags:
+        return tagged_text(text, tags)
+    from voxy.direction import PLAIN, plan_directions
+
+    (cues,) = plan_directions(tagged_text("", tags).strip(), PLAIN)
+    return f"{cues.text} {text}" if cues.text else text
 
 
 def normalize_voice_settings(raw: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -157,7 +232,8 @@ class ElevenLabsTTS:
         api_key: str | None = None,
         model_id: str = _DEFAULT_MODEL_ID,
         output_format: str = _DEFAULT_OUTPUT_FORMAT,
-        audio_tag_model_prefixes: Sequence[str] = AUDIO_TAG_MODEL_PREFIXES,
+        dialect: Callable[[str], "Dialect"] = model_dialect,
+        native_break_s: Callable[[str], float] = model_native_break_s,
         client_factory: Any = None,
     ) -> None:
         self.api_key = (
@@ -167,7 +243,10 @@ class ElevenLabsTTS:
         )
         self.model_id = model_id
         self.output_format = output_format
-        self.audio_tag_model_prefixes = tuple(audio_tag_model_prefixes)
+        #: ``model_id -> Dialect``: how a model takes direction (voxy's registry).
+        self.dialect = dialect
+        #: ``model_id -> seconds``: the longest SSML break a model renders (voxy's table).
+        self.native_break_s = native_break_s
         #: ``api_key -> client``; tests inject a fake so nothing reaches the API.
         self.client_factory = client_factory
 
@@ -205,9 +284,11 @@ class ElevenLabsTTS:
         Only what is declared appears (``{}`` for a plain voice), so the audio
         cache key — which includes this dict when it is non-empty — is unchanged
         for every voice that declares nothing new. ``audio_tags`` are the line's
-        ``[emotion]`` (unless ``neutral``) then its ``direction`` cues, and only
-        on a model that reads tags; elsewhere a direction is dropped with a
-        warning and the emotion stays a face-only cue, as before.
+        ``[emotion]`` (unless ``neutral``) then its ``direction`` cues, all of
+        them on a model that reads tags. Elsewhere only the direction's pause
+        cues are kept (sent as SSML breaks, when the model renders a break that
+        long: voxy's table), any other direction cue is dropped with a warning,
+        and the emotion stays a face-only cue, as before.
         """
         opts: dict[str, Any] = {}
         model = voice.get("model_id")
@@ -231,14 +312,35 @@ class ElevenLabsTTS:
         )
         tags += [c for c in direction or [] if c not in tags]
         effective_model = opts.get("model_id", self.model_id)
-        if tags and takes_audio_tags(
-            effective_model, prefixes=self.audio_tag_model_prefixes
-        ):
+        dialect = self.dialect(effective_model)
+        _check_dialect(dialect, effective_model)
+        if tags and dialect.inline_tags:
             opts["audio_tags"] = tags
-        elif direction:
+            return opts
+        # a pause cue is kept as real silence when the model renders a break that long
+        longest = self.native_break_s(effective_model)
+        pauses, dropped, unbreakable = [], [], []
+        for cue in direction or []:
+            norm = cue.strip().lower()
+            pause = _pause_s(norm)
+            if not pause:
+                dropped.append(cue)
+            elif pause <= longest:
+                pauses.append(norm)
+            else:
+                unbreakable.append(cue)
+        if pauses:
+            opts["audio_tags"] = pauses
+        if dropped:
             warnings.warn(
-                f"direction {list(direction)} is dropped: model {effective_model!r} "
+                f"direction {dropped} is dropped: model {effective_model!r} "
                 "does not read audio tags (declare model_id: eleven_v3 on the voice)",
+                stacklevel=2,
+            )
+        if unbreakable:
+            warnings.warn(
+                f"pause {unbreakable} is dropped: model {effective_model!r} renders "
+                f"no SSML break that long (its longest: {longest:g}s)",
                 stacklevel=2,
             )
         return opts
@@ -260,14 +362,28 @@ class ElevenLabsTTS:
         return out
 
     def billed_characters(
-        self, text: str, *, audio_tags: Sequence[str] | None = None, **_options: Any
+        self,
+        text: str,
+        *,
+        audio_tags: Sequence[str] | None = None,
+        model_id: str | None = None,
+        **_options: Any,
     ) -> int:
         """Characters one request bills: the text as sent, audio tags included.
 
-        >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+        >>> tts = ElevenLabsTTS(api_key="unused")
+        >>> tts.billed_characters("Hi!", audio_tags=["excited"], model_id="eleven_v3")
         13
         """
-        return len(tagged_text(text, audio_tags))
+        return len(self._sent_text(text, audio_tags, model_id))
+
+    def _sent_text(
+        self, text: str, audio_tags: Sequence[str] | None, model_id: str | None
+    ) -> str:
+        model = model_id or self.model_id
+        dialect = self.dialect(model)
+        _check_dialect(dialect, model)
+        return _directed_text(text, audio_tags, dialect)
 
     def synthesize(
         self,
@@ -291,7 +407,7 @@ class ElevenLabsTTS:
         )
         request: dict[str, Any] = dict(
             voice_id=effective_voice,
-            text=tagged_text(text, audio_tags),
+            text=self._sent_text(text, audio_tags, model_id),
             model_id=model_id or self.model_id,
             output_format=self.output_format,
         )
