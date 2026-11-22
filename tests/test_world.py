@@ -2609,3 +2609,33 @@ def test_a_malformed_beside_host_mark_is_a_compile_error_naming_it(tmp_path, mar
     ]  # fmt: skip
     with pytest.raises(CutoutCompileError, match="malformed `beside_host`"):
         compile_shot(shot.model_copy(update={"entities": entities}), _project(tmp_path).mall)
+
+
+@pytest.mark.parametrize(
+    "loop",
+    ["host_after_attachment", "chain_through_attachment"],
+)
+def test_a_walker_crosses_an_after_loop_through_an_attachment(tmp_path, loop):
+    """an#776 (1): ``right.after: hat`` with ``hat`` attached to ``right`` (or
+    the chain ``x.after: hat``, ``right.after: x``) rode each other's paint
+    keys in a loop, so none was keyed and the walking ``left`` (depth 1 to 5)
+    was painted in front of ``right`` (depth 2) at every frame. The loop's
+    entities are keyed by depth: ``left`` is painted behind ``right`` while it
+    is behind it, in front while it is in front."""
+    hat = _lamp("hat", attached=Attachment(to="right"))
+    x = _lamp("x", at=(0.2, 0.4, 2.0), height=0.8, after="hat")
+
+    def members(left, right):
+        if loop == "host_after_attachment":
+            return [left, hat, right.model_copy(update={"after": "hat"})]
+        return [left, hat, x, right.model_copy(update={"after": "x"})]
+
+    doc = _compiled_two_lamps(tmp_path, members)
+    for i in range(60):
+        t = 3.0 * i / 60 + 0.013
+        depth = 1.0 + 4.0 * t / 3.0  # left's at_z, linear 1 to 5
+        if abs(depth - 2.0) < 0.2:
+            continue  # the crossing itself
+        order = _painted(doc, t)
+        behind = order.index("left") < order.index("right")
+        assert behind == (depth > 2.0), (t, depth, order)

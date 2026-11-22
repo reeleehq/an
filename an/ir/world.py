@@ -1752,20 +1752,39 @@ def _attachment_riders(
     author placed it ``after`` an entity (it rides that one, an#648): it rides
     its host's paint keys (an#678). The ONE set both the keying at rest leaves
     out and :func:`_with_paint_keys` keys. ``ordered`` is the built order, its
-    keys not yet replaced by paint keys: the side is read from it."""
+    keys not yet replaced by paint keys: the side is read from it.
+
+    Not one whose host is placed, through ``after`` or its own host, relative
+    to the member itself (the author's ``right.after: hat`` with ``hat`` on
+    ``right``, or ``x.after: hat``, ``right.after: x``): riding would close a
+    loop of entities riding each other's keys, so none would be keyed and a
+    walker would never cross them (an#776). The author's ``after`` already
+    draws it beside its host, the rule the compiler's beside-host marks follow
+    (:func:`an.stage.compile._beside_their_hosts_atoms`)."""
     place = {e.id: i for i, (_, e, _) in enumerate(ordered)}
     key = {e.id: paint_key_rank(k) for k, e, _ in ordered}
     built = {e.id: e for _, e, _ in ordered}
+    afters = {
+        eid: e.stage.after
+        for eid, e in built.items()
+        if e.stage is not None and e.stage.after in entity_ids
+    }
     out = {}
     for m in world_members:
         if m.attached is None or m.id not in built or m.attached.to not in built:
             continue
-        stage = built[m.id].stage
-        if stage is not None and stage.after in entity_ids:
+        if m.id in afters:
             continue
         host = m.attached.to
         side = RIDER_BEHIND if key[m.id] < key[host] else RIDER_IN_FRONT
         out[m.id] = _Rider(host, side, place[m.id])
+    for mid in list(out):  # a rider whose host is placed relative to it closes a loop
+        seen, at = set(), out[mid].host
+        while at is not None and at != mid and at not in seen:
+            seen.add(at)
+            at = afters.get(at) or (out[at].host if at in out else None)
+        if at == mid:
+            del out[mid]
     return out
 
 

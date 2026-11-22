@@ -1,0 +1,1 @@
+- World paint order: a walker crosses an `after` loop through an attachment (`right.after: hat`, `hat` on `right`), whose entities are now keyed by depth (an#776).
