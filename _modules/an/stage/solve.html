@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=5f5df387"></script>
+    <script src="../../../_static/documentation_options.js?v=fb25779e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.406" />
+  <meta name="docsearch:version" content="0.1.407" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2894,19 +2894,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">store</span> <span class="ow">and</span> <span class="n">_is_rig_kind</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">_assemble_document</span><span class="p">,</span> <span class="n">_lowerings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">_assemble_document</span><span class="p">,</span> <span class="n">_play_extent</span>
 
-    <span class="n">extent</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-        <span class="p">(</span>
-            <span class="n">r</span>
-            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span>
-                <span class="n">low</span><span class="o">.</span><span class="n">extent_resolver</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">low</span> <span class="ow">in</span> <span class="n">_lowerings</span><span class="p">()</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">r</span>
-        <span class="p">),</span>
-        <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">extent</span> <span class="o">=</span> <span class="n">_play_extent</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">products</span><span class="p">)</span>
     <span class="n">decl</span> <span class="o">=</span> <span class="n">declarations</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">decl</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
         <span class="k">return</span>
@@ -3291,8 +3281,9 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span><span class="p">,</span> <span class="n">timeline_from_scene</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">_pose_for</span><span class="p">,</span> <span class="n">transform_of</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">play_extent_of</span>
 
-    <span class="n">decl</span> <span class="o">=</span> <span class="n">declarations</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="n">decl</span> <span class="o">=</span> <span class="n">declarations</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
     <span class="n">puppet</span> <span class="o">=</span> <span class="n">build_puppet</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">decl</span><span class="p">)</span>
     <span class="c1"># The verbs' spans and the join/unjoin instants as the COMPILE placed them</span>
     <span class="c1"># (it knew every leaf's natural length; this reading does not).</span>

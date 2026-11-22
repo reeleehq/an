@@ -47,6 +47,7 @@ an.stage.compile
       paint_orders
       parse_tint
       plane_parents
+      play_extent_of
       rendered_compile_args
       retire_front_spelling
       scene_builders

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=5f5df387"></script>
+    <script src="../../../_static/documentation_options.js?v=fb25779e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.406" />
+  <meta name="docsearch:version" content="0.1.407" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -4404,6 +4404,55 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">lowering</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">k</span><span class="o">.</span><span class="n">lowering</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_play_extent</span><span class="p">(</span>
+    <span class="n">vocab</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">products</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a duration-less ``play`` advances a ``sequence`` by (its natural</span>
+<span class="sd">    length, read through the entity's descriptor): the first registered</span>
+<span class="sd">    lowering's resolver. The one rule the actions pass, the solve pass and the</span>
+<span class="sd">    checks reading a compiled document share (an#794)."""</span>
+    <span class="k">return</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="n">r</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="n">low</span><span class="o">.</span><span class="n">extent_resolver</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span> <span class="ow">in</span> <span class="n">_lowerings</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">r</span>
+        <span class="p">),</span>
+        <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="play_extent_of">
+<a class="viewcode-back" href="../../../_autosummary/an.stage.compile.html#an.adapters.cutout.play_extent_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">play_extent_of</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">products</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The play-extent resolver ``doc`` (``shot`` compiled) was compiled with,</span>
+<span class="sd">    rebuilt from its node tree: what a check reading ``doc`` passes to</span>
+<span class="sd">    :func:`an.ir.compose.flatten` (or :func:`an.stage.solve.declarations`) so a</span>
+<span class="sd">    ``join``/``unjoin`` after a natural-length ``play`` in a ``sequence`` is</span>
+<span class="sd">    timed where the compile timed it (an#794). ``None`` when no genre resolves</span>
+<span class="sd">    one (every ``play`` then advances a sequence by zero, as in the compile).</span>
+
+<span class="sd">    ``products`` are the compile passes' products the lowering reads (a style's</span>
+<span class="sd">    policy, which can change a walk's gait and so its length); a check that</span>
+<span class="sd">    does not have them gets the lowering's default, as a compile without them.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; extent = play_extent_of(NS(scene=NodeJSON(name="root")), Shot(id="s"))</span>
+<span class="sd">    &gt;&gt;&gt; extent is None or callable(extent)  # None unless a genre resolves plays</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">_swap_vocabulary</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">return</span> <span class="n">_play_extent</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">products</span> <span class="k">if</span> <span class="n">products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{})</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_lowering_of</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ActionLowering</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The lowering of ``action``'s kind that produces a clip for it, or ``None``."""</span>
     <span class="n">kind</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
@@ -4470,16 +4519,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># through the entity's descriptor: the resolver `an validate` uses too.</span>
     <span class="n">lowerings</span> <span class="o">=</span> <span class="n">_lowerings</span><span class="p">()</span>
     <span class="n">products</span> <span class="o">=</span> <span class="n">products</span> <span class="k">if</span> <span class="n">products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
-    <span class="n">extent</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-        <span class="p">(</span>
-            <span class="n">r</span>
-            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span>
-                <span class="n">low</span><span class="o">.</span><span class="n">extent_resolver</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span> <span class="ow">in</span> <span class="n">lowerings</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">r</span>
-        <span class="p">),</span>
-        <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">extent</span> <span class="o">=</span> <span class="n">_play_extent</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">products</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
         <span class="n">flat_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">))</span>
     <span class="c1"># BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a</span>
