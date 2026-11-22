@@ -1,1 +1,0 @@
-- The `support` and `joint_violation` checks time a `join`/`unjoin` placed after a duration-less `play` in a `sequence` by the play's natural length, as the compile does, through the new `an.stage.compile.play_extent_of(doc, shot, mall)` (an#794).

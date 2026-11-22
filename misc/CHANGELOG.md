@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- The `support` and `joint_violation` checks time a `join`/`unjoin` placed after a duration-less `play` in a `sequence` by the play's natural length, as the compile does, through the new `an.stage.compile.play_extent_of(doc, shot, mall)` (an#794).
 - The stage runtime evaluates a channel by bisection instead of a linear scan, and `an.timing.channel.evaluate` bisects without building a list of times per call: a 60 s shutter-keyed follow (~30k keys a channel) no longer costs ~1e9 comparisons to render (an#783).
 - `frame_stage_renderer` forwards what its engine declares (`view_spaces`, `paint_orders`, `svg_filters`), so a renderer built from an engine declaring `space.orbit3d` affords it (an#786).
 - `an.project.gitignore_matcher` is a facade over `dol.gitignore_matcher` (byte-exact against `git check-ignore`) instead of a private copy; it now also refuses a `.gitignore` line with `//` or a malformed `[...]` (an#800).
