@@ -5,21 +5,21 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-11-22 08:38 UTC** from commit <a href="https://github.com/reeleehq/an/commit/c3882615eb12a28f3e273ada2e4b99bc619cc488"><code>c388261</code></a> on branch <code>main</code>, for **an 0.1.405** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 08:46 UTC** from commit <a href="https://github.com/reeleehq/an/commit/12c678bf30cad37bd605d49fcffb7b7421adbf2a"><code>12c678b</code></a> on branch <code>main</code>, for **an 0.1.406** (from <code>pyproject.toml</code>).
 
 :::{warning}
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.405) is ahead of the latest release on PyPI (0.1.404): these docs describe unreleased code.
+- The documented version (0.1.406) is ahead of the latest release on PyPI (0.1.405): these docs describe unreleased code.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/reeleehq/an/commit/c3882615eb12a28f3e273ada2e4b99bc619cc488"><code>c3882615eb12a28f3e273ada2e4b99bc619cc488</code></a> |
+| Commit | <a href="https://github.com/reeleehq/an/commit/12c678bf30cad37bd605d49fcffb7b7421adbf2a"><code>12c678bf30cad37bd605d49fcffb7b7421adbf2a</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.1.405</code> |
+| Tags at this commit | <code>0.1.406</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/reeleehq/an</code> |
 
@@ -28,9 +28,9 @@ The documentation and the package may be misaligned:
 | | |
 |---|---|
 | Repository | <code>reeleehq/an</code> |
-| Run | <a href="https://github.com/reeleehq/an/actions/runs/45002949410">45002949410</a> |
+| Run | <a href="https://github.com/reeleehq/an/actions/runs/45003620213">45003620213</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>6bff786d5eee9fb4962b43aaf4bc95b83352f059</code> (in the history of the built commit) |
+| Event commit | <code>ed5b152b33c744ee327ce49bc53baeb2d4a0b695</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -55,13 +55,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.404/">0.1.404</a>, older than the documented version (0.1.405).
+Latest release: <a href="https://pypi.org/project/an/0.1.405/">0.1.405</a>, older than the documented version (0.1.406).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout c3882615eb12a28f3e273ada2e4b99bc619cc488
+git checkout 12c678bf30cad37bd605d49fcffb7b7421adbf2a
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
