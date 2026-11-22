@@ -168,7 +168,8 @@ def _battery() -> list[dict]:
     return cases
 
 
-def _python_results(cases) -> list[list]:
+def _python_results(cases, times=None) -> list[list]:
+    times = _TIMES if times is None else times
     out = []
     for case in cases:
         ch = Channel(
@@ -185,7 +186,7 @@ def _python_results(cases) -> list[list]:
                 for k in case["keyframes"]
             ],
         )
-        out.append([evaluate(ch, t) for t in _TIMES])
+        out.append([evaluate(ch, t) for t in times])
     return out
 
 
@@ -211,7 +212,8 @@ def _extract_js_block(src: str, start_marker: str) -> str:
     raise AssertionError(f"unbalanced braces after {start_marker!r}")
 
 
-def _js_results(cases) -> list[list]:
+def _js_results(cases, times=None) -> list[list]:
+    times = _TIMES if times is None else times
     src = RUNTIME_JS.read_text(encoding="utf-8")
     pieces = [
         _extract_js_block(src, "const EASINGS ="),
@@ -224,7 +226,7 @@ def _js_results(cases) -> list[list]:
         pieces
         + [
             f"const cases = {json.dumps(cases)};",
-            f"const times = {json.dumps(_TIMES)};",
+            f"const times = {json.dumps(times)};",
             "const out = cases.map(c => times.map(t => evaluateChannel(c, t)));",
             "console.log(JSON.stringify(out));",
         ]
@@ -253,6 +255,37 @@ def test_evaluate_channel_matches_the_python_spec_exactly():
             if not ok:
                 mismatches.append((ci, case["kind"], t, pv, jv))
     assert not mismatches, f"JS/Python channel drift: {mismatches}"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
+def test_a_long_channel_with_repeated_times_bisects_to_the_python_spec():
+    """an#783: the runtime bisects instead of scanning (a shutter-keyed camera is
+    ~30k keys a channel). A long channel with zero-span segments, a held run and
+    a swap channel give the same value in both, at every key time, between
+    keys, and outside the keyed span."""
+    import random
+
+    rng = random.Random(783)
+    times, t = [], 0.0
+    for k in range(3001):
+        times.append(t)
+        if k % 97 == 0:
+            times.append(t)  # a zero-span segment: the later key wins
+        t += rng.choice([0.001, 1 / 480, 1 / 30, 0.25])
+    numeric = {
+        "keyframes": [_kf(x, rng.uniform(-50, 50), "linear") for x in times],
+        "kind": "numeric",
+    }
+    swap = {"keyframes": [_kf(x, f"k{n % 7}", "step") for n, x in enumerate(times)], "kind": "string"}
+    probes = sorted(
+        {-1.0, times[-1], times[-1] + 1.0}
+        | set(rng.sample(times, 400))
+        | {rng.uniform(0.0, times[-1]) for _ in range(800)}
+    )
+    py = _python_results([numeric, swap], probes)
+    js = _js_results([numeric, swap], probes)
+    assert js[1] == py[1]
+    assert js[0] == pytest.approx(py[0], rel=1e-12, abs=1e-12)
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
