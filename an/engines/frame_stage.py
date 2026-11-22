@@ -193,6 +193,13 @@ class StateDrivenAdapter:
         return getattr(self.session, name)
 
 
+#: What an engine declares on itself and its renderer affords as it does (an#786):
+#: the view spaces it lowers (``space.<name>``), its paint orders, its SVG
+#: filters. Read through the renderer from the engine's members, never copied.
+ENGINE_DECLARED_MEMBERS: frozenset[str] = frozenset(
+    {"view_spaces", "paint_orders", "svg_filters"}
+)
+
 #: The session member that draws several states in one round trip (an#286).
 STATE_BATCH_MEMBER: str = "render_states"
 
@@ -245,6 +252,15 @@ class FrameStageRenderer:
 
     def can_render(self, shot: "Shot") -> bool:
         return shot.renderer in self.supported_renderers
+
+    def __getattr__(self, name: str) -> Any:
+        # Only for members the renderer does not define: what the engine declares
+        # it affords (an#786) reaches whoever reads the renderer's members
+        # (`an.capabilities.engine_affordances`), so a previz engine's
+        # `space.orbit3d` is not lost through the wrapper.
+        if name in ENGINE_DECLARED_MEMBERS:
+            return getattr(self.engine, name)  # AttributeError when absent
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 
     def render(self, shot: "Shot", ctx: "RenderContext") -> "RenderResult":
         """Render ``shot`` to mp4 through the engine; see the module docstring."""
