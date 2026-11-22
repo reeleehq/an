@@ -110,10 +110,15 @@
         const last = kfs[kfs.length - 1];
         if (t >= last.time) return last.value;
         if (t < kfs[0].time) return kfs[0].value;
-        // Linear scan; fine for v0.1 (channels are short).
-        let i = 0;
-        for (; i < kfs.length - 1; i++) {
-            if (kfs[i].time <= t && t < kfs[i + 1].time) break;
+        // Bisection (an#783: a shutter-keyed camera is ~30k keys a channel):
+        // the rightmost key at or before t, Python's bisect_right(times, t) - 1.
+        // Keys are sorted (Channel refuses otherwise). Kept inline rather than
+        // in a helper because the parity tests (here and in cutan) lift this
+        // function out of the file by name.
+        let i = 0, hi = kfs.length - 1;  // kfs[i].time <= t < kfs[hi].time
+        while (hi - i > 1) {
+            const mid = (i + hi) >>> 1;
+            if (kfs[mid].time <= t) i = mid; else hi = mid;
         }
         const a = kfs[i];
         const b = kfs[i + 1];
@@ -2089,9 +2094,11 @@
         const last = kfs[kfs.length - 1];
         if (t >= last.time) return last.value;
         if (t < kfs[0].time) return kfs[0].value;
-        let i = 0;
-        for (; i < kfs.length - 1; i++) {
-            if (kfs[i].time <= t && t < kfs[i + 1].time) break;
+        // Bisection, as in evaluateChannel (an#783).
+        let i = 0, hi = kfs.length - 1;  // kfs[i].time <= t < kfs[hi].time
+        while (hi - i > 1) {
+            const mid = (i + hi) >>> 1;
+            if (kfs[mid].time <= t) i = mid; else hi = mid;
         }
         const a = kfs[i];
         const b = kfs[i + 1];

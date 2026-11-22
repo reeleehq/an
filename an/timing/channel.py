@@ -56,12 +56,15 @@ easing name stays loud on a swap channel too.
 from __future__ import annotations
 
 import bisect
+from operator import attrgetter
 from dataclasses import dataclass, field
 from typing import Any
 
 from an.base import EasingSpec
 from an.timing.easing import VALUE_TYPED_CALLS, VALUE_TYPED_EASINGS, apply_easing
 from an.timing.kinds import FieldKind, FieldKindError, Segment
+
+_time = attrgetter("time")
 
 
 @dataclass(slots=True, frozen=True)
@@ -109,13 +112,14 @@ def evaluate(channel: Channel, t: float, *, kind: FieldKind | None = None) -> An
     kfs = channel.keyframes
     if len(kfs) == 1:
         return kfs[0].value
-    times = [kf.time for kf in kfs]
-    if t >= times[-1]:
+    if t >= kfs[-1].time:
         return kfs[-1].value
-    if t < times[0]:
+    if t < kfs[0].time:
         return kfs[0].value
-    # Binary search: find rightmost index i such that times[i] <= t.
-    i = bisect.bisect_right(times, t) - 1
+    # Binary search: the rightmost index i such that kfs[i].time <= t, read
+    # through `key` so no list of times is built per call (an#783: a
+    # shutter-keyed camera is ~30k keys a channel, evaluated at every sample).
+    i = bisect.bisect_right(kfs, t, key=_time) - 1
     a = kfs[i]
     b = kfs[i + 1]
     span = b.time - a.time
