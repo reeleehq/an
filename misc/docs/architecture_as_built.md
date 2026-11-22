@@ -106,7 +106,7 @@ How the core reaches a genre without importing it (`an.genres.API_LEVEL`, the le
 
 | Seam | Used for |
 |---|---|
-| `ActionKind.lowering` | how the stage compiler turns a genre's action (`play`, `expression`) into clips: `extent_resolver`, `expand`, `view_of`, `clip` (`an.stage.compile.ActionLowering`); `extent_resolver` and `expand` receive the shot's compile `products` (an#348), the lowering's only view of compile state |
+| `ActionKind.lowering` | how the stage compiler turns a genre's action (`play`, `expression`) into clips: `extent_resolver`, `expand`, `view_of`, `clip` (`an.stage.compile.ActionLowering`); `extent_resolver` and `expand` receive the shot's compile `products` (an#348), the lowering's only view of compile state; the first lowering's resolver is the one rule the actions pass, the solve pass and the checks reading a compiled document share (`_play_extent`; a check rebuilds it from the document with `an.stage.compile.play_extent_of(doc, shot, mall)`, as `supports_at` and `joint_residuals` do, an#794) |
 | `EntityKind.swap_declaration`, `.descriptor_kind`, `.placeholder_on_missing`, `.swap_checks`, `.specimen` | the swap vocabulary a descriptor declares, the validator's rig-store table, "a missing ref draws a placeholder", extra swap-reference checks, the shot `an library sheet` draws for one entity of the kind (an#347) |
 | `CompilePass` (`"module:function"`) | the cut-out passes over the stage compiler (`speech`, `swap_pose`, `view_spans`, `visemes`, `face`) and the `rig` builder |
 | `RuntimeScript` | `cutan/runtime/visuals.js`: the procedural mouth and eye, registered through `window.anRegisterVisual` |
