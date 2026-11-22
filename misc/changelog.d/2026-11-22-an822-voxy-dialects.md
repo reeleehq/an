@@ -1,0 +1,1 @@
+- ElevenLabs TTS asks voxy which models read inline audio tags (`voxy.dialect_for`) instead of keeping its own prefix table, and on any other model a line's pause cues (`{beat}`, `{pause}`) become real silence instead of being dropped (an#822).

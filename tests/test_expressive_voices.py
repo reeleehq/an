@@ -174,6 +174,32 @@ def test_a_model_without_tags_gets_none_and_the_direction_warns():
     assert client.requests[0]["text"] == "Hi!"
 
 
+def test_a_pause_cue_on_a_model_without_tags_becomes_real_silence():
+    """an#822: voxy translates the cue instead of dropping it. A pause is sent as
+    an SSML break, any other cue still warns, and the transcript keeps only words."""
+    tts, client = _tts()
+    with pytest.warns(UserWarning, match=r"\['sighs'\] is dropped"):
+        opts = tts.synthesis_options({"voice_id": "abc"}, emotion="happy", direction=["beat", "sighs"])
+    assert opts == {"audio_tags": ["beat"]}
+    clip = tts.synthesize("Fine.", "abc", **opts)
+    assert client.requests[0]["text"] == '<break time="0.45s" /> Fine.'
+    assert clip.transcript == "Fine."
+    assert tts.billed_characters("Fine.", **opts) == len(client.requests[0]["text"])
+
+
+def test_the_dialect_is_voxys_and_can_be_injected():
+    """No second table: the adapter asks ``voxy.dialect_for``; a dialect seam
+    lets a caller declare a model voxy does not know yet."""
+    from voxy.direction import INLINE, PLAIN
+
+    tts, client = _tts()
+    tts.dialect = lambda model: INLINE if model == "eleven_future" else PLAIN
+    opts = tts.synthesis_options({"model_id": "eleven_future"}, direction=["sighs"])
+    assert opts["audio_tags"] == ["sighs"]
+    tts.synthesize("Hi.", "abc", **opts)
+    assert client.requests[0]["text"] == "[sighs] Hi."
+
+
 def test_neutral_is_not_a_tag_and_prefixes_match_variants():
     tts, _ = _tts()
     assert tts.synthesis_options({"model_id": "eleven_v3"}, emotion="neutral") == {"model_id": "eleven_v3"}
