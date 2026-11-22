@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-22
+- `planes_at_infinity` skips an environment whose descriptor the store cannot read (broken JSON, an unreadable file) instead of raising and taking down `an validate's` plate check and cutan's far-plate critic (an#766).
+
 ## 2026-11-12
 - **No walking backwards** (an#818): `an validate` gains `facing_travel`: art that declares which way it faces (`metadata.faces`, a facing or a facing per swap key; `overrides.faces` on the entity) warns when it travels the other way by its own motion, with when and how far. New module `an/verify/staging.py`.
 
