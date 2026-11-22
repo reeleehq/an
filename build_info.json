@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T08:37:01Z",
+  "built_at": "2026-11-22T08:37:21Z",
   "package": {
     "name": "an",
     "version": "0.1.404",
@@ -9,24 +9,24 @@
   },
   "git": {
     "available": true,
-    "commit": "ed5b152b33c744ee327ce49bc53baeb2d4a0b695",
-    "short_commit": "ed5b152",
+    "commit": "aeca33d72fee85238b0a04dd4b742721b2cf9545",
+    "short_commit": "aeca33d",
     "branch": "main",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/ed5b152b33c744ee327ce49bc53baeb2d4a0b695",
+    "commit_url": "https://github.com/reeleehq/an/commit/aeca33d72fee85238b0a04dd4b742721b2cf9545",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "db8ee7ebe2169f009b7d14251652e20249a9189e",
+    "sha": "82d6f3e019ba796b9d2d2c155e2e2f53d73f1793",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "45002943539",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/45002943539",
+    "run_id": "45002937108",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/45002937108",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -64,7 +64,7 @@
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout ed5b152b33c744ee327ce49bc53baeb2d4a0b695\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout aeca33d72fee85238b0a04dd4b742721b2cf9545\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

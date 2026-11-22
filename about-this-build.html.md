@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-11-22 08:37 UTC** from commit <a href="https://github.com/reeleehq/an/commit/ed5b152b33c744ee327ce49bc53baeb2d4a0b695"><code>ed5b152</code></a> on branch <code>main</code>, for **an 0.1.404** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 08:37 UTC** from commit <a href="https://github.com/reeleehq/an/commit/aeca33d72fee85238b0a04dd4b742721b2cf9545"><code>aeca33d</code></a> on branch <code>main</code>, for **an 0.1.404** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,7 +11,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/ed5b152b33c744ee327ce49bc53baeb2d4a0b695"><code>ed5b152b33c744ee327ce49bc53baeb2d4a0b695</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/aeca33d72fee85238b0a04dd4b742721b2cf9545"><code>aeca33d72fee85238b0a04dd4b742721b2cf9545</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
 | Tags at this commit | none                                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/45002943539">45002943539</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/45002937108">45002937108</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>db8ee7ebe2169f009b7d14251652e20249a9189e</code> (in the history of the built commit) |
+| Event commit | <code>82d6f3e019ba796b9d2d2c155e2e2f53d73f1793</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -55,7 +55,7 @@ Latest release: <a href="https://pypi.org/project/an/0.1.404/">0.1.404</a>, the 
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout ed5b152b33c744ee327ce49bc53baeb2d4a0b695
+git checkout aeca33d72fee85238b0a04dd4b742721b2cf9545
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
