@@ -575,9 +575,7 @@ def depth_inversions(
 
     places = paint_places(doc.scene)
     solids = [e for e in entities if _is_solid(e) and e.id in places]
-    props = [
-        e for e in solids if candidates is None or e.id in candidates
-    ]
+    props = [e for e in solids if candidates is None or e.id in candidates]
     walkers = [e for e in solids if e.id not in carried]
     if not props or not walkers:
         return []
@@ -590,7 +588,9 @@ def depth_inversions(
     times = _sample_times(duration)
     timeline = timeline_from_scene(doc)
     poses = [evaluate_timeline(timeline, t) for t in times]
-    speeds = {eid: _travel_speeds(doc, poses, chain, times) for eid, chain in chains.items()}
+    speeds = {
+        eid: _travel_speeds(doc, poses, chain, times) for eid, chain in chains.items()
+    }
     drawn = drawn_paths(doc, [e.id for e in solids])
     painted_at = paint_order(doc)
     runs: dict[tuple[str, str], list[list[Any]]] = {}  # pair -> [[k0, k1, upstage]]
@@ -630,7 +630,10 @@ def depth_inversions(
                 if painted_at(prop, pose) <= painted_at(walker, pose):
                     continue  # the walker is painted over it: right
                 up = stands_behind(
-                    boxes[walker], boxes[prop], margin_share=margin_share, tolerance=tolerance
+                    boxes[walker],
+                    boxes[prop],
+                    margin_share=margin_share,
+                    tolerance=tolerance,
                 )
                 if up is None:
                     continue
@@ -641,7 +644,9 @@ def depth_inversions(
                 ):
                     continue  # on a counter top, not the floor
                 pair = runs.setdefault((walker, prop), [])
-                if pair and pair[-1][1] >= k - 2:  # one missed sample keeps it one stretch
+                if (
+                    pair and pair[-1][1] >= k - 2
+                ):  # one missed sample keeps it one stretch
                     pair[-1][1], pair[-1][2] = k, max(pair[-1][2], up)
                 else:
                     pair.append([k, k, up])
