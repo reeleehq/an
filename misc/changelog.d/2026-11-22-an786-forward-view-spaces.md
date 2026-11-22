@@ -1,1 +1,0 @@
-- `frame_stage_renderer` forwards what its engine declares (`view_spaces`, `paint_orders`, `svg_filters`), so a renderer built from an engine declaring `space.orbit3d` affords it (an#786).

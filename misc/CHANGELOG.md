@@ -4,6 +4,9 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- `frame_stage_renderer` forwards what its engine declares (`view_spaces`, `paint_orders`, `svg_filters`), so a renderer built from an engine declaring `space.orbit3d` affords it (an#786).
+- `an.project.gitignore_matcher` is a facade over `dol.gitignore_matcher` (byte-exact against `git check-ignore`) instead of a private copy; it now also refuses a `.gitignore` line with `//` or a malformed `[...]` (an#800).
+- `rigid`, `preserve_volume`, `shaded_side`, `free` and `fixed` join `an.base.CORE_OVERRIDE_KEYS`, so a check's or the solve's override on a path or a text entity no longer fails its compile as an unknown document field (an#801).
 - CI: the rendering lane (and the x86 Linux crossarch capture) run on `ubuntu-24.04`, since the pinned Playwright cannot install Chromium on the 26.04 image `ubuntu-latest` moved to.
 - ElevenLabs TTS asks voxy which models read inline audio tags (`voxy.dialect_for`) instead of keeping its own prefix table, and on any other model a line's pause cues (`{beat}`, `{pause}`) become SSML breaks when voxy's break table says the model renders one that long, instead of being dropped (an#822). Removed without deprecation (no caller in the fleet): `AUDIO_TAG_MODEL_PREFIXES`, `ElevenLabsTTS(audio_tag_model_prefixes=)` and `takes_audio_tags(prefixes=)`; the seams are `ElevenLabsTTS(dialect=, native_break_s=)` and `voxy.register_dialect`. A line on a non-tag model whose direction has a pause cue gets a new audio key, so it re-synthesizes once (and a best-of-N line re-chooses).
 - `planes_at_infinity` skips an environment whose descriptor the store cannot read (broken JSON, an unreadable file) instead of raising and taking down `an validate's` plate check and cutan's far-plate critic (an#766).

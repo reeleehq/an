@@ -1,1 +1,0 @@
-- `an.project.gitignore_matcher` is a facade over `dol.gitignore_matcher` (byte-exact against `git check-ignore`) instead of a private copy; it now also refuses a `.gitignore` line with `//` or a malformed `[...]` (an#800).
