@@ -1,1 +1,0 @@
-- The stage runtime evaluates a channel by bisection instead of a linear scan, and `an.timing.channel.evaluate` bisects without building a list of times per call: a 60 s shutter-keyed follow (~30k keys a channel) no longer costs ~1e9 comparisons to render (an#783).

@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- The stage runtime evaluates a channel by bisection instead of a linear scan, and `an.timing.channel.evaluate` bisects without building a list of times per call: a 60 s shutter-keyed follow (~30k keys a channel) no longer costs ~1e9 comparisons to render (an#783).
 - `frame_stage_renderer` forwards what its engine declares (`view_spaces`, `paint_orders`, `svg_filters`), so a renderer built from an engine declaring `space.orbit3d` affords it (an#786).
 - `an.project.gitignore_matcher` is a facade over `dol.gitignore_matcher` (byte-exact against `git check-ignore`) instead of a private copy; it now also refuses a `.gitignore` line with `//` or a malformed `[...]` (an#800).
 - `rigid`, `preserve_volume`, `shaded_side`, `free` and `fixed` join `an.base.CORE_OVERRIDE_KEYS`, so a check's or the solve's override on a path or a text entity no longer fails its compile as an unknown document field (an#801).
