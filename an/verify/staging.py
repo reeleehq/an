@@ -35,18 +35,23 @@ How it reads a shot. A **floor prop** is an item whose holder at that instant
 (the hold layer's report, ``meta.extensions.solve.holds``) is the floor or a
 place on the set: ``ground``, ``ground@x``, ``world@x,y`` (an item put down,
 let fall, or staged with ``overrides: {held_by: world@x,y}``), so a cup on a
-table or a novel on a desk, which nothing says rests on the floor, is not one.
-An item is held, and not judged, while its ``paint_after`` channel names a
-body's part (an#537). A **walker** is any solid that is not an item of the
-hold layer (which carries it, or lets it fall: a falling musket does not
-walk), such as a character or a pushed crate, whose OWN travel on the set (as
-``facing_travel`` reads it: its origin's steps through its parent, so a camera
-pan or a ride is not a walk) is at least
-:data:`MIN_TRAVEL_SPEED_PX_S` at that instant. The pairs are the ``solidity``
-check's: the same boxes, the same samples (:data:`an.verify.constraints.SOLIDITY_SAMPLE_S`),
-covering more than :data:`an.verify.constraints.SOLIDITY_TOLERANCE` of the
-smaller, two members the world paints by depth skipped. A ``stage.after``
-does not excuse a pair here: a misplaced one is how the mistake is made.
+table or a novel on a desk that nothing holds is not one; nor is one whose foot
+rests on another solid standing lower than it (``world@`` on a counter top,
+:func:`rests_on`). An item is held, and not judged, while its ``paint_after``
+channel names a body's part (an#537). Floor props are chosen in ONE place,
+:func:`held_on_floor`, handed to :func:`depth_inversions` as ``on_floor``. A
+**walker** is any solid that is not an item of the hold layer (which carries
+it, or lets it fall: a falling musket does not walk), such as a character or a
+pushed crate, whose OWN travel on the set (as ``facing_travel`` reads it: its
+origin's steps through its parent, so a camera pan or a ride is not a walk;
+across the set or up and down it) is at least :data:`MIN_TRAVEL_SPEED_PX_S`;
+once it is painted under a prop behind it, the stretch goes on while it stays
+there, though it stops. The pairs are the ``solidity`` check's: the same
+boxes, read the same way, on the same samples
+(:data:`an.verify.constraints.SOLIDITY_SAMPLE_S`), covering more than
+:data:`an.verify.constraints.SOLIDITY_TOLERANCE` of the smaller, two members
+the world paints by depth skipped. A ``stage.after`` does not excuse a pair
+here: a misplaced one is how the mistake is made.
 
 The prop stands farther back when its foot (its box's bottom) is between the
 walker's middle and :data:`DEPTH_MARGIN_SHARE` of the walker's height above
@@ -54,7 +59,9 @@ the walker's feet (its box's bottom). Both are read on the canvas, which a
 camera pan and zoom move and scale alike, and the margin is a share of the
 walker's height, so a wide and a close-up agree; a camera roll is not undone.
 Equal foot lines (the margin) give no depth cue and are not judged: the
-authoring answer there is to put the prop a little upstage.
+authoring answer there is to put the prop a little upstage. Limits: a pass
+quicker than the sample step can fall between two samples, and a staged prop
+nothing holds is not judged.
 
 >>> [c.name for c in STAGING_CONSTRAINTS]
 ['facing_travel', 'depth_order']
@@ -97,7 +104,10 @@ __all__ = [
     "FLOOR_HOLDERS",
     "DepthInversion",
     "stands_behind",
+    "rests_on",
     "floor_holder_at",
+    "held_on_floor",
+    "depth_inversions",
 ]
 
 #: Where art says which way it faces (in its store document's ``metadata``, or
@@ -287,15 +297,15 @@ def _probe(
     return _side_on_set(doc, pose, entity_id, side=way)
 
 
-def _own_travel(
+def _own_travel_xy(
     doc: Any, poses: list[Mapping], chain: list[tuple[Any, str]]
-) -> list[float]:
-    """The set x the entity's OWN moves have taken it to, frame by frame: each
-    step of its origin's ``x``/``y`` (in its parent's frame) carried onto the
-    set through its parent's transform at the step's start. Two points mapped
-    through one transform cancel its translation, so a camera pan, a parallax
-    wrapper or a vehicle the entity rides adds nothing; the parent's mirror and
-    rotation still turn the step."""
+) -> list[tuple[float, float]]:
+    """The set point the entity's OWN moves have taken it to, frame by frame:
+    each step of its origin's ``x``/``y`` (in its parent's frame) carried onto
+    the set through its parent's transform at the step's start. Two points
+    mapped through one transform cancel its translation, so a camera pan, a
+    parallax wrapper or a vehicle the entity rides adds nothing; the parent's
+    mirror and rotation still turn the step."""
     from an.stage.timeline import screen_position
 
     node, path = chain[-1]
@@ -307,17 +317,24 @@ def _own_travel(
             float(pose.get((path, "y"), node.transform.y)),
         )
 
-    xs = [0.0]
+    out = [(0.0, 0.0)]
     for before, after in zip(poses, poses[1:]):
         (x0, y0), (x1, y1) = local(before), local(after)
         if parent is None:
-            step = x1 - x0
+            dx, dy = x1 - x0, y1 - y0
         else:
             a = screen_position(doc, parent, pose=before, point=(x0, y0), camera=False)
             b = screen_position(doc, parent, pose=before, point=(x1, y1), camera=False)
-            step = b[0] - a[0]
-        xs.append(xs[-1] + step)
-    return xs
+            dx, dy = b[0] - a[0], b[1] - a[1]
+        out.append((out[-1][0] + dx, out[-1][1] + dy))
+    return out
+
+
+def _own_travel(
+    doc: Any, poses: list[Mapping], chain: list[tuple[Any, str]]
+) -> list[float]:
+    """The set x of :func:`_own_travel_xy`: the way across the set an entity goes."""
+    return [x for x, _ in _own_travel_xy(doc, poses, chain)]
 
 
 def check_facing_travel(ctx: Any) -> None:
@@ -456,6 +473,35 @@ def stands_behind(
     return feet - foot
 
 
+def rests_on(
+    prop_box: tuple[float, ...],
+    other_box: tuple[float, ...],
+    *,
+    margin_share: float = DEPTH_MARGIN_SHARE,
+) -> bool:
+    """Whether a prop's foot (the middle of its box's bottom) lies on another
+    solid that stands lower than it: inside ``other_box``, whose own bottom is
+    more than ``margin_share`` of the prop's height below the foot. A cup on a
+    counter top, a book on a shelf: the place it rests at is not the floor.
+
+    >>> counter = (0, 100, 200, 200)
+    >>> rests_on((80, 70, 120, 100), counter)  # a cup standing on its top
+    True
+    >>> rests_on((80, 170, 120, 198), counter)  # a box at its foot, in front
+    False
+    >>> rests_on((300, 70, 340, 100), counter)  # beside it
+    False
+    """
+    x = (prop_box[0] + prop_box[2]) / 2
+    foot = prop_box[3]
+    margin = margin_share * (prop_box[3] - prop_box[1])
+    return (
+        other_box[0] <= x <= other_box[2]
+        and other_box[1] <= foot
+        and other_box[3] > foot + margin
+    )
+
+
 def floor_holder_at(timeline: list[list[Any]], t: float) -> bool:
     """Whether the hold report's holder timeline of an item (``[[t, holder],
     ...]``) has it on the floor or at a place of the set at ``t``
@@ -472,14 +518,32 @@ def floor_holder_at(timeline: list[list[Any]], t: float) -> bool:
     return holder is not None and holder.partition("@")[0] in FLOOR_HOLDERS
 
 
+def held_on_floor(holders: Mapping[str, list[list[Any]]]) -> Any:
+    """``on_floor(entity_id, t)`` for :func:`depth_inversions`, from the hold
+    report's ``holders``: an item whose holder at ``t`` puts it on the floor or
+    at a place of the set (:func:`floor_holder_at`). The one place floor props
+    are chosen: a later reading (a staged prop nothing holds) extends this."""
+
+    def on_floor(eid: str, t: float) -> bool:
+        return eid in holders and floor_holder_at(holders[eid], t)
+
+    on_floor.candidates = frozenset(  # type: ignore[attr-defined]
+        eid
+        for eid, tl in holders.items()
+        if any(str(h).partition("@")[0] in FLOOR_HOLDERS for _t, h in tl)
+    )
+    return on_floor
+
+
 def _travel_speeds(
     doc: Any, poses: list[Mapping], chain: list[tuple[Any, str]], times: list[float]
 ) -> list[float]:
-    """Per sampled instant, the larger of the own-travel speeds (set px/s) of
-    the intervals either side of it (:func:`_own_travel`)."""
-    xs = _own_travel(doc, poses, chain)
+    """Per sampled instant, the larger of the own-travel speeds (set px/s, in
+    any direction: across the set or up and down it) of the intervals either
+    side of it (:func:`_own_travel_xy`)."""
+    pts = _own_travel_xy(doc, poses, chain)
     steps = [
-        abs(xs[i + 1] - xs[i]) / (times[i + 1] - times[i])
+        math.dist(pts[i + 1], pts[i]) / (times[i + 1] - times[i])
         if times[i + 1] > times[i]
         else 0.0
         for i in range(len(times) - 1)
@@ -493,29 +557,41 @@ def _travel_speeds(
 def depth_inversions(
     doc: Any,
     entities: list[Any],
-    holders: Mapping[str, list[list[Any]]],
+    on_floor: Any,
     *,
     duration: float,
+    carried: frozenset[str] = frozenset(),
+    candidates: frozenset[str] | None = None,
     depth_sorted: frozenset[str] = frozenset(),
     min_speed: float = MIN_TRAVEL_SPEED_PX_S,
     margin_share: float = DEPTH_MARGIN_SHARE,
     tolerance: float = SOLIDITY_TOLERANCE,
 ) -> list[DepthInversion]:
     """Every walker among ``entities`` painted under a floor prop that stands
-    behind it (:func:`stands_behind`) at a sampled instant, one record per
-    pair, from its first such instant to its last. ``holders`` is the hold
-    report's ``holders`` (an item's holder timeline): the items on the floor
-    are read from it (:func:`floor_holder_at`)."""
+    behind it (:func:`stands_behind`), one record per pair and stretch of
+    sampled instants. ``on_floor(entity_id, t)`` says which props are on the
+    floor at ``t`` (:func:`held_on_floor`), ``candidates`` the ids it can say
+    so of (default: every entity); ``carried`` the ids that never walk (the
+    hold layer's items: carried, or falling). A prop resting on another solid
+    lower than it (:func:`rests_on`: a counter top) is not on the floor. A
+    walker starts a stretch while it moves at least ``min_speed``, and the
+    stretch goes on while it stays painted under the prop behind it, though it
+    stops there; a gap of more than one sample ends it."""
     from an.base import PAINT_AFTER_PROPERTY
     from an.stage.timeline import _node_chain, timeline_from_scene
+    from an.stage.tree import paint_places
     from an.timing.timeline import evaluate_timeline
 
-    solids = [e for e in entities if _is_solid(e)]
-    props = [e for e in solids if e.id in holders]
-    if not props or len(solids) < 2:
+    places = paint_places(doc.scene)
+    solids = [e for e in entities if _is_solid(e) and e.id in places]
+    props = [
+        e for e in solids if candidates is None or e.id in candidates
+    ]
+    walkers = [e for e in solids if e.id not in carried]
+    if not props or not walkers:
         return []
     chains = {}
-    for e in solids:
+    for e in walkers:
         try:
             chains[e.id] = _node_chain(doc.scene, e.id)
         except Exception:  # noqa: BLE001 - not drawn on the stage
@@ -526,40 +602,62 @@ def depth_inversions(
     speeds = {eid: _travel_speeds(doc, poses, chain, times) for eid, chain in chains.items()}
     drawn = drawn_paths(doc, [e.id for e in solids])
     painted_at = paint_order(doc)
+    runs: dict[tuple[str, str], list[list[Any]]] = {}  # pair -> [[k0, k1, upstage]]
 
-    def held(eid: str, pose: Mapping) -> bool:
-        return bool(pose.get((eid, PAINT_AFTER_PROPERTY)))  # painted after a body's part
-
-    found: dict[tuple[str, str], list[Any]] = {}
     for k, (t, pose) in enumerate(zip(times, poses)):
-        boxes = seen_boxes(doc, drawn, pose)
-        for prop in props:
-            if prop.id not in boxes or held(prop.id, pose):
+        floor_props = [
+            e.id
+            for e in props
+            if on_floor(e.id, t) and not pose.get((e.id, PAINT_AFTER_PROPERTY))
+        ]  # a paint_after naming a body's part: held
+        if not floor_props:
+            continue
+
+        def ongoing(w: str, p: str) -> bool:
+            last = runs.get((w, p))
+            return bool(last) and last[-1][1] == k - 1
+
+        movers = [
+            w
+            for w in chains
+            if speeds[w][k] >= min_speed or any(ongoing(w, p) for p in floor_props)
+        ]
+        if not movers:
+            continue
+        others = {e.id for e in solids}
+        boxes = seen_boxes(doc, {i: drawn[i] for i in others}, pose)
+        for prop in floor_props:
+            if prop not in boxes:
                 continue
-            if not floor_holder_at(holders[prop.id], t):
-                continue
-            for walker in solids:
-                if walker.id in holders or walker.id not in boxes or walker.id not in speeds:
-                    continue  # an item the hold layer moves is carried or falls: it does not walk
-                if walker.id in depth_sorted and prop.id in depth_sorted:
-                    continue  # the world paints them by depth
-                if speeds[walker.id][k] < min_speed or held(walker.id, pose):
+            for walker in movers:
+                if walker == prop or walker not in boxes:
                     continue
-                if painted_at(prop.id, pose) <= painted_at(walker.id, pose):
+                if walker in depth_sorted and prop in depth_sorted:
+                    continue  # the world paints them by depth
+                if speeds[walker][k] < min_speed and not ongoing(walker, prop):
+                    continue
+                if painted_at(prop, pose) <= painted_at(walker, pose):
                     continue  # the walker is painted over it: right
                 up = stands_behind(
-                    boxes[walker.id],
-                    boxes[prop.id],
-                    margin_share=margin_share,
-                    tolerance=tolerance,
+                    boxes[walker], boxes[prop], margin_share=margin_share, tolerance=tolerance
                 )
                 if up is None:
                     continue
-                run = found.setdefault((walker.id, prop.id), [t, t, up])
-                run[1], run[2] = t, max(run[2], up)
+                if any(
+                    rests_on(boxes[prop], boxes[o], margin_share=margin_share)
+                    for o in boxes
+                    if o not in (prop, walker)
+                ):
+                    continue  # on a counter top, not the floor
+                pair = runs.setdefault((walker, prop), [])
+                if pair and pair[-1][1] >= k - 2:  # one missed sample keeps it one stretch
+                    pair[-1][1], pair[-1][2] = k, max(pair[-1][2], up)
+                else:
+                    pair.append([k, k, up])
     return [
-        DepthInversion(w, p, round(a, 6), round(b, 6), up)
-        for (w, p), (a, b, up) in found.items()
+        DepthInversion(w, p, round(times[a], 6), round(times[b], 6), up)
+        for (w, p), stretches in runs.items()
+        for a, b, up in stretches
     ]
 
 
@@ -576,14 +674,17 @@ def check_depth_order(ctx: Any) -> None:
     from an.stage.solve import solve_report
 
     holders = (solve_report(doc).get("holds") or {}).get("holders") or {}
-    if not holders:
+    on_floor = held_on_floor(holders)
+    if not on_floor.candidates:
         return
     entities, depth_sorted = solid_candidates(ctx)
     for inv in depth_inversions(
         doc,
         entities,
-        holders,
+        on_floor,
         duration=float(ctx.shot.duration),
+        carried=frozenset(holders),
+        candidates=on_floor.candidates,
         depth_sorted=depth_sorted,
     ):
         ctx.report.add(

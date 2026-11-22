@@ -208,6 +208,7 @@ def _depth(
     walk=True,
     crate_first=False,
     shot="duration: 4.0\nsolve: {ground: 200}",
+    extra="",
 ):
     """``depth_order`` warnings for the hold fixture's figure walking from x -200
     to 250 past a crate standing at ``[40, crate_y]`` (its foot; the figure's
@@ -226,7 +227,7 @@ def _depth(
         if walk
         else "- {kind: set, target: fig, property: x, value: 40, at: 0}"
     )
-    entities = crate + fig if crate_first else fig + crate
+    entities = (crate + fig if crate_first else fig + crate) + extra
     project = make_project(
         tmp_path / "p", scene(move, entities=entities, shot=shot)
     )
@@ -268,7 +269,7 @@ def test_an_item_of_the_hold_layer_does_not_walk(tmp_path):
     upstage of it: the hold layer moves an item (carried, or falling), so it is
     never a walker. The same compiled shot, the figure named an item or not."""
     from an.stage.compile import compile_as_rendered
-    from an.verify.staging import depth_inversions
+    from an.verify.staging import depth_inversions, held_on_floor
     from tests._hold_fixture import make_project, scene
 
     entities = (
@@ -280,14 +281,16 @@ def test_an_item_of_the_hold_layer_does_not_walk(tmp_path):
     shot = project.scene.timeline[0]
     doc, error = compile_as_rendered(shot, project.scene, project.mall, fps=24)
     assert error is None
-    crate_on_floor = {"crate": [[0.0, "world@40,180"]]}
+    on_floor = held_on_floor({"crate": [[0.0, "world@40,180"]]})
 
-    def judged(holders):
-        return depth_inversions(doc, list(shot.entities), holders, duration=shot.duration)
+    def judged(carried):
+        return depth_inversions(
+            doc, list(shot.entities), on_floor, duration=shot.duration, carried=carried
+        )
 
-    (inv,) = judged(crate_on_floor)
+    (inv,) = judged(frozenset({"crate"}))
     assert (inv.walker, inv.prop) == ("fig", "crate")
-    assert judged({**crate_on_floor, "fig": [[0.0, "air"]]}) == []
+    assert judged(frozenset({"crate", "fig"})) == []
 
 
 def test_only_a_prop_that_rests_on_the_floor_is_judged(tmp_path):
@@ -301,4 +304,15 @@ def test_the_pairs_are_judged_whatever_the_stage_after(tmp_path):
     """Listed after the figure with no `stage.after`, the crate is painted over
     it all the same: the check reads the paint order, not the declaration."""
     (msg,) = _depth(tmp_path, after=False)
+    assert "'fig' is painted under 'crate'" in msg
+
+
+def test_a_prop_on_a_counter_top_is_not_on_the_floor(tmp_path):
+    """an#844 review: `world@x,y` is any place of the set. A crate put on top of
+    a stand (a counter) that stands on the figure's own floor line is above it,
+    not behind it on the floor: the figure walking past is not judged against
+    it."""
+    stand = "- {kind: prop, id: stand, store: props, ref: stand, stage: {at: [40, 200]}}\n"
+    assert _depth(tmp_path / "a", crate_y=72, extra=stand) == []
+    (msg,) = _depth(tmp_path / "b", crate_y=72)  # no stand under it: a far floor prop
     assert "'fig' is painted under 'crate'" in msg
