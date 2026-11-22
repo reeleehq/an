@@ -3610,7 +3610,9 @@ def _play_extent(
     return next(
         (
             r
-            for r in (low.extent_resolver(vocab, products=products) for low in _lowerings())
+            for r in (
+                low.extent_resolver(vocab, products=products) for low in _lowerings()
+            )
             if r
         ),
         None,
