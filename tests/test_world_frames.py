@@ -787,6 +787,31 @@ def test_a_depth_only_plane_of_a_far_member_is_at_infinity(tmp_path):
     assert planes_at_infinity(None, project.mall["environments"]) == []
 
 
+def test_an_unreadable_environment_is_skipped_not_raised(tmp_path):
+    """an#766: one environment whose descriptor the store cannot read (broken
+    JSON, an unreadable file) is another check's to report; it must not take
+    down `planes_at_infinity` and every caller of it."""
+    import json
+
+    from an.ir.world import planes_at_infinity
+
+    project = _env_project(tmp_path)
+    scene = _plates_scene(project, frame="far")
+    good = planes_at_infinity(scene.world, project.mall["environments"])
+    assert good
+
+    class _Broken(dict):
+        def __init__(self, store, exc):
+            super().__init__((k, store[k]) for k in store)
+            self.exc = exc
+
+        def __getitem__(self, key):
+            raise self.exc
+
+    for exc in (json.JSONDecodeError("Expecting value", "{", 1), OSError("denied")):
+        assert planes_at_infinity(scene.world, _Broken(project.mall["environments"], exc)) == []
+
+
 def test_a_plate_listed_under_two_roles_is_refused_as_it_loads():
     """an#735: a plate holds one thing, so it has one role; a path listed
     `far` and `vehicle` used to change verdict with the dict's order."""

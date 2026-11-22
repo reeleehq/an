@@ -3799,7 +3799,8 @@ def _environment_planes(
 ) -> list[tuple[WorldMember, str]]:
     """``(member, plane name)`` for every plane of the world's environment
     members whose descriptor ``environments`` holds and reads; an unreadable
-    one is another check's to report."""
+    one is another check's to report: a missing entry, and one the store cannot
+    read (broken JSON, an unreadable file) alike (an#766)."""
     from an.stage.environments import (
         ENVIRONMENT_DOCUMENT_KIND,
         environment_from_document,
@@ -3812,7 +3813,7 @@ def _environment_planes(
             continue
         try:
             raw = store[member.ref]
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, ValueError, OSError):  # JSONDecodeError is a ValueError
             continue
         if (
             not isinstance(raw, dict)

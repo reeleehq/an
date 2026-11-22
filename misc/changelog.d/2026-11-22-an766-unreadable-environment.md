@@ -1,0 +1,1 @@
+- `planes_at_infinity` skips an environment whose descriptor the store cannot read (broken JSON, an unreadable file) instead of raising and taking down `an validate's` plate check and cutan's far-plate critic (an#766).
