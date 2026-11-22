@@ -338,7 +338,9 @@ def _detail(e: CreditEntry) -> str:
     files a source covers."""
     out = ""
     extra = e.source.extra or {}
-    if SPEECH_EXTRA_MODEL in extra or e.asset.startswith(SPEECH_PREFIX):
+    # By the asset prefix, never by an `extra` key: a generated image's
+    # `extra['model']` is not a speech take (an#772).
+    if e.asset.startswith(SPEECH_PREFIX):
         bits = [e.source.provider, f"voice {e.source.id}" if e.source.id else ""]
         if extra.get(SPEECH_EXTRA_MODEL):
             bits.append(f"model {extra[SPEECH_EXTRA_MODEL]}")
