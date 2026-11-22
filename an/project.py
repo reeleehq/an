@@ -159,7 +159,9 @@ def gitignore_matcher(
     def covered(rel: str) -> bool:
         try:
             return matches(rel)
-        except ValueError as e:  # the lines are compiled: only ``rel`` is left to refuse
+        except (
+            ValueError
+        ) as e:  # the lines are compiled: only ``rel`` is left to refuse
             raise ValueError(
                 "a project-relative POSIX path is expected (like "
                 f"'artifacts/x.png'), got {rel!r}"
