@@ -303,7 +303,7 @@ def contacts_of(
     if (
         desc is not None
         and declared_origin(desc) is not None
-        and (doc is None or _origin_touched(doc, entity, rig, mall))
+        and (doc is None or origin_stands(doc, entity, rig, mall))
     ):
         return Contacts("origin", {"origin": ("", None)}, note)
     source = "ink" if doc is not None and _ink_read(doc, entity, rig, mall) else "box"
@@ -348,9 +348,17 @@ def _carrying_root_paths(eid: str, rig: Any) -> frozenset[str]:
     )
 
 
-def _origin_touched(doc: Any, entity: Any, rig: Any, mall: Any) -> bool:
-    """Whether a root part's painted bottom rests on the entity's origin, at rest
-    (an#601: a stick's middle or a wheel's hub is where it is held)."""
+def origin_stands(doc: Any, entity: Any, rig: Any, mall: Any) -> bool:
+    """Whether ``entity`` stands on its rig's ``origin``: a root part's painted
+    bottom rests on it (within :data:`ORIGIN_TOUCH_PX`), in the rig's rest pose
+    and in the entity's own frame (an#601: a stick's middle or a wheel's hub is
+    where it is held, not where it stands).
+
+    The one definition of "stands on its origin" (an#795): :func:`contacts_of`
+    takes the origin as a contact by it, and the hold layer
+    (:func:`an.stage.hold._standing_entities`) places an entity's floor by it.
+    A property of the rig, not of a shot's pose: an entity that opens a shot
+    mid-stride stands on its origin all the same."""
     from an.stage.hold import ink_points
     from an.stage.solve import _apply, _compose, _invert, _node_index, _world_matrices
 
