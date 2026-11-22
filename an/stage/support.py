@@ -564,7 +564,10 @@ def supports_at(
         times = frame_times(shot.duration, fps=doc.meta.fps, step_hz=doc.meta.step_hz)
     times = list(times)
     reader = _Reader(doc, shot, mall, nodes)
-    decl = declarations(shot, mall)
+    from an.stage.compile import play_extent_of
+
+    # a join/unjoin after a natural-length play is timed as the compile timed it (an#794)
+    decl = declarations(shot, mall, play_extent=play_extent_of(doc, shot, mall))
     problems: list[tuple[str, str]] = []
     supports: list[_Support] = []
     events: dict[str, list[tuple[float, bool]]] = {}

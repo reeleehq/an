@@ -535,3 +535,51 @@ def test_no_floor_is_said_once(tmp_path):
     [(severity, where, message)] = _lint(project)
     assert (severity, where) == ("info", "timeline/0/solve")
     assert message.startswith("no floor declared") and "`fig`, `stand`" in message
+
+
+def test_a_join_after_a_natural_length_play_is_read_where_the_compile_placed_it(tmp_path):
+    """an#794: a ``join`` placed after a duration-less ``play`` in a ``sequence``
+    is timed by the play's natural length (the lowering's extent resolver). The
+    support check read it at 0, so a stand that lands at 0.5 s was held joined
+    while it floated."""
+    from typing import Literal
+
+    from an.genres import ActionKind, Genre, register_genre, without_genres
+    from an.ir.schema import ExtensionAction
+
+    class Beat(ExtensionAction):
+        kind: Literal["demo_beat"] = "demo_beat"
+        target: str = "stand"
+
+    class Lowering:
+        def extent_resolver(self, vocab, *, products):
+            return lambda action: 0.5
+
+        def expand(self, flat_list, **kw):
+            return [f for f in flat_list if f.action.kind != "demo_beat"]
+
+        def view_of(self, entity_swaps, vocab, *, duration):
+            return None
+
+        clip = None
+
+    kind = ActionKind(
+        "demo_beat", Beat, duration=lambda a, extent: extent(a) if extent else 0.0, lowering=Lowering()
+    )
+    own = ", joints: [{type: support, a: '@', b: ground}]"
+    hop = """- {kind: unjoin, joint: stand, at: 0.0}
+- {kind: tween, target: stand, property: y, from: 200, to: 160, duration: 0.25, start: 0.0}
+- {kind: tween, target: stand, property: y, from: 160, to: 200, duration: 0.25, start: 0.25}
+- {kind: sequence, children: [{kind: demo_beat}, {kind: join, joint: stand}]}"""
+    with without_genres():
+        register_genre(Genre("demo_extent", action_kinds=(kind,)))
+        project = _project(
+            tmp_path, entities=_entity("stand", "stand", 160, GROUND, own), shot=_shot(), actions=hop
+        )
+        shot = project.scene.timeline[0]
+        doc = _compile(project)
+        states, problems = supports_at(doc, shot, project.mall, inferred=False)
+        assert not problems
+        joined = [(s.t, s.joined) for s in states if s.entity == "stand"]
+        assert joined and all(on == (t >= 0.5 - 1e-9) for t, on in joined), joined
+        assert _lint(project) == []

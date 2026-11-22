@@ -3600,6 +3600,50 @@ def _lowerings() -> tuple[ActionLowering, ...]:
     return tuple(k.lowering for k in found if k is not None and k.lowering is not None)
 
 
+def _play_extent(
+    vocab: Any, products: Mapping[str, Any]
+) -> Callable[[Any], float] | None:
+    """What a duration-less ``play`` advances a ``sequence`` by (its natural
+    length, read through the entity's descriptor): the first registered
+    lowering's resolver. The one rule the actions pass, the solve pass and the
+    checks reading a compiled document share (an#794)."""
+    return next(
+        (
+            r
+            for r in (low.extent_resolver(vocab, products=products) for low in _lowerings())
+            if r
+        ),
+        None,
+    )
+
+
+def play_extent_of(
+    doc: Any,
+    shot: Shot,
+    mall: Mapping[str, Any] | None = None,
+    *,
+    products: Mapping[str, Any] | None = None,
+) -> Callable[[Any], float] | None:
+    """The play-extent resolver ``doc`` (``shot`` compiled) was compiled with,
+    rebuilt from its node tree: what a check reading ``doc`` passes to
+    :func:`an.ir.compose.flatten` (or :func:`an.stage.solve.declarations`) so a
+    ``join``/``unjoin`` after a natural-length ``play`` in a ``sequence`` is
+    timed where the compile timed it (an#794). ``None`` when no genre resolves
+    one (every ``play`` then advances a sequence by zero, as in the compile).
+
+    ``products`` are the compile passes' products the lowering reads (a style's
+    policy, which can change a walk's gait and so its length); a check that
+    does not have them gets the lowering's default, as a compile without them.
+
+    >>> from types import SimpleNamespace as NS
+    >>> extent = play_extent_of(NS(scene=NodeJSON(name="root")), Shot(id="s"))
+    >>> extent is None or callable(extent)  # None unless a genre resolves plays
+    True
+    """
+    vocab = _swap_vocabulary(doc.scene, shot, mall or {})
+    return _play_extent(vocab, products if products is not None else {})
+
+
 def _lowering_of(action: Any) -> ActionLowering | None:
     """The lowering of ``action``'s kind that produces a clip for it, or ``None``."""
     kind = action_kind(getattr(action, "kind", ""))
@@ -3666,16 +3710,7 @@ def _compile_actions(
     # through the entity's descriptor: the resolver `an validate` uses too.
     lowerings = _lowerings()
     products = products if products is not None else {}
-    extent = next(
-        (
-            r
-            for r in (
-                low.extent_resolver(vocab, products=products) for low in lowerings
-            )
-            if r
-        ),
-        None,
-    )
+    extent = _play_extent(vocab, products)
     for action in actions:
         flat_list.extend(flatten(action, play_extent=extent))
     # BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a

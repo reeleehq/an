@@ -2136,19 +2136,9 @@ def solve_pass(state: Any) -> None:
             if e.store and _is_rig_kind(e)
         ):
             return
-    from an.stage.compile import _assemble_document, _lowerings
+    from an.stage.compile import _assemble_document, _play_extent
 
-    extent = next(
-        (
-            r
-            for r in (
-                low.extent_resolver(state.vocab, products=state.products)
-                for low in _lowerings()
-            )
-            if r
-        ),
-        None,
-    )
+    extent = _play_extent(state.vocab, state.products)
     decl = declarations(shot, state.mall, play_extent=extent)
     if decl.empty:
         return
@@ -2530,8 +2520,9 @@ def joint_residuals(
     from an.stage.timeline import evaluate_timeline, timeline_from_scene
 
     from an.stage.timeline import _pose_for, transform_of
+    from an.stage.compile import play_extent_of
 
-    decl = declarations(shot, mall)
+    decl = declarations(shot, mall, play_extent=play_extent_of(doc, shot, mall))
     puppet = build_puppet(doc, shot, mall, decl)
     # The verbs' spans and the join/unjoin instants as the COMPILE placed them
     # (it knew every leaf's natural length; this reading does not).
