@@ -192,18 +192,19 @@ def property_space(info: Mapping[str, Any], *, name: str = "previz.view"):
     from an.timing.kinds import kind_from_spec
     from an.timing.spaces import FieldDecl, PropertySpace
 
-    declared = {
-        json.dumps(d.kind.to_spec(), sort_keys=True): d
+    declared = [  # the fields that carry structure (an orbit), not plain scalars
+        d
         for space in CORE_VIEW_SPACES
         for d in space.property_space().fields
-        if d.kind.name != "number"
-    }
+        if d.kind.name == "orbit"
+    ]
 
     def decl(path: str, spec: Mapping[str, Any]) -> Any:
-        view = declared.get(json.dumps(dict(spec), sort_keys=True))
+        kind = kind_from_spec(spec)
+        view = next((d for d in declared if d.kind == kind), None)
         if view is not None:
             return FieldDecl(path, view.kind, unit=view.unit, description=view.description)
-        return FieldDecl(path, kind_from_spec(spec))
+        return FieldDecl(path, kind)
 
     return PropertySpace(
         name, tuple(decl(path, spec) for path, spec in info["space"].items())

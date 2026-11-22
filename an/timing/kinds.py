@@ -401,9 +401,15 @@ class OrbitKind(FieldKind):
         (['azimuth', 'distance', 'elevation', 'target'], ['azimuth', 'elevation', 'distance'])
         """
         angle = {"type": "number", "unit": self.unit}
+        pole = self.period / 4
         members = {
             "azimuth": {**angle, "description": "around the target (shortest arc)"},
-            "elevation": {**angle, "description": "above the target's horizon, within the poles"},
+            "elevation": {
+                **angle,
+                "minimum": -pole,
+                "maximum": pole,
+                "description": "above the target's horizon, within the poles",
+            },
             "distance": {
                 "type": "number",
                 "exclusiveMinimum": 0,
@@ -417,7 +423,6 @@ class OrbitKind(FieldKind):
                 "description": "what the camera looks at",
             },
         }
-        assert tuple(members) == ORBIT_MEMBERS
         return {"type": "object", "properties": members, "required": list(ORBIT_KEYS)}
 
     def check(self, value: Any) -> str | None:

@@ -68,6 +68,11 @@ class ViewField:
     def __post_init__(self) -> None:
         if self.scale not in SCALES:
             raise ValueError(f"view field {self.name!r}: scale must be one of {SCALES}")
+        if self.kind is not None and self.scale != "linear":
+            raise ValueError(
+                f"view field {self.name!r}: a field with a kind interpolates by its kind; "
+                f"drop scale={self.scale!r}"
+            )
 
     @classmethod
     def from_decl(cls, decl: Any, *, rest: Any) -> "ViewField":
@@ -96,7 +101,12 @@ class ViewField:
         if self.kind is not None:
             return self.kind
         if self.scale == "angle":
-            return AngleKind(unit=self.unit if self.unit in ANGLE_UNITS else "rad")
+            if self.unit not in ANGLE_UNITS:
+                raise ValueError(
+                    f"view field {self.name!r}: an angle's unit must be one of {ANGLE_UNITS}, "
+                    f"got {self.unit!r}"
+                )
+            return AngleKind(unit=self.unit)
         return NumberKind(space=self.scale)
 
     def decl(self) -> Any:
@@ -233,10 +243,11 @@ def _orbit_decl() -> Any:
     from an.timing.kinds import OrbitKind
     from an.timing.spaces import FieldDecl
 
+    kind = OrbitKind()
     return FieldDecl(
         "orbit",
-        OrbitKind(),
-        unit="deg",
+        kind,
+        unit=kind.unit,  # its angles' unit; distance and target say theirs in the schema
         description="a camera on a sphere around its target: {azimuth, elevation, distance, target?}",
     )
 
@@ -250,7 +261,8 @@ ORBIT_3D: ViewSpace = view_space(
     "orbit3d",
     (
         ViewField.from_decl(
-            ORBIT_DECL, rest={"azimuth": 0.0, "elevation": 0.0, "distance": 1.0}
+            ORBIT_DECL,
+            rest={"azimuth": 0.0, "elevation": 0.0, "distance": 1.0, "target": [0.0, 0.0, 0.0]},
         ),
     ),
     description="an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)",
