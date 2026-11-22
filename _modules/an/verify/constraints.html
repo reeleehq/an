@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=9feaa7da"></script>
+    <script src="../../../_static/documentation_options.js?v=77f00418"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.417" />
+  <meta name="docsearch:version" content="0.1.418" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1527,6 +1527,61 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">times</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">drawn_paths</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Per entity id, the paths of the nodes under it that draw something: what</span>
+<span class="sd">    its box is the union of (:func:`seen_boxes`)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk_document</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">eid</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">path</span>
+            <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">walk_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">path</span> <span class="o">==</span> <span class="n">eid</span> <span class="ow">or</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">eid</span><span class="si">}</span><span class="s2">/"</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">ids</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">seen_boxes</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">drawn</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Mapping</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Per entity of ``drawn`` (:func:`drawn_paths`) seen under ``pose``, the</span>
+<span class="sd">    union of its visuals' boxes (:func:`an.stage.timeline.node_box`, through the</span>
+<span class="sd">    pose and the camera). An entity unseen (alpha at most</span>
+<span class="sd">    :data:`an.base.UNSEEN_ALPHA`: a slot between passes, a fade) or not drawn</span>
+<span class="sd">    has no box: the ``solidity`` check's rule, shared by the checks that read</span>
+<span class="sd">    its boxes."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_alpha</span><span class="p">,</span> <span class="n">node_box</span>
+
+    <span class="n">boxes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eid</span><span class="p">,</span> <span class="n">paths</span> <span class="ow">in</span> <span class="n">drawn</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entity_alpha</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">UNSEEN_ALPHA</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">:=</span> <span class="n">node_box</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">boxes</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">=</span> <span class="n">_union_box</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">boxes</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">paint_order</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``painted_at(entity_id, pose)``: where an entity is painted under ``pose``,</span>
+<span class="sd">    a key that sorts back to front: its place (:func:`an.stage.tree.paint_places`),</span>
+<span class="sd">    with its own container's sort key read off its ``z_index`` channel where one</span>
+<span class="sd">    writes it (an#634)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">paint_places</span>
+
+    <span class="n">places</span> <span class="o">=</span> <span class="n">paint_places</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">painted_at</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">places</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">pose</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">eid</span><span class="p">,</span> <span class="n">Z_INDEX_PROPERTY</span><span class="p">),</span> <span class="n">z</span><span class="p">)),</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">painted_at</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">solid_overlaps</span><span class="p">(</span>
     <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">entities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
@@ -1550,46 +1605,20 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    An entity's box is the union of its visuals' boxes (:func:`an.stage.timeline.node_box`,</span>
 <span class="sd">    through the pose and the camera at that instant).</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_alpha</span><span class="p">,</span> <span class="n">node_box</span><span class="p">,</span> <span class="n">timeline_from_scene</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">paint_places</span><span class="p">,</span> <span class="n">walk_document</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeline_from_scene</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span>
 
     <span class="n">solids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="n">_is_solid</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
-    <span class="n">drawn</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="p">[</span>
-            <span class="n">path</span>
-            <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">walk_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">path</span> <span class="o">==</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">/"</span><span class="p">))</span>
-        <span class="p">]</span>
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span>
-    <span class="p">}</span>
-    <span class="n">places</span> <span class="o">=</span> <span class="n">paint_places</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">painted_at</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pose</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Where ``eid`` is painted now: its place, with its own container's</span>
-<span class="sd">        sort key read off its ``z_index`` channel where one writes it (an#634)."""</span>
-        <span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">places</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eid</span><span class="p">,</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),))</span>
-        <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="n">outer</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">pose</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">eid</span><span class="p">,</span> <span class="n">Z_INDEX_PROPERTY</span><span class="p">),</span> <span class="n">z</span><span class="p">)),</span> <span class="n">i</span><span class="p">))</span>
-
+    <span class="n">drawn</span> <span class="o">=</span> <span class="n">drawn_paths</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span><span class="p">])</span>
+    <span class="n">painted_at</span> <span class="o">=</span> <span class="n">paint_order</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">first</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Overlap</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">worst</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_sample_times</span><span class="p">(</span><span class="n">duration</span><span class="p">):</span>
         <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
-        <span class="n">boxes</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">entity_alpha</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">UNSEEN_ALPHA</span><span class="p">:</span>
-                    <span class="k">continue</span>  <span class="c1"># not seen now (a slot between passes, a fade): no overlap</span>
-            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">found</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">b</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">drawn</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">:=</span> <span class="n">node_box</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">pose</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="p">]</span>
-            <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
-                <span class="n">boxes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">_union_box</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="n">seen_boxes</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">drawn</span><span class="p">,</span> <span class="n">pose</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">solids</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">solids</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]:</span>
                 <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">boxes</span> <span class="ow">or</span> <span class="n">b</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">boxes</span> <span class="ow">or</span> <span class="n">_is_ordered</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
@@ -1617,11 +1646,11 @@ window.runMermaid = runMermaid;</script>
     <span class="p">]</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">check_solidity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The core's ``solidity`` check (an#509) over the compiled shot."""</span>
-    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solid_candidates</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(entities, depth_sorted)`` of ``ctx.shot`` for the checks that compare</span>
+<span class="sd">    solids: its entities less the drawings laid over the scene (a prop whose</span>
+<span class="sd">    descriptor is a :data:`DRAWING_DESCRIPTOR_KINDS`), and the ids the world</span>
+<span class="sd">    paints by depth (its members and its streams' slots, an#632)."""</span>
     <span class="n">props</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_drawing</span><span class="p">(</span><span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1638,6 +1667,15 @@ window.runMermaid = runMermaid;</script>
         <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="n">_is_slot</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
         <span class="o">|</span> <span class="p">({</span><span class="n">m</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">}</span> <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">())</span>
     <span class="p">)</span>
+    <span class="k">return</span> <span class="n">entities</span><span class="p">,</span> <span class="n">depth_sorted</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_solidity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``solidity`` check (an#509) over the compiled shot."""</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">entities</span><span class="p">,</span> <span class="n">depth_sorted</span> <span class="o">=</span> <span class="n">solid_candidates</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">solid_overlaps</span><span class="p">(</span>
         <span class="n">doc</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span> <span class="n">depth_sorted</span><span class="o">=</span><span class="n">depth_sorted</span>
     <span class="p">):</span>

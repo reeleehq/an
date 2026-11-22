@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=9feaa7da"></script>
+    <script src="../../../_static/documentation_options.js?v=77f00418"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.417" />
+  <meta name="docsearch:version" content="0.1.418" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -712,9 +712,9 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for an.verify.staging</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Staging checks: a figure faces the way it goes.</span>
+<span></span><span class="sd">"""Staging checks: a figure faces the way it goes, and is painted in front of what stands behind it.</span>
 
-<span class="sd">One constraint on the one interface (:class:`an.verify.constraints.Constraint`),</span>
+<span class="sd">Two constraints on the one interface (:class:`an.verify.constraints.Constraint`),</span>
 <span class="sd">over the compiled shot:</span>
 
 <span class="sd">- ``facing_travel`` (warning): an entity whose art says which way it faces</span>
@@ -740,8 +740,45 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">turns the check off for it (a figure that backs away on purpose). The facing</span>
 <span class="sd">is measured at the entity's root: a part mirrored on its own is not followed.</span>
 
+<span class="sd">- ``depth_order`` (warning, an#820): a solid that walks past a floor prop</span>
+<span class="sd">  standing farther back than its feet, and is painted under it, reads as</span>
+<span class="sd">  walking behind it. In a shot with a floor, the foot line is the depth cue:</span>
+<span class="sd">  lower on the set is nearer the camera.</span>
+
+<span class="sd">How it reads a shot. A **floor prop** is an item whose holder at that instant</span>
+<span class="sd">(the hold layer's report, ``meta.extensions.solve.holds``) is the floor or a</span>
+<span class="sd">place on the set: ``ground``, ``ground@x``, ``world@x,y`` (an item put down,</span>
+<span class="sd">let fall, or staged with ``overrides: {held_by: world@x,y}``), so a cup on a</span>
+<span class="sd">table or a novel on a desk that nothing holds is not one; nor is one whose foot</span>
+<span class="sd">rests on another solid's top (``world@`` on a counter top,</span>
+<span class="sd">:func:`rests_on`). An item is held, and not judged, while its ``paint_after``</span>
+<span class="sd">channel names a body's part (an#537). Floor props are chosen in ONE place,</span>
+<span class="sd">:func:`held_on_floor`, handed to :func:`depth_inversions` as ``on_floor``. A</span>
+<span class="sd">**walker** is any solid that is not an item of the hold layer (which carries</span>
+<span class="sd">it, or lets it fall: a falling musket does not walk), such as a character or a</span>
+<span class="sd">pushed crate, whose OWN travel on the set (as ``facing_travel`` reads it: its</span>
+<span class="sd">origin's steps through its parent, so a camera pan or a ride is not a walk;</span>
+<span class="sd">across the set or up and down it) is at least :data:`MIN_TRAVEL_SPEED_PX_S`;</span>
+<span class="sd">once it is painted under a prop behind it, the stretch goes on while it stays</span>
+<span class="sd">there, though it stops. The pairs are the ``solidity`` check's: the same</span>
+<span class="sd">boxes, read the same way, on the same samples</span>
+<span class="sd">(:data:`an.verify.constraints.SOLIDITY_SAMPLE_S`), covering more than</span>
+<span class="sd">:data:`an.verify.constraints.SOLIDITY_TOLERANCE` of the smaller, two members</span>
+<span class="sd">the world paints by depth skipped. A ``stage.after`` does not excuse a pair</span>
+<span class="sd">here: a misplaced one is how the mistake is made.</span>
+
+<span class="sd">The prop stands farther back when its foot (its box's bottom) is between the</span>
+<span class="sd">walker's middle and :data:`DEPTH_MARGIN_SHARE` of the walker's height above</span>
+<span class="sd">the walker's feet (its box's bottom). Both are read on the canvas, which a</span>
+<span class="sd">camera pan and zoom move and scale alike, and the margin is a share of the</span>
+<span class="sd">walker's height, so a wide and a close-up agree; a camera roll is not undone.</span>
+<span class="sd">Equal foot lines (the margin) give no depth cue and are not judged: the</span>
+<span class="sd">authoring answer there is to put the prop a little upstage. Limits: a pass</span>
+<span class="sd">quicker than the sample step can fall between two samples, and a staged prop</span>
+<span class="sd">nothing holds is not judged.</span>
+
 <span class="sd">&gt;&gt;&gt; [c.name for c in STAGING_CONSTRAINTS]</span>
-<span class="sd">['facing_travel']</span>
+<span class="sd">['facing_travel', 'depth_order']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -754,10 +791,18 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_OWNER</span><span class="p">,</span> <span class="n">check_names</span><span class="p">,</span> <span class="n">register_check</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify.constraints</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ART_METADATA_KEY</span><span class="p">,</span>
+    <span class="n">SOLIDITY_TOLERANCE</span><span class="p">,</span>
     <span class="n">Constraint</span><span class="p">,</span>
+    <span class="n">_covered_fraction</span><span class="p">,</span>
     <span class="n">_fps</span><span class="p">,</span>
+    <span class="n">_is_solid</span><span class="p">,</span>
+    <span class="n">_sample_times</span><span class="p">,</span>
     <span class="n">_side_on_set</span><span class="p">,</span>
     <span class="n">compiled_shot</span><span class="p">,</span>
+    <span class="n">drawn_paths</span><span class="p">,</span>
+    <span class="n">paint_order</span><span class="p">,</span>
+    <span class="n">seen_boxes</span><span class="p">,</span>
+    <span class="n">solid_candidates</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -768,6 +813,15 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"declared_faces"</span><span class="p">,</span>
     <span class="s2">"art_facing_at"</span><span class="p">,</span>
     <span class="s2">"backward_runs"</span><span class="p">,</span>
+    <span class="s2">"DEPTH_ORDER"</span><span class="p">,</span>
+    <span class="s2">"DEPTH_MARGIN_SHARE"</span><span class="p">,</span>
+    <span class="s2">"FLOOR_HOLDERS"</span><span class="p">,</span>
+    <span class="s2">"DepthInversion"</span><span class="p">,</span>
+    <span class="s2">"stands_behind"</span><span class="p">,</span>
+    <span class="s2">"rests_on"</span><span class="p">,</span>
+    <span class="s2">"floor_holder_at"</span><span class="p">,</span>
+    <span class="s2">"held_on_floor"</span><span class="p">,</span>
+    <span class="s2">"depth_inversions"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: Where art says which way it faces (in its store document's ``metadata``, or</span>
@@ -790,6 +844,12 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: A facing probe shorter than this share of the longest it is in the shot is</span>
 <span class="c1">#: art squashed mid-turn: it faces nowhere.</span>
 <span class="n">MIN_PROBE_SHARE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="c1">#: How far above a walker's feet, as a share of its height, a floor prop's foot</span>
+<span class="c1">#: must stand to read as farther back: closer foot lines are no depth cue.</span>
+<span class="n">DEPTH_MARGIN_SHARE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="c1">#: The holders (the hold report's text, before any ``@``) that put an item on</span>
+<span class="c1">#: the floor or at a place of the set, not in a hand or on a body.</span>
+<span class="n">FLOOR_HOLDERS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"ground"</span><span class="p">,</span> <span class="s2">"world"</span><span class="p">})</span>
 
 
 <div class="viewcode-block" id="declared_faces">
@@ -963,15 +1023,15 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">_side_on_set</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="n">way</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_own_travel</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_own_travel_xy</span><span class="p">(</span>
     <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">poses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Mapping</span><span class="p">],</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The set x the entity's OWN moves have taken it to, frame by frame: each</span>
-<span class="sd">    step of its origin's ``x``/``y`` (in its parent's frame) carried onto the</span>
-<span class="sd">    set through its parent's transform at the step's start. Two points mapped</span>
-<span class="sd">    through one transform cancel its translation, so a camera pan, a parallax</span>
-<span class="sd">    wrapper or a vehicle the entity rides adds nothing; the parent's mirror and</span>
-<span class="sd">    rotation still turn the step."""</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The set point the entity's OWN moves have taken it to, frame by frame:</span>
+<span class="sd">    each step of its origin's ``x``/``y`` (in its parent's frame) carried onto</span>
+<span class="sd">    the set through its parent's transform at the step's start. Two points</span>
+<span class="sd">    mapped through one transform cancel its translation, so a camera pan, a</span>
+<span class="sd">    parallax wrapper or a vehicle the entity rides adds nothing; the parent's</span>
+<span class="sd">    mirror and rotation still turn the step."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">screen_position</span>
 
     <span class="n">node</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -983,17 +1043,24 @@ window.runMermaid = runMermaid;</script>
             <span class="nb">float</span><span class="p">(</span><span class="n">pose</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">path</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">),</span> <span class="n">node</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">y</span><span class="p">)),</span>
         <span class="p">)</span>
 
-    <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
     <span class="k">for</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">poses</span><span class="p">,</span> <span class="n">poses</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
         <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span> <span class="o">=</span> <span class="n">local</span><span class="p">(</span><span class="n">before</span><span class="p">),</span> <span class="n">local</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">step</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span>
+            <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">y0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">before</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">b</span> <span class="o">=</span> <span class="n">screen_position</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">pose</span><span class="o">=</span><span class="n">before</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">step</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">xs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">step</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">xs</span>
+            <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dy</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_own_travel</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">poses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Mapping</span><span class="p">],</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The set x of :func:`_own_travel_xy`: the way across the set an entity goes."""</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_own_travel_xy</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">poses</span><span class="p">,</span> <span class="n">chain</span><span class="p">)]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">check_facing_travel</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1081,8 +1148,306 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># depth_order (an#820): a walker is painted in front of a floor prop behind it</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="DepthInversion">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.staging.html#an.verify.staging.DepthInversion">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DepthInversion</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``walker`` was painted under ``prop`` from ``start`` to ``end`` (s, the</span>
+<span class="sd">    sampled instants), though the prop's foot stood up to ``upstage`` px</span>
+<span class="sd">    farther back (higher on the canvas) than the walker's feet."""</span>
+
+    <span class="n">walker</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">upstage</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+
+<div class="viewcode-block" id="stands_behind">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.staging.html#an.verify.staging.stands_behind">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stands_behind</span><span class="p">(</span>
+    <span class="n">walker_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">prop_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">margin_share</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEPTH_MARGIN_SHARE</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SOLIDITY_TOLERANCE</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How many px the prop's foot stands above the walker's feet when it reads</span>
+<span class="sd">    as farther back and the two overlap: its foot (``prop_box``'s bottom, boxes</span>
+<span class="sd">    are ``(x0, y0, x1, y1)``, y down) between the walker's middle and</span>
+<span class="sd">    ``margin_share`` of the walker's height above its feet, and the boxes</span>
+<span class="sd">    covering more than ``tolerance`` of the smaller; else ``None``.</span>
+
+<span class="sd">    &gt;&gt;&gt; stu = (0, 0, 40, 200)  # a 200 px walker, feet at y 200</span>
+<span class="sd">    &gt;&gt;&gt; stands_behind(stu, (10, 160, 60, 180))  # a book whose foot is 20 px upstage</span>
+<span class="sd">    20</span>
+<span class="sd">    &gt;&gt;&gt; stands_behind(stu, (10, 185, 60, 195)) is None  # 5 px: equal foot lines</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; stands_behind(stu, (10, 40, 60, 90)) is None  # above his middle: not on his floor</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; stands_behind(stu, (100, 160, 160, 180)) is None  # not where he is</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">feet</span><span class="p">,</span> <span class="n">middle</span> <span class="o">=</span> <span class="n">walker_box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">(</span><span class="n">walker_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">walker_box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">walker_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">walker_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">foot</span> <span class="o">=</span> <span class="n">prop_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">middle</span> <span class="o">&lt;=</span> <span class="n">foot</span> <span class="o">&lt;=</span> <span class="n">feet</span> <span class="o">-</span> <span class="n">margin_share</span> <span class="o">*</span> <span class="n">height</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">_covered_fraction</span><span class="p">(</span><span class="n">walker_box</span><span class="p">,</span> <span class="n">prop_box</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">feet</span> <span class="o">-</span> <span class="n">foot</span></div>
+
+
+
+<div class="viewcode-block" id="rests_on">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.staging.html#an.verify.staging.rests_on">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rests_on</span><span class="p">(</span><span class="n">prop_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">other_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a prop's foot (the middle of its box's bottom) rests on another</span>
+<span class="sd">    solid: it lies inside ``other_box``, in its upper half (on its top, not at</span>
+<span class="sd">    its foot in front of it). A cup on a counter top, a book on a shelf: the</span>
+<span class="sd">    place it rests at is not the floor.</span>
+
+<span class="sd">    &gt;&gt;&gt; counter = (0, 100, 200, 200)</span>
+<span class="sd">    &gt;&gt;&gt; rests_on((80, 70, 120, 102), counter)  # a cup standing on its top</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; rests_on((80, 170, 120, 198), counter)  # a box at its foot, in front</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; rests_on((300, 70, 340, 102), counter)  # beside it</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">prop_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">prop_box</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">foot</span> <span class="o">=</span> <span class="n">prop_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">=</span> <span class="n">other_box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">other_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">other_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">other_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="n">top</span> <span class="o">&lt;=</span> <span class="n">foot</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">top</span> <span class="o">+</span> <span class="n">bottom</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div>
+
+
+
+<div class="viewcode-block" id="floor_holder_at">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.staging.html#an.verify.staging.floor_holder_at">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">floor_holder_at</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the hold report's holder timeline of an item (``[[t, holder],</span>
+<span class="sd">    ...]``) has it on the floor or at a place of the set at ``t``</span>
+<span class="sd">    (:data:`FLOOR_HOLDERS`).</span>
+
+<span class="sd">    &gt;&gt;&gt; tl = [[0.0, "world@-840,460"], [1.0, "stu/hand_r"], [3.0, "ground"]]</span>
+<span class="sd">    &gt;&gt;&gt; [floor_holder_at(tl, t) for t in (0.5, 2.0, 3.5)]</span>
+<span class="sd">    [True, False, True]</span>
+<span class="sd">    """</span>
+    <span class="n">holder</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">timeline</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">:</span>
+            <span class="n">holder</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">holder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">holder</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">FLOOR_HOLDERS</span></div>
+
+
+
+<div class="viewcode-block" id="held_on_floor">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.staging.html#an.verify.staging.held_on_floor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">held_on_floor</span><span class="p">(</span><span class="n">holders</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``on_floor(entity_id, t)`` for :func:`depth_inversions`, from the hold</span>
+<span class="sd">    report's ``holders``: an item whose holder at ``t`` puts it on the floor or</span>
+<span class="sd">    at a place of the set (:func:`floor_holder_at`). The one place floor props</span>
+<span class="sd">    are chosen: a later reading (a staged prop nothing holds) extends this."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_floor</span><span class="p">(</span><span class="n">eid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">holders</span> <span class="ow">and</span> <span class="n">floor_holder_at</span><span class="p">(</span><span class="n">holders</span><span class="p">[</span><span class="n">eid</span><span class="p">],</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="n">on_floor</span><span class="o">.</span><span class="n">candidates</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="n">eid</span>
+        <span class="k">for</span> <span class="n">eid</span><span class="p">,</span> <span class="n">tl</span> <span class="ow">in</span> <span class="n">holders</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">FLOOR_HOLDERS</span> <span class="k">for</span> <span class="n">_t</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">tl</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">on_floor</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_travel_speeds</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">poses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Mapping</span><span class="p">],</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">times</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Per sampled instant, the larger of the own-travel speeds (set px/s, in</span>
+<span class="sd">    any direction: across the set or up and down it) of the intervals either</span>
+<span class="sd">    side of it (:func:`_own_travel_xy`)."""</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_own_travel_xy</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">poses</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">math</span><span class="o">.</span><span class="n">dist</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="nb">max</span><span class="p">(</span><span class="n">steps</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">))</span>
+    <span class="p">]</span>
+
+
+<div class="viewcode-block" id="depth_inversions">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.staging.html#an.verify.staging.depth_inversions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">depth_inversions</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">entities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">on_floor</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">carried</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
+    <span class="n">candidates</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">depth_sorted</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
+    <span class="n">min_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">MIN_TRAVEL_SPEED_PX_S</span><span class="p">,</span>
+    <span class="n">margin_share</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEPTH_MARGIN_SHARE</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">SOLIDITY_TOLERANCE</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">DepthInversion</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every walker among ``entities`` painted under a floor prop that stands</span>
+<span class="sd">    behind it (:func:`stands_behind`), one record per pair and stretch of</span>
+<span class="sd">    sampled instants. ``on_floor(entity_id, t)`` says which props are on the</span>
+<span class="sd">    floor at ``t`` (:func:`held_on_floor`), ``candidates`` the ids it can say</span>
+<span class="sd">    so of (default: every entity); ``carried`` the ids that never walk (the</span>
+<span class="sd">    hold layer's items: carried, or falling). A prop resting on another solid</span>
+<span class="sd">    lower than it (:func:`rests_on`: a counter top) is not on the floor. A</span>
+<span class="sd">    walker starts a stretch while it moves at least ``min_speed``, and the</span>
+<span class="sd">    stretch goes on while it stays painted under the prop behind it, though it</span>
+<span class="sd">    stops there; a gap of more than one sample ends it."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAINT_AFTER_PROPERTY</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">_node_chain</span><span class="p">,</span> <span class="n">timeline_from_scene</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">paint_places</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span>
+
+    <span class="n">places</span> <span class="o">=</span> <span class="n">paint_places</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
+    <span class="n">solids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="n">_is_solid</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">places</span><span class="p">]</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span> <span class="k">if</span> <span class="n">candidates</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">]</span>
+    <span class="n">walkers</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">carried</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">props</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">walkers</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">chains</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">walkers</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">chains</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">_node_chain</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - not drawn on the stage</span>
+            <span class="k">continue</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">_sample_times</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">timeline_from_scene</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">poses</span> <span class="o">=</span> <span class="p">[</span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+    <span class="n">speeds</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">eid</span><span class="p">:</span> <span class="n">_travel_speeds</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">poses</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span> <span class="k">for</span> <span class="n">eid</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">chains</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="n">drawn</span> <span class="o">=</span> <span class="n">drawn_paths</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span><span class="p">])</span>
+    <span class="n">painted_at</span> <span class="o">=</span> <span class="n">paint_order</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">runs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># pair -&gt; [[k0, k1, upstage]]</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pose</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">poses</span><span class="p">)):</span>
+        <span class="n">floor_props</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">id</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">props</span>
+            <span class="k">if</span> <span class="n">on_floor</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pose</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">PAINT_AFTER_PROPERTY</span><span class="p">))</span>
+        <span class="p">]</span>  <span class="c1"># a paint_after naming a body's part: held</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">floor_props</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">ongoing</span><span class="p">(</span><span class="n">w</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="n">runs</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">w</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">last</span><span class="p">)</span> <span class="ow">and</span> <span class="n">last</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">movers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">w</span>
+            <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">chains</span>
+            <span class="k">if</span> <span class="n">speeds</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_speed</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">ongoing</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">floor_props</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">movers</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">others</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">solids</span><span class="p">}</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="n">seen_boxes</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">drawn</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">others</span><span class="p">},</span> <span class="n">pose</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">floor_props</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">walker</span> <span class="ow">in</span> <span class="n">movers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">walker</span> <span class="o">==</span> <span class="n">prop</span> <span class="ow">or</span> <span class="n">walker</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">walker</span> <span class="ow">in</span> <span class="n">depth_sorted</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">depth_sorted</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># the world paints them by depth</span>
+                <span class="k">if</span> <span class="n">speeds</span><span class="p">[</span><span class="n">walker</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_speed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ongoing</span><span class="p">(</span><span class="n">walker</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">painted_at</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">pose</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">painted_at</span><span class="p">(</span><span class="n">walker</span><span class="p">,</span> <span class="n">pose</span><span class="p">):</span>
+                    <span class="k">continue</span>  <span class="c1"># the walker is painted over it: right</span>
+                <span class="n">up</span> <span class="o">=</span> <span class="n">stands_behind</span><span class="p">(</span>
+                    <span class="n">boxes</span><span class="p">[</span><span class="n">walker</span><span class="p">],</span>
+                    <span class="n">boxes</span><span class="p">[</span><span class="n">prop</span><span class="p">],</span>
+                    <span class="n">margin_share</span><span class="o">=</span><span class="n">margin_share</span><span class="p">,</span>
+                    <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">up</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
+                    <span class="n">rests_on</span><span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">prop</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[</span><span class="n">o</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">boxes</span>
+                    <span class="k">if</span> <span class="n">o</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">walker</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>  <span class="c1"># on a counter top, not the floor</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="n">runs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">((</span><span class="n">walker</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="p">[])</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">pair</span> <span class="ow">and</span> <span class="n">pair</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">2</span>
+                <span class="p">):</span>  <span class="c1"># one missed sample keeps it one stretch</span>
+                    <span class="n">pair</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">pair</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">up</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pair</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">up</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">DepthInversion</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="mi">6</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">b</span><span class="p">],</span> <span class="mi">6</span><span class="p">),</span> <span class="n">up</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">stretches</span> <span class="ow">in</span> <span class="n">runs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">up</span> <span class="ow">in</span> <span class="n">stretches</span>
+    <span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_depth_order</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``depth_order`` check (an#820): a walker is not painted under</span>
+<span class="sd">    a floor prop that stands farther back than its feet."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify.support</span><span class="w"> </span><span class="kn">import</span> <span class="n">_has_floor</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_floor</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="c1"># no floor, no foot line to read depth from</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_report</span>
+
+    <span class="n">holders</span> <span class="o">=</span> <span class="p">(</span><span class="n">solve_report</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"holds"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"holders"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">on_floor</span> <span class="o">=</span> <span class="n">held_on_floor</span><span class="p">(</span><span class="n">holders</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">on_floor</span><span class="o">.</span><span class="n">candidates</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">entities</span><span class="p">,</span> <span class="n">depth_sorted</span> <span class="o">=</span> <span class="n">solid_candidates</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">inv</span> <span class="ow">in</span> <span class="n">depth_inversions</span><span class="p">(</span>
+        <span class="n">doc</span><span class="p">,</span>
+        <span class="n">entities</span><span class="p">,</span>
+        <span class="n">on_floor</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span>
+        <span class="n">carried</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">holders</span><span class="p">),</span>
+        <span class="n">candidates</span><span class="o">=</span><span class="n">on_floor</span><span class="o">.</span><span class="n">candidates</span><span class="p">,</span>
+        <span class="n">depth_sorted</span><span class="o">=</span><span class="n">depth_sorted</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">walker</span><span class="si">!r}</span><span class="s2"> is painted under </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> from </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s to "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s as it goes past, though </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> stands farther back "</span>
+            <span class="sa">f</span><span class="s2">"(its foot </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">upstage</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> px above the feet of </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">walker</span><span class="si">!r}</span><span class="s2">): it reads as "</span>
+            <span class="sa">f</span><span class="s2">"walking behind it. Paint </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">walker</span><span class="si">!r}</span><span class="s2"> after it (`stage.after: </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">prop</span><span class="si">}</span><span class="s2">`, "</span>
+            <span class="sa">f</span><span class="s2">"or check a `stage.after` that puts </span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">walker</span><span class="si">!r}</span><span class="s2"> earlier), or move "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">inv</span><span class="o">.</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> downstage of its path."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="n">DEPTH_ORDER</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"depth_order"</span><span class="p">,</span>
+    <span class="n">check_depth_order</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"a walker is not painted under a floor prop that stands farther back (an#820)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The staging checks, in the order they run.</span>
-<span class="n">STAGING_CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">FACING_TRAVEL</span><span class="p">,)</span>
+<span class="n">STAGING_CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">FACING_TRAVEL</span><span class="p">,</span> <span class="n">DEPTH_ORDER</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

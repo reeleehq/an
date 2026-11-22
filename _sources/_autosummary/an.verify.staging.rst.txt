@@ -9,6 +9,8 @@ an.verify.staging
    .. autosummary::
    
       FACES_KEY
+      DEPTH_MARGIN_SHARE
+      FLOOR_HOLDERS
       STAGING_CONSTRAINTS
    
    .. rubric:: Functions
@@ -18,10 +20,16 @@ an.verify.staging
       declared_faces
       art_facing_at
       backward_runs
+      stands_behind
+      rests_on
+      floor_holder_at
+      held_on_floor
+      depth_inversions
    
    .. rubric:: Classes
 
    .. autosummary::
    
       FacingRun
+      DepthInversion
    
