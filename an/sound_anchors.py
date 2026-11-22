@@ -254,9 +254,7 @@ def change_in_shot(
             changes.append((float(flat.start), getattr(a, "target", None), value))
     changes.sort(key=lambda c: c[0])
     mine = [c for c in changes if c[1] == anchor.when]
-    matching = [
-        c for c in mine if anchor.to is None or _same_value(c[2], anchor.to)
-    ]
+    matching = [c for c in mine if anchor.to is None or _same_value(c[2], anchor.to)]
     if len(matching) >= anchor.nth:
         return matching[anchor.nth - 1][0]
     if mine:
