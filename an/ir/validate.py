@@ -38,6 +38,7 @@ from an.frame_clock import camera_grid
 from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
+from an.ir.dialogue import dialogue_layout
 from an.ir.schema import CueAnchor, SceneIR
 from an.ir.world import WorldError, has_world, viewpoint_key
 from an.base import SUPPORTED_RENDERERS
@@ -3128,30 +3129,9 @@ def _register_core_checks() -> None:
 DIALOGUE_OVERRUN_TOLERANCE_S: float = 1 / 60
 
 
-def _dialogue_layout(shot: Any, *, tempo_of=None):
-    """``(k, line, start, end, estimated)`` for each dialogue line of ``shot``.
-
-    Where each line WILL play: the audio pipeline's own rule
-    (:meth:`an.ir.schema.Dialogue.planned_start`) over the real duration when
-    the line was synthesized, else the offline voice's estimate
-    (:func:`an.audio.offline_tts.estimate_speech_duration`) divided by the
-    line's voice ``tempo`` (``tempo_of(line)``; an#265 — the effect applies
-    under every provider). Never the stamped ``start``, which a pause edited
-    since the last synthesis has made stale.
-    """
-    from an.audio.offline_tts import estimate_speech_duration
-
-    cursor = 0.0
-    for k, line in enumerate(shot.dialogue):
-        estimated = line.duration is None
-        length = (
-            estimate_speech_duration(line.text) / (tempo_of(line) if tempo_of else 1.0)
-            if estimated
-            else float(line.duration)
-        )
-        start = line.planned_start(cursor)
-        cursor = start + length
-        yield k, line, start, cursor, estimated
+#: The private name cutan's eyeline check imported before the layout was
+#: public (an#767); kept until it reads :func:`an.ir.dialogue.dialogue_layout`.
+_dialogue_layout = dialogue_layout
 
 
 def _check_dialogue_fits(
@@ -3165,7 +3145,7 @@ def _check_dialogue_fits(
     ``pause`` cannot). Two speakers talking over each other is legal.
     """
     speaking_until: dict[str, tuple[int, float]] = {}
-    for k, line, start, end, estimated in _dialogue_layout(
+    for k, line, start, end, estimated in dialogue_layout(
         shot, tempo_of=_tempo_of(effects_of)
     ):
         previous = speaking_until.get(line.speaker)
@@ -3224,7 +3204,7 @@ def shot_dialogue_overruns(
     """
     out = []
     tempo_of = _tempo_of(effects_of)
-    for k, line, _start, end, estimated in _dialogue_layout(shot, tempo_of=tempo_of):
+    for k, line, _start, end, estimated in dialogue_layout(shot, tempo_of=tempo_of):
         if end <= shot.duration + tolerance_s or (synthesized_only and estimated):
             continue
         tempo = tempo_of(line) if (tempo_of and estimated) else 1.0
@@ -3320,7 +3300,7 @@ def _check_dialogue_in_dissolves(
         overlap_out = timeline.dissolve_in[i + 1] / fps if i + 1 < n else 0.0
         overlap_in = timeline.dissolve_in[i] / fps
         effects_of = effects_of_shot(shot) if effects_of_shot else None
-        layout = _dialogue_layout(shot, tempo_of=_tempo_of(effects_of))
+        layout = dialogue_layout(shot, tempo_of=_tempo_of(effects_of))
         for k, line, start, end, estimated in layout:
             where = []
             if overlap_in and start < overlap_in:

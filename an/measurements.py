@@ -117,9 +117,9 @@ def declared_duration(shot: Shot) -> float | None:
 def _dialogue_end(shot: Shot) -> float:
     """Where the shot's last line ends: real durations once synthesized, the
     offline voice's estimate before (the validator's own layout rule)."""
-    from an.ir.validate import _dialogue_layout
+    from an.ir.dialogue import dialogue_layout
 
-    return max((end for *_rest, end, _est in _dialogue_layout(shot)), default=0.0)
+    return max((end for *_rest, end, _est in dialogue_layout(shot)), default=0.0)
 
 
 def _finding(*args: Any, **kwargs: Any) -> "Finding":
