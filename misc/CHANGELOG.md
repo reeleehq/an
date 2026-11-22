@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-22
+- ElevenLabs TTS asks voxy which models read inline audio tags (`voxy.dialect_for`) instead of keeping its own prefix table, and on any other model a line's pause cues (`{beat}`, `{pause}`) become SSML breaks when voxy's break table says the model renders one that long, instead of being dropped (an#822). Removed without deprecation (no caller in the fleet): `AUDIO_TAG_MODEL_PREFIXES`, `ElevenLabsTTS(audio_tag_model_prefixes=)` and `takes_audio_tags(prefixes=)`; the seams are `ElevenLabsTTS(dialect=, native_break_s=)` and `voxy.register_dialect`. A line on a non-tag model whose direction has a pause cue gets a new audio key, so it re-synthesizes once (and a best-of-N line re-chooses).
 - `planes_at_infinity` skips an environment whose descriptor the store cannot read (broken JSON, an unreadable file) instead of raising and taking down `an validate's` plate check and cutan's far-plate critic (an#766).
 
 ## 2026-11-12
