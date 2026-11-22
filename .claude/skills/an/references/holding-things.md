@@ -67,6 +67,7 @@ A `swap` is a `grasp` (by `by`, of `take`) and a `place` (of `give`, by whicheve
 - `hold_conflict` (error, the render refuses too): a hand puts down what it does not hold, takes what it already holds, still holds something else (a part that moves is one hand, whatever point of it is named), starts a second gesture before its first is over, or would reach its goal after the shot ends; a socket that still holds an item receives another (take it first, or `swap`); a verb names an item that is not in the shot; an item that is itself held holds another (not built).
 - `unreachable_hold` (error): `'stu@hand_l' cannot put 'sword' on 'nap/arm_r/weapon' at 11.17 s: it stays 21.7 px short, bent 59.27°, ... Move stu about 22 px to the right`. Fix the staging, never the hold.
 - `floating_item` (warning): the item lay above or below the floor, or above a surface the holds name (`table@surface`), when it was taken (`held_by: ground` or `held_by: table@surface` fixes it); a released item with no ground below or no gravity stays in the air.
+- `sunk_item` (warning, an#806): a carried item hangs through its carrier's floor line (a long musket in a short arm's hand), with the span it does so and how deep; carry it higher (`align: false` on the grasp, a tween of the arm, a grip point nearer its low end; for `held_by: <hand>`, `held_rotation`), or it falls over its low end in front of the line when let go.
 - `unknown_body` (error): a `by`, `onto`, `to`, `holder` or `held_by` that names nothing.
 
 ## Things to know

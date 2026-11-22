@@ -750,6 +750,7 @@ def test_the_report_order_is_pinned():
         "hold_conflict",
         "unreachable_hold",
         "floating_item",
+        "sunk_item",  # an#806: a carried item does not hang through the floor line
     ]
     assert core("finish") == [
         # an#394: an entity does not jump across a cut unless a set says so

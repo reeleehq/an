@@ -544,9 +544,73 @@ def test_an_item_taken_from_above_the_floor_is_called_floating(tmp_path):
 def test_the_hold_checks_are_core_checks():
     from an.genres.registry import CORE_OWNER, check_names
 
-    assert {"hold_conflict", "unreachable_hold", "floating_item"} <= set(
+    assert {"hold_conflict", "unreachable_hold", "floating_item", "sunk_item"} <= set(
         check_names(owner=CORE_OWNER)
     )
+
+
+def _long_stick(held_by="ground", scale=2.5):
+    """The fixture's entities with the stick ``scale`` times its size, ``held_by`` that."""
+    return f"""- {{kind: prop, id: fig, store: props, ref: figure, stage: {{at: [-100, 200]}}}}
+- {{kind: prop, id: stand, store: props, ref: stand, stage: {{at: [160, 200]}}}}
+- {{kind: prop, id: stick, store: props, ref: stick, stage: {{at: [40, 150], scale: {scale}, after: fig}}, overrides: {{held_by: {held_by}}}}}
+"""
+
+
+def test_a_long_item_carried_through_the_floor_line_is_called_sunk(tmp_path):
+    """A long item carried low hangs through the floor for the whole carry
+    (an#806: a 276 px musket in a short arm's hand): ``sunk_item`` names the
+    span, how deep, and how to carry it higher; the let-go warning still says
+    what its release does."""
+    actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n- {kind: release, item: stick, at: 3.0}"
+    project = _project(tmp_path, actions, entities=_long_stick())
+    doc = _compile(project)
+    (sunk,) = _holds(doc)["sunk"]
+    assert sunk["item"] == "stick" and sunk["by"] == "fig/arm_r"
+    assert sunk["opened"] == "grasp" and sunk["where"] == "actions/0"
+    assert _gesture(doc, "grasp")["contact"] < sunk["from"] < sunk["to"] < 3.0
+    assert sunk["below"] > 10
+    # The report is the picture: the stick's ink really is that far below the floor.
+    assert _lowest_ink(doc, "stick", sunk["at"]) - GROUND > 10
+    findings = [m for s, m in _lint(project, only={"sunk_item"}) if s == "warning"]
+    assert len(findings) == 1, findings
+    assert "hangs through the floor line (y 200)" in findings[0]
+    assert f"from {sunk['from']:.2f} s to {sunk['to']:.2f} s" in findings[0]
+    assert "align: false" in findings[0]
+    let_go = [m for s, m in _lint(project, only={"floating_item"}) if s == "warning"]
+    assert any("below the floor line" in m for m in let_go), let_go
+
+
+def test_an_item_carried_clear_of_the_floor_is_not_sunk(tmp_path):
+    actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n- {kind: release, item: stick, at: 3.0}"
+    project = _project(tmp_path, actions)
+    assert _holds(_compile(project))["sunk"] == []
+    assert _lint(project, only={"sunk_item"}) == []
+
+
+def test_an_item_held_from_the_start_through_the_floor_is_sunk_from_the_start(tmp_path):
+    """A span opened by ``held_by`` is judged from frame 0, and its fix is the
+    item's aim, not a grasp it never had."""
+    project = _project(
+        tmp_path,
+        "- {kind: release, item: stick, at: 3.0}",
+        entities=_long_stick("fig/arm_r, held_rotation: 3.14159"),
+    )
+    (sunk,) = _holds(_compile(project))["sunk"]
+    assert sunk["opened"] == "held_by" and sunk["from"] == 0.0
+    assert sunk["where"] == "entities/2/overrides/held_by"
+    (finding,) = _lint(project, only={"sunk_item"})
+    assert finding[0] == "warning" and "held_rotation" in finding[1]
+    assert "align: false" not in finding[1]
+
+
+def test_a_place_ends_the_carry_it_lays_down(tmp_path):
+    """The place's reach lays the item where it goes: the carry span ends where
+    the reach starts, and a socket that holds it clear of the floor is clean."""
+    actions = "- {kind: grasp, by: fig/arm_r, item: stick, start: 0.5}\n- {kind: place, item: stick, onto: stand@hand, start: 2.0}"
+    doc = _compile(_project(tmp_path, actions, entities=_long_stick()))
+    (sunk,) = _holds(doc)["sunk"]
+    assert sunk["to"] < 2.0
 
 
 def test_the_solve_with_holds_is_deterministic(tmp_path):

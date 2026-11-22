@@ -2779,6 +2779,119 @@ def _falls_as_shown(
     return out
 
 
+def _carried_spans(ctx: _Ctx) -> list[dict[str, Any]]:
+    """Each span over which a body carries an item: ``{item, where, by,
+    opened, entity, k0, k1, measure_from}`` (frames ``[k0, k1)``; ``opened``:
+    the verb that put it there, ``grasp``, ``take``, ``place`` or ``held_by``). A span opens when a
+    hand takes the item (``measure_from`` the frame after: at the take it
+    lies where it lay, ``floating_item``'s), when a place puts it in a socket,
+    or at frame 0 for an item ``held_by`` a body; it closes when a ``place``
+    starts its reach (that lays the item where it goes), at a let-go, or when
+    another hand takes it. A surface (``crate@surface``) is not a carrier."""
+    spans: list[dict[str, Any]] = []
+    entity_index = {e.id: i for i, e in enumerate(ctx.shot.entities)}
+    for item in ctx.items:
+        open_: dict[str, Any] | None = None
+
+        def close(k: int) -> None:
+            nonlocal open_
+            if open_ is not None and k > open_["measure_from"]:
+                spans.append({**open_, "k1": k})
+            open_ = None
+
+        first = ctx.initial.get(item)
+        if first is not None and first.kind == "body":
+            open_ = {
+                "item": item,
+                "where": f"entities/{entity_index.get(item, 0)}/overrides/{ON_OVERRIDE}",
+                "by": first.text(),
+                "opened": ON_OVERRIDE,
+                "entity": first.entity,
+                "k0": 0,
+                "measure_from": 0,
+            }
+        for ev in ctx.events.get(item, ()):
+            g = ev.gesture
+            if ev.kind == "take":
+                close(ev.k)
+                open_ = {
+                    "item": item,
+                    "where": g.where,
+                    "by": g.ref,
+                    "opened": g.kind,
+                    "entity": g.hand.entity,
+                    "k0": ev.k,
+                    "measure_from": ev.k + 1,
+                }
+            elif ev.kind in ("carry", "drop"):
+                close(ev.k)
+            elif ev.kind == "put":
+                close(ev.k)
+                if g.target is not None and g.target.kind == "body":
+                    open_ = {
+                        "item": item,
+                        "where": g.where,
+                        "by": g.target.text(),
+                        "opened": g.kind,
+                        "entity": g.target.entity,
+                        "k0": ev.k,
+                        "measure_from": ev.k,
+                    }
+        close(len(ctx.times))
+    return spans
+
+
+def _sunk(ctx: _Ctx, run: Run, walk: Walk) -> list[dict[str, Any]]:
+    """Where a carried item hangs through its carrier's floor line (an#806):
+    one entry per run of frames at which its lowest ink is below the floor
+    (:func:`_ground_at`, the floor its let-go falls onto) by more than
+    :data:`SUPPORT_TOLERANCE_PX`, ``{item, where, by, opened, from, to, below,
+    at, ground}`` (seconds; ``below`` the deepest, at ``at``)."""
+
+    def r2(v: float) -> float:
+        return round(float(v), 2) + 0.0
+
+    out: list[dict[str, Any]] = []
+    for span in _carried_spans(ctx):
+        item = span["item"]
+        corners = ctx.items[item].corners
+        poses = walk.poses.get(item) or []
+        run_: dict[str, Any] | None = None
+
+        def flush() -> None:
+            nonlocal run_
+            if run_ is not None:
+                out.append(run_)
+            run_ = None
+
+        for k in range(span["measure_from"], min(span["k1"], len(poses))):
+            ground = _ground_at(ctx, run, k, span["entity"])
+            depth = (
+                _lowest(poses[k], corners) - ground if ground is not None else 0.0
+            )
+            if depth <= SUPPORT_TOLERANCE_PX:
+                flush()
+                continue
+            t = r2(ctx.times[k])
+            if run_ is None:
+                run_ = {
+                    "item": item,
+                    "where": span["where"],
+                    "by": span["by"],
+                    "opened": span["opened"],
+                    "from": t,
+                    "to": t,
+                    "below": r2(depth),
+                    "at": t,
+                    "ground": r2(ground),
+                }
+            run_["to"] = t
+            if depth > run_["below"]:
+                run_.update(below=r2(depth), at=t, ground=r2(ground))
+        flush()
+    return out
+
+
 def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
     def r2(v: float) -> float:
         return round(float(v), 2) + 0.0
@@ -2868,5 +2981,6 @@ def _report(ctx: _Ctx, run: Run, walk: Walk) -> dict[str, Any]:
         "gestures": gestures,
         "holders": holders,
         "floating": floating,
+        "sunk": _sunk(ctx, run, walk),
         "warnings": ctx.warnings,
     }
