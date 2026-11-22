@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=94d4634a"></script>
+    <script src="../_static/documentation_options.js?v=a32ce920"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.401" />
+  <meta name="docsearch:version" content="0.1.402" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -668,7 +668,9 @@ parallel render. <a class="reference internal" href="#an.engines.protocol.Engine
 the loaded, seekable view, whose members say what it can do.</p>
 <p>And on the <code class="docutils literal notranslate"><span class="pre">Engine</span></code> itself: <code class="docutils literal notranslate"><span class="pre">check(ctx)</span></code> validates the engine’s own knobs
 before anything launches (a typo must fail in microseconds, not after a browser
-started).</p>
+started); <code class="docutils literal notranslate"><span class="pre">view_spaces</span></code> (the view spaces it lowers, <code class="docutils literal notranslate"><span class="pre">(&quot;orbit3d&quot;,)</span></code>),
+<code class="docutils literal notranslate"><span class="pre">paint_orders</span></code> and <code class="docutils literal notranslate"><span class="pre">svg_filters</span></code> declare what it affords, and the renderer
+<a class="reference internal" href="an.engines.html#an.engines.frame_stage_renderer" title="an.engines.frame_stage_renderer"><code class="xref py py-func docutils literal notranslate"><span class="pre">frame_stage_renderer()</span></code></a> builds from it affords the same (an#786).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">_Still</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span> <span class="k">return</span> <span class="sa">b</span><span class="s2">"png"</span>
 <span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span> <span class="k">return</span> <span class="p">{}</span>

@@ -70,12 +70,14 @@ covers the project-relative POSIX path `rel`, by git’s rules (an#725): a
 line with a `/` before its end is anchored at the project root, one
 without matches a name at any depth; a trailing `/` matches folders only;
 wildcards never cross a `/`; a matched folder covers everything under it;
-case counts. What it does not read the way git does is refused with a
-`ValueError` rather than misread (a misread line could copy what it
-should keep local): negation (`!`), comments (`#`), `**`, escapes
-(`\`), `[^...]`, POSIX classes (`[:alpha:]`), surrounding spaces and
-empty lines; so is a `rel` that is not a plain project-relative POSIX path
-(a backslash, `./`, `..`). Case always counts, as git’s does with
+case counts. A facade over `dol.gitignore_matcher()` (an#800), byte-exact
+against `git check-ignore`. What it does not read the way git does is
+refused with a `ValueError` rather than misread (a misread line could copy
+what it should keep local): negation (`!`), comments (`#`), `**`,
+escapes (`\`), `[^...]`, POSIX classes (`[:alpha:]`), `//`, an
+unterminated or malformed `[...]`, surrounding spaces and empty lines; so
+is a `rel` that is not a plain project-relative POSIX path (a backslash,
+`./`, `..`). Case always counts, as git’s does with
 `core.ignorecase=false` (on macOS git ignores case by default). For a
 genre or tool that copies a project (a sync, an export) and keeps the
 same files local as git.

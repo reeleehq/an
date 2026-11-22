@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=94d4634a"></script>
+    <script src="../_static/documentation_options.js?v=a32ce920"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.401" />
+  <meta name="docsearch:version" content="0.1.402" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -890,12 +890,16 @@ asset-set name (an#62).</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.CORE_OVERRIDE_KEYS">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">CORE_OVERRIDE_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'attached',</span> <span class="pre">'beside_host',</span> <span class="pre">'ground',</span> <span class="pre">'held_by',</span> <span class="pre">'held_rotation',</span> <span class="pre">'leans',</span> <span class="pre">'paint_keys',</span> <span class="pre">'plane_factors',</span> <span class="pre">'stream'})</span></span><a class="headerlink" href="#an.base.CORE_OVERRIDE_KEYS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">CORE_OVERRIDE_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'attached',</span> <span class="pre">'beside_host',</span> <span class="pre">'fixed',</span> <span class="pre">'free',</span> <span class="pre">'ground',</span> <span class="pre">'held_by',</span> <span class="pre">'held_rotation',</span> <span class="pre">'leans',</span> <span class="pre">'paint_keys',</span> <span class="pre">'plane_factors',</span> <span class="pre">'preserve_volume',</span> <span class="pre">'rigid',</span> <span class="pre">'shaded_side',</span> <span class="pre">'stream'})</span></span><a class="headerlink" href="#an.base.CORE_OVERRIDE_KEYS" title="Link to this definition">#</a></dt>
 <dd><p>what attaches it, the
 stream slot it is, what holds it and at what angle, the world’s plane
 factors. Bookkeeping about the entity, not fields of its asset document, so
 a resolver that validates overrides against its document (a stroked path,
-a text block) leaves them out (an#516); <code class="docutils literal notranslate"><span class="pre">tests/test_world.py</span></code> holds the
+a text block) leaves them out (an#516). With them, the keys a core check or
+the solve reads off the entity itself (an#801): <code class="docutils literal notranslate"><span class="pre">rigid</span></code> and
+<code class="docutils literal notranslate"><span class="pre">preserve_volume</span></code> (the rigidity check), <code class="docutils literal notranslate"><span class="pre">shaded_side</span></code> (the light check),
+<code class="docutils literal notranslate"><span class="pre">free</span></code> and <code class="docutils literal notranslate"><span class="pre">fixed</span></code> (the solve), so declaring one on a path or a text
+entity no longer fails its compile. <code class="docutils literal notranslate"><span class="pre">tests/test_world.py</span></code> holds the
 owners’ constants to this set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>

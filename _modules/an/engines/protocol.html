@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=94d4634a"></script>
+    <script src="../../../_static/documentation_options.js?v=a32ce920"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.401" />
+  <meta name="docsearch:version" content="0.1.402" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -761,7 +761,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">And on the ``Engine`` itself: ``check(ctx)`` validates the engine's own knobs</span>
 <span class="sd">before anything launches (a typo must fail in microseconds, not after a browser</span>
-<span class="sd">started).</span>
+<span class="sd">started); ``view_spaces`` (the view spaces it lowers, ``("orbit3d",)``),</span>
+<span class="sd">``paint_orders`` and ``svg_filters`` declare what it affords, and the renderer</span>
+<span class="sd">:func:`~an.engines.frame_stage_renderer` builds from it affords the same (an#786).</span>
 
 <span class="sd">&gt;&gt;&gt; class _Still:</span>
 <span class="sd">...     def frame(self, t): return b"png"</span>

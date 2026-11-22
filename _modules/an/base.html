@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=94d4634a"></script>
+    <script src="../../_static/documentation_options.js?v=a32ce920"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.401" />
+  <meta name="docsearch:version" content="0.1.402" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -995,10 +995,19 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: stream slot it is, what holds it and at what angle, the world's plane</span>
 <span class="c1">#: factors. Bookkeeping about the entity, not fields of its asset document, so</span>
 <span class="c1">#: a resolver that validates overrides against its document (a stroked path,</span>
-<span class="c1">#: a text block) leaves them out (an#516); ``tests/test_world.py`` holds the</span>
+<span class="c1">#: a text block) leaves them out (an#516). With them, the keys a core check or</span>
+<span class="c1">#: the solve reads off the entity itself (an#801): ``rigid`` and</span>
+<span class="c1">#: ``preserve_volume`` (the rigidity check), ``shaded_side`` (the light check),</span>
+<span class="c1">#: ``free`` and ``fixed`` (the solve), so declaring one on a path or a text</span>
+<span class="c1">#: entity no longer fails its compile. ``tests/test_world.py`` holds the</span>
 <span class="c1">#: owners' constants to this set.</span>
 <span class="n">CORE_OVERRIDE_KEYS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
     <span class="p">{</span>
+        <span class="s2">"rigid"</span><span class="p">,</span>
+        <span class="s2">"preserve_volume"</span><span class="p">,</span>
+        <span class="s2">"shaded_side"</span><span class="p">,</span>
+        <span class="s2">"free"</span><span class="p">,</span>
+        <span class="s2">"fixed"</span><span class="p">,</span>
         <span class="s2">"attached"</span><span class="p">,</span>
         <span class="n">STREAM_OVERRIDE</span><span class="p">,</span>
         <span class="s2">"held_by"</span><span class="p">,</span>
