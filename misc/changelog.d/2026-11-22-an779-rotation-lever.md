@@ -1,1 +1,0 @@
-- Solved keys: a rotation's compaction tolerance is over its own body's lever, so a nested rig's keys compact too (an#779).
