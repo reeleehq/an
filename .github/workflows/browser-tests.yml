@@ -80,7 +80,12 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, 'run-browser-tests')
-    runs-on: ubuntu-latest
+    # Pinned, not `ubuntu-latest`: Chromium comes from the pinned Playwright
+    # (the `stage` extra), and Playwright 1.55 cannot install it on the 26.04
+    # image `ubuntu-latest` moved to ("Playwright does not support chromium on
+    # ubuntu26.04-x64"). Move the OS and the Playwright pin together, with the
+    # golden corpus re-captured, never one alone.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v6
