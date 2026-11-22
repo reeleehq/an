@@ -783,6 +783,61 @@ def _sample_times(duration: float) -> list[float]:
     return times
 
 
+def drawn_paths(doc: Any, ids: list[str]) -> dict[str, list[str]]:
+    """Per entity id, the paths of the nodes under it that draw something: what
+    its box is the union of (:func:`seen_boxes`)."""
+    from an.stage.tree import walk_document
+
+    return {
+        eid: [
+            path
+            for path, node in walk_document(doc)
+            if node.visual is not None and (path == eid or path.startswith(f"{eid}/"))
+        ]
+        for eid in ids
+    }
+
+
+def seen_boxes(
+    doc: Any, drawn: Mapping[str, list[str]], pose: Mapping
+) -> dict[str, tuple[float, float, float, float]]:
+    """Per entity of ``drawn`` (:func:`drawn_paths`) seen under ``pose``, the
+    union of its visuals' boxes (:func:`an.stage.timeline.node_box`, through the
+    pose and the camera). An entity unseen (alpha at most
+    :data:`an.base.UNSEEN_ALPHA`: a slot between passes, a fade) or not drawn
+    has no box: the ``solidity`` check's rule, shared by the checks that read
+    its boxes."""
+    from an.stage.timeline import entity_alpha, node_box
+
+    boxes = {}
+    for eid, paths in drawn.items():
+        try:
+            if entity_alpha(doc, pose, eid) <= UNSEEN_ALPHA:
+                continue
+        except KeyError:
+            continue
+        found = [b for p in paths if (b := node_box(doc, p, pose=pose)) is not None]
+        if found:
+            boxes[eid] = _union_box(found)
+    return boxes
+
+
+def paint_order(doc: Any) -> Callable[[str, Mapping], tuple[tuple[float, int], ...]]:
+    """``painted_at(entity_id, pose)``: where an entity is painted under ``pose``,
+    a key that sorts back to front: its place (:func:`an.stage.tree.paint_places`),
+    with its own container's sort key read off its ``z_index`` channel where one
+    writes it (an#634)."""
+    from an.stage.tree import paint_places
+
+    places = paint_places(doc.scene)
+
+    def painted_at(eid: str, pose: Mapping) -> tuple[tuple[float, int], ...]:
+        *outer, (z, i) = places.get(eid, ((0.0, 0),))
+        return (*outer, (float(pose.get((eid, Z_INDEX_PROPERTY), z)), i))
+
+    return painted_at
+
+
 def solid_overlaps(
     doc: Any,
     entities: list[Any],
@@ -806,46 +861,20 @@ def solid_overlaps(
     An entity's box is the union of its visuals' boxes (:func:`an.stage.timeline.node_box`,
     through the pose and the camera at that instant).
     """
-    from an.stage.timeline import entity_alpha, node_box, timeline_from_scene
-    from an.stage.tree import paint_places, walk_document
+    from an.stage.timeline import timeline_from_scene
     from an.timing.timeline import evaluate_timeline
 
     solids = [e for e in entities if _is_solid(e)]
     if len(solids) < 2:
         return []
-    drawn = {
-        e.id: [
-            path
-            for path, node in walk_document(doc)
-            if node.visual is not None and (path == e.id or path.startswith(f"{e.id}/"))
-        ]
-        for e in solids
-    }
-    places = paint_places(doc.scene)
-
-    def painted_at(eid: str, pose: Mapping) -> tuple[tuple[float, int], ...]:
-        """Where ``eid`` is painted now: its place, with its own container's
-        sort key read off its ``z_index`` channel where one writes it (an#634)."""
-        *outer, (z, i) = places.get(eid, ((0.0, 0),))
-        return (*outer, (float(pose.get((eid, Z_INDEX_PROPERTY), z)), i))
-
+    drawn = drawn_paths(doc, [e.id for e in solids])
+    painted_at = paint_order(doc)
     timeline = timeline_from_scene(doc)
     first: dict[tuple[str, str], Overlap] = {}
     worst: dict[tuple[str, str], float] = {}
     for t in _sample_times(duration):
         pose = evaluate_timeline(timeline, t)
-        boxes = {}
-        for e in solids:
-            try:
-                if entity_alpha(doc, pose, e.id) <= UNSEEN_ALPHA:
-                    continue  # not seen now (a slot between passes, a fade): no overlap
-            except KeyError:
-                continue
-            found = [
-                b for p in drawn[e.id] if (b := node_box(doc, p, pose=pose)) is not None
-            ]
-            if found:
-                boxes[e.id] = _union_box(found)
+        boxes = seen_boxes(doc, drawn, pose)
         for i, a in enumerate(solids):
             for b in solids[i + 1 :]:
                 if a.id not in boxes or b.id not in boxes or _is_ordered(a, b):
@@ -873,11 +902,11 @@ def solid_overlaps(
     ]
 
 
-def check_solidity(ctx: Any) -> None:
-    """The core's ``solidity`` check (an#509) over the compiled shot."""
-    doc = compiled_shot(ctx)
-    if doc is None:
-        return
+def solid_candidates(ctx: Any) -> tuple[list[Any], frozenset[str]]:
+    """``(entities, depth_sorted)`` of ``ctx.shot`` for the checks that compare
+    solids: its entities less the drawings laid over the scene (a prop whose
+    descriptor is a :data:`DRAWING_DESCRIPTOR_KINDS`), and the ids the world
+    paints by depth (its members and its streams' slots, an#632)."""
     props = (ctx.stores or {}).get("props")
 
     def is_drawing(entity: Any) -> bool:
@@ -894,6 +923,15 @@ def check_solidity(ctx: Any) -> None:
         {e.id for e in entities if _is_slot(e)}
         | ({m.id for m in world.members} if world is not None else set())
     )
+    return entities, depth_sorted
+
+
+def check_solidity(ctx: Any) -> None:
+    """The core's ``solidity`` check (an#509) over the compiled shot."""
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    entities, depth_sorted = solid_candidates(ctx)
     for o in solid_overlaps(
         doc, entities, duration=float(ctx.shot.duration), depth_sorted=depth_sorted
     ):

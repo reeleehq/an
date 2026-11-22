@@ -1,0 +1,1 @@
+- `an validate`: `depth_order` warns when a walker is painted under a floor prop that stands farther back than its feet (an#820).
