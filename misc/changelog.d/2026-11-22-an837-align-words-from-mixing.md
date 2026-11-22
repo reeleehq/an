@@ -1,0 +1,1 @@
+- `an.audio.transcripts` re-exports `mixing.transcript`'s `align_words`, `tokens_of`, `AlignedWords` (and `normalize_text` is `normalize_word`) instead of a local copy: heard compounds (`twenty-five`, `U.S.`) now match, typographic apostrophes match, out-of-order heard times are refused; `AlignedWords` gains `anchors` (an#837)

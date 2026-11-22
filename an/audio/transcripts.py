@@ -32,7 +32,6 @@ All times are seconds from the start of the recording they describe.
 
 from __future__ import annotations
 
-import difflib
 import json
 import re
 from collections.abc import Iterable, Mapping, Sequence
@@ -40,6 +39,11 @@ from dataclasses import dataclass
 from itertools import groupby
 from pathlib import Path
 from typing import Any
+
+# The word aligner is the fleet's one, in `mixing.transcript` (an#837): stdlib-only
+# and light, so importing it here costs nothing. Re-exported under an's names.
+from mixing.transcript import AlignedWords, align_words, tokens_of
+from mixing.transcript import normalize_word as normalize_text
 
 __all__ = [
     "FORMATS",
@@ -102,7 +106,6 @@ _SRT_CUE_RE = re.compile(
 _SPEAKER_RE = re.compile(r"^\s*(?P<speaker>[\w-]+)\s*:\s*(?P<text>.*)$")
 _VTT_VOICE_RE = re.compile(r"<v(?:\.[^\s>]*)?\s+(?P<name>[^>]+)>")
 _TAG_RE = re.compile(r"<[^>]+>")
-_TOKEN_RE = re.compile(r"[^\W_]+(?:'[^\W_]+)*")
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,21 +134,6 @@ class TranscriptSegment:
     def timed(self) -> bool:
         """Whether both ``start`` and ``end`` are known."""
         return self.start is not None and self.end is not None
-
-
-@dataclass(frozen=True, slots=True)
-class AlignedWords:
-    """:func:`align_words`'s result: the reference words timed, and how many
-    of them a transcribed word actually anchored (the rest are interpolated)."""
-
-    words: list[WordTiming]
-    matched: int
-    total: int
-
-    @property
-    def coverage(self) -> float:
-        """The share of reference words anchored by a transcribed word, 0..1."""
-        return self.matched / self.total if self.total else 1.0
 
 
 # --- reading ------------------------------------------------------------------
@@ -1067,17 +1055,6 @@ def from_transcript_object(obj: Any) -> list[TranscriptSegment]:
 # --- matching words ------------------------------------------------------------
 
 
-def tokens_of(text: str) -> list[str]:
-    """The words of ``text`` as written: punctuation dropped, an apostrophe
-    inside a word kept, case kept. What a line's words are timed as
-    (:func:`segment_lines`).
-
-    >>> tokens_of("Hello, there — it's ME!")
-    ['Hello', 'there', "it's", 'ME']
-    """
-    return _TOKEN_RE.findall(text)
-
-
 def normalize_tokens(text: str) -> list[str]:
     """The words of ``text`` for matching: :func:`tokens_of` case-folded.
 
@@ -1085,77 +1062,6 @@ def normalize_tokens(text: str) -> list[str]:
     ['hello', 'there', "it's", 'me']
     """
     return tokens_of(text.casefold())
-
-
-def normalize_text(text: str) -> str:
-    """:func:`normalize_tokens` joined by single spaces (what two lines are compared by)."""
-    return " ".join(normalize_tokens(text))
-
-
-def align_words(
-    reference: Sequence[str],
-    timed: Sequence[WordTiming],
-    *,
-    bounds: tuple[float, float] | None = None,
-) -> AlignedWords:
-    """Time the ``reference`` words (the text the performer was meant to say) by a
-    transcriber's ``timed`` words of the same audio.
-
-    Reference words that a transcribed word matches (same normalized form, in
-    sequence — :class:`difflib.SequenceMatcher`) take that word's times. A run
-    the transcriber heard differently (``friend`` heard as ``fred``) is spread
-    over the misheard words' span; a run it did not hear at all is spread over
-    the gap to the next anchor, in proportion to word length — so a misheard or
-    dropped word still gets a plausible slot. ``bounds`` (``(start, end)`` of
-    the audio) time the ends when no anchor does; without it the first and last
-    transcribed words do. Words come back in reference order with
-    non-decreasing starts.
-
-    >>> align_words(["I", "did", "NOT", "ask"], [("i", 0.0, 0.1), ("did", 0.1, 0.3), ("ask", 0.6, 0.9)]).words
-    [('I', 0.0, 0.1), ('did', 0.1, 0.3), ('NOT', 0.3, 0.6), ('ask', 0.6, 0.9)]
-    """
-    ref = [normalize_text(w) for w in reference]
-    asr = [normalize_text(w[0]) for w in timed]
-    first = bounds[0] if bounds else (float(timed[0][1]) if timed else 0.0)
-    last = bounds[1] if bounds else (float(timed[-1][2]) if timed else 0.0)
-    out: list[WordTiming] = []
-    matched = 0
-    prev_end = first
-
-    def spread(indices: range, lo: float, hi: float) -> None:
-        nonlocal prev_end
-        lo = max(lo, prev_end)
-        hi = max(hi, lo)
-        weights = [max(1, len(ref[k]) or len(reference[k])) for k in indices]
-        total = float(sum(weights)) or 1.0
-        t = lo
-        for k, w in zip(indices, weights):
-            length = (hi - lo) * (w / total)
-            out.append((reference[k], round(t, 6), round(t + length, 6)))
-            t += length
-        prev_end = hi
-
-    opcodes = difflib.SequenceMatcher(None, ref, asr, autojunk=False).get_opcodes()
-    for n, (tag, i1, i2, j1, j2) in enumerate(opcodes):
-        if tag == "equal":
-            for k in range(i2 - i1):
-                start, end = float(timed[j1 + k][1]), float(timed[j1 + k][2])
-                start = max(start, prev_end)
-                out.append((reference[i1 + k], start, max(end, start)))
-                prev_end = max(end, start)
-                matched += 1
-        elif tag == "replace":
-            spread(range(i1, i2), float(timed[j1][1]), float(timed[j2 - 1][2]))
-        elif tag == "delete":
-            # Not heard at all: the gap up to the next transcribed word, or the end.
-            nxt = next(
-                (float(timed[op[3]][1]) for op in opcodes[n + 1 :] if op[3] < op[4]),
-                last,
-            )
-            spread(range(i1, i2), prev_end, nxt)
-        else:  # "insert": words the transcriber heard that the text lacks — time passes
-            prev_end = max(prev_end, float(timed[j2 - 1][2])) if j2 > j1 else prev_end
-    return AlignedWords(words=out, matched=matched, total=len(ref))
 
 
 def segment_lines(
