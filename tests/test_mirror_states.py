@@ -39,12 +39,12 @@ FLIP = """- kind: tween
 def _lamp(tmp_path: Path, *, metadata=None, actions: str = FLIP):
     root = Path(shutil.copytree(LAMP, tmp_path / "p"))
     art = root / "assets" / "props" / "lamp" / "prop.json"
-    doc = json.loads(art.read_text())
+    doc = json.loads(art.read_text(encoding="utf-8"))
     if metadata is not None:
         doc["metadata"] = metadata
-    art.write_text(json.dumps(doc))
+    art.write_text(json.dumps(doc), encoding="utf-8")
     scene = root / "scene.md"
-    scene.write_text(scene.read_text().replace(AUTHORED_SET, actions))
+    scene.write_text(scene.read_text(encoding="utf-8").replace(AUTHORED_SET, actions), encoding="utf-8")
     return load(root)
 
 
@@ -154,9 +154,9 @@ def _carried_stick(tmp_path: Path, mutate):
     root = tmp_path / "p"
     make_project(root, scene(TURN))
     art = root / "assets" / "props" / "stick" / "prop.json"
-    doc = json.loads(art.read_text())
+    doc = json.loads(art.read_text(encoding="utf-8"))
     mutate(doc)
-    art.write_text(json.dumps(doc))
+    art.write_text(json.dumps(doc), encoding="utf-8")
     project = load(root)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
