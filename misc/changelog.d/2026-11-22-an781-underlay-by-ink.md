@@ -1,0 +1,1 @@
+- the underlay-cover warning (outline and halo) measures stacked text by each glyph's ink contour, not one box per line, so descenders over ascenders at tight leading no longer warn falsely (an#781)
