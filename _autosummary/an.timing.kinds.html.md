@@ -90,6 +90,14 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.timing.kinds.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
 
 Who registered the seeded kinds (only these reach the contract files).
@@ -169,6 +177,14 @@ The value between keys `a` and `b` at eased progress `u`.
 
 True when the value (or part of it) switches on TIME rather than moving.
 
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### *exception* an.timing.kinds.FieldKindError
 
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
@@ -208,6 +224,14 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### *class* an.timing.kinds.OrbitKind(unit='deg')
 
 Bases: [`FieldKind`](#an.timing.kinds.FieldKind)
@@ -237,6 +261,18 @@ The value between keys `a` and `b` at eased progress `u`.
 
 True when the value (or part of it) switches on TIME rather than moving.
 
+#### value_schema()
+
+The orbit’s shape, the ONE declaration a view space reads (an#788).
+
+```pycon
+>>> sorted(OrbitKind().value_schema()["properties"]), OrbitKind().value_schema()["required"]
+(['azimuth', 'distance', 'elevation', 'target'], ['azimuth', 'elevation', 'distance'])
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### an.timing.kinds.QUATERNION_UNIT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.001*
 
 How far a quaternion’s norm may be from 1 and still count as unit length.
@@ -260,6 +296,14 @@ The value between keys `a` and `b` at eased progress `u`.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.timing.kinds.SLERP_LINEAR_THRESHOLD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.9995*
 
@@ -310,6 +354,14 @@ The value between keys `a` and `b` at eased progress `u`.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.timing.kinds.kind_from_spec(spec)
 

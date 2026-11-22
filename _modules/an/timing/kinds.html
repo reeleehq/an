@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d3888001"></script>
+    <script src="../../../_static/documentation_options.js?v=f93347db"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.419" />
+  <meta name="docsearch:version" content="0.1.420" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -875,6 +875,14 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
+<div class="viewcode-block" id="FieldKind.value_schema">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.FieldKind.value_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The JSON schema of one value of this kind (its shape and unit), what a</span>
+<span class="sd">        view space's field states (:mod:`an.semantic.views`); ``{}``: any value."""</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="nf">to_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -911,6 +919,12 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">==</span> <span class="s2">"log"</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">/</span> <span class="n">a</span><span class="p">)</span> <span class="o">**</span> <span class="n">u</span>
         <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span></div>
+
+
+<div class="viewcode-block" id="NumberKind.value_schema">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.NumberKind.value_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="NumberKind.check">
@@ -957,6 +971,12 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">u</span></div>
 
 
+<div class="viewcode-block" id="AngleKind.value_schema">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.AngleKind.value_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">}</span></div>
+
+
 <div class="viewcode-block" id="AngleKind.check">
 <a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.AngleKind.check">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -1001,6 +1021,12 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">u</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">b</span>
         <span class="k">return</span> <span class="n">_vector_lerp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VectorKind.value_schema">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.VectorKind.value_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span> <span class="s2">"items"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">}}</span></div>
 
 
 <div class="viewcode-block" id="VectorKind.check">
@@ -1054,6 +1080,18 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">u</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">b</span>
         <span class="k">return</span> <span class="n">slerp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QuaternionKind.value_schema">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.QuaternionKind.value_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">QUATERNION_LENGTH</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span>
+            <span class="s2">"items"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">},</span>
+            <span class="s2">"minItems"</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>
+            <span class="s2">"maxItems"</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span>
+        <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="QuaternionKind.check">
@@ -1162,6 +1200,40 @@ window.runMermaid = runMermaid;</script>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="k">if</span> <span class="n">switched</span> <span class="k">else</span> <span class="n">p</span>
         <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="OrbitKind.value_schema">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.kinds.html#an.timing.OrbitKind.value_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The orbit's shape, the ONE declaration a view space reads (an#788).</span>
+
+<span class="sd">        &gt;&gt;&gt; sorted(OrbitKind().value_schema()["properties"]), OrbitKind().value_schema()["required"]</span>
+<span class="sd">        (['azimuth', 'distance', 'elevation', 'target'], ['azimuth', 'elevation', 'distance'])</span>
+<span class="sd">        """</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">}</span>
+        <span class="n">pole</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">period</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"azimuth"</span><span class="p">:</span> <span class="p">{</span><span class="o">**</span><span class="n">angle</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"around the target (shortest arc)"</span><span class="p">},</span>
+            <span class="s2">"elevation"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="o">**</span><span class="n">angle</span><span class="p">,</span>
+                <span class="s2">"minimum"</span><span class="p">:</span> <span class="o">-</span><span class="n">pole</span><span class="p">,</span>
+                <span class="s2">"maximum"</span><span class="p">:</span> <span class="n">pole</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"above the target's horizon, within the poles"</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"distance"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span>
+                <span class="s2">"exclusiveMinimum"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"scene units"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"from the target (interpolated in log)"</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"target"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span>
+                <span class="s2">"items"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">},</span>
+                <span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"scene units"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"what the camera looks at"</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span> <span class="s2">"properties"</span><span class="p">:</span> <span class="n">members</span><span class="p">,</span> <span class="s2">"required"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">ORBIT_KEYS</span><span class="p">)}</span></div>
 
 
 <div class="viewcode-block" id="OrbitKind.check">

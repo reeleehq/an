@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=d3888001"></script>
+    <script src="../_static/documentation_options.js?v=f93347db"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.419" />
+  <meta name="docsearch:version" content="0.1.420" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -911,6 +911,18 @@ angles are not re-normalised (350 -&gt; 10 passes through 360).</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="an.timing.AngleKind.value_schema">
+<span class="sig-name descname"><span class="pre">value_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/kinds.html#AngleKind.value_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.AngleKind.value_schema" title="Link to this definition">#</a></dt>
+<dd><p>The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states (<a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.semantic.views</span></code></a>); <code class="docutils literal notranslate"><span class="pre">{}</span></code>: any value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1069,6 +1081,18 @@ contract does (<code class="docutils literal notranslate"><span class="pre">{&qu
 <dd><p>True when the value (or part of it) switches on TIME rather than moving.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="an.timing.FieldKind.value_schema">
+<span class="sig-name descname"><span class="pre">value_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/kinds.html#FieldKind.value_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.FieldKind.value_schema" title="Link to this definition">#</a></dt>
+<dd><p>The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states (<a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.semantic.views</span></code></a>); <code class="docutils literal notranslate"><span class="pre">{}</span></code>: any value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py exception">
@@ -1128,6 +1152,18 @@ bit-identical to what <code class="docutils literal notranslate"><span class="pr
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="an.timing.NumberKind.value_schema">
+<span class="sig-name descname"><span class="pre">value_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/kinds.html#NumberKind.value_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.NumberKind.value_schema" title="Link to this definition">#</a></dt>
+<dd><p>The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states (<a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.semantic.views</span></code></a>); <code class="docutils literal notranslate"><span class="pre">{}</span></code>: any value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1167,6 +1203,21 @@ address never reaches inside it.</p>
 <dt class="sig sig-object py" id="an.timing.OrbitKind.switches">
 <span class="sig-name descname"><span class="pre">switches</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.15)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.timing.OrbitKind.switches" title="Link to this definition">#</a></dt>
 <dd><p>True when the value (or part of it) switches on TIME rather than moving.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.timing.OrbitKind.value_schema">
+<span class="sig-name descname"><span class="pre">value_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/kinds.html#OrbitKind.value_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.OrbitKind.value_schema" title="Link to this definition">#</a></dt>
+<dd><p>The orbit’s shape, the ONE declaration a view space reads (an#788).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">OrbitKind</span><span class="p">()</span><span class="o">.</span><span class="n">value_schema</span><span class="p">()[</span><span class="s2">"properties"</span><span class="p">]),</span> <span class="n">OrbitKind</span><span class="p">()</span><span class="o">.</span><span class="n">value_schema</span><span class="p">()[</span><span class="s2">"required"</span><span class="p">]</span>
+<span class="go">(['azimuth', 'distance', 'elevation', 'target'], ['azimuth', 'elevation', 'distance'])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1237,6 +1288,18 @@ address never reaches inside it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.timing.QuaternionKind.value_schema">
+<span class="sig-name descname"><span class="pre">value_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/kinds.html#QuaternionKind.value_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.QuaternionKind.value_schema" title="Link to this definition">#</a></dt>
+<dd><p>The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states (<a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.semantic.views</span></code></a>); <code class="docutils literal notranslate"><span class="pre">{}</span></code>: any value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1334,6 +1397,18 @@ runtime can use it to scope rendering); evaluation does not filter by it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.timing.VectorKind.value_schema">
+<span class="sig-name descname"><span class="pre">value_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/kinds.html#VectorKind.value_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.VectorKind.value_schema" title="Link to this definition">#</a></dt>
+<dd><p>The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states (<a class="reference internal" href="an.semantic.views.html#module-an.semantic.views" title="an.semantic.views"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.semantic.views</span></code></a>); <code class="docutils literal notranslate"><span class="pre">{}</span></code>: any value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1803,6 +1878,7 @@ the evaluable form”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.AngleKind"><code class="docutils literal notranslate"><span class="pre">AngleKind</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.AngleKind.check"><code class="docutils literal notranslate"><span class="pre">AngleKind.check()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.AngleKind.interpolate"><code class="docutils literal notranslate"><span class="pre">AngleKind.interpolate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.AngleKind.value_schema"><code class="docutils literal notranslate"><span class="pre">AngleKind.value_schema()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.Channel"><code class="docutils literal notranslate"><span class="pre">Channel</span></code></a></li>
@@ -1829,6 +1905,7 @@ the evaluable form”.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.FieldKind.check"><code class="docutils literal notranslate"><span class="pre">FieldKind.check()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.FieldKind.interpolate"><code class="docutils literal notranslate"><span class="pre">FieldKind.interpolate()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.FieldKind.switches"><code class="docutils literal notranslate"><span class="pre">FieldKind.switches</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.FieldKind.value_schema"><code class="docutils literal notranslate"><span class="pre">FieldKind.value_schema()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.FieldKindError"><code class="docutils literal notranslate"><span class="pre">FieldKindError</span></code></a></li>
@@ -1837,12 +1914,14 @@ the evaluable form”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.NumberKind"><code class="docutils literal notranslate"><span class="pre">NumberKind</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.NumberKind.check"><code class="docutils literal notranslate"><span class="pre">NumberKind.check()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.NumberKind.interpolate"><code class="docutils literal notranslate"><span class="pre">NumberKind.interpolate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.NumberKind.value_schema"><code class="docutils literal notranslate"><span class="pre">NumberKind.value_schema()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.OrbitKind"><code class="docutils literal notranslate"><span class="pre">OrbitKind</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.OrbitKind.check"><code class="docutils literal notranslate"><span class="pre">OrbitKind.check()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.OrbitKind.interpolate"><code class="docutils literal notranslate"><span class="pre">OrbitKind.interpolate()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.OrbitKind.switches"><code class="docutils literal notranslate"><span class="pre">OrbitKind.switches</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.OrbitKind.value_schema"><code class="docutils literal notranslate"><span class="pre">OrbitKind.value_schema()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.PlacedClip"><code class="docutils literal notranslate"><span class="pre">PlacedClip</span></code></a><ul class="nav section-nav flex-column">
@@ -1857,6 +1936,7 @@ the evaluable form”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.QuaternionKind"><code class="docutils literal notranslate"><span class="pre">QuaternionKind</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.QuaternionKind.check"><code class="docutils literal notranslate"><span class="pre">QuaternionKind.check()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.QuaternionKind.interpolate"><code class="docutils literal notranslate"><span class="pre">QuaternionKind.interpolate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.QuaternionKind.value_schema"><code class="docutils literal notranslate"><span class="pre">QuaternionKind.value_schema()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.Segment"><code class="docutils literal notranslate"><span class="pre">Segment</span></code></a><ul class="nav section-nav flex-column">
@@ -1870,6 +1950,7 @@ the evaluable form”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.VectorKind"><code class="docutils literal notranslate"><span class="pre">VectorKind</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.VectorKind.check"><code class="docutils literal notranslate"><span class="pre">VectorKind.check()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.VectorKind.interpolate"><code class="docutils literal notranslate"><span class="pre">VectorKind.interpolate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.VectorKind.value_schema"><code class="docutils literal notranslate"><span class="pre">VectorKind.value_schema()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.apply_easing"><code class="docutils literal notranslate"><span class="pre">apply_easing()</span></code></a></li>

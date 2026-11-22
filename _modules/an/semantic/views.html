@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=d3888001"></script>
+    <script src="../../../_static/documentation_options.js?v=f93347db"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.419" />
+  <meta name="docsearch:version" content="0.1.420" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -753,6 +753,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"FRAMING_2D"</span><span class="p">,</span>
     <span class="s2">"MULTIPLANE"</span><span class="p">,</span>
     <span class="s2">"ORBIT_3D"</span><span class="p">,</span>
+    <span class="s2">"ORBIT_DECL"</span><span class="p">,</span>
     <span class="s2">"ViewField"</span><span class="p">,</span>
     <span class="s2">"ViewSpace"</span><span class="p">,</span>
     <span class="s2">"view_space"</span><span class="p">,</span>
@@ -767,25 +768,98 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.semantic.views.html#an.semantic.views.ViewField">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ViewField</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""One axis of a view space: its name, unit, how it interpolates, its rest value."""</span>
+<span class="w">    </span><span class="sd">"""One axis of a view space: its name, unit, how it interpolates, its rest value.</span>
+
+<span class="sd">    A scalar axis says how it interpolates with ``scale``; an axis whose value</span>
+<span class="sd">    is not one number (an orbit, a colour, a vector) carries its field</span>
+<span class="sd">    ``kind`` (:mod:`an.timing.kinds`) instead, built from the property</span>
+<span class="sd">    declaration it shares with an engine's property space</span>
+<span class="sd">    (:meth:`from_decl`), so the two are one thing (an#788).</span>
+<span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">scale</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"linear"</span>
-    <span class="n">rest</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># an an.timing.kinds.FieldKind, or None for a scalar</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SCALES</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"view field </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: scale must be one of </span><span class="si">{</span><span class="n">SCALES</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">!=</span> <span class="s2">"linear"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"view field </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: a field with a kind interpolates by its kind; "</span>
+                <span class="sa">f</span><span class="s2">"drop scale=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="ViewField.from_decl">
+<a class="viewcode-back" href="../../../_autosummary/an.semantic.views.html#an.semantic.views.ViewField.from_decl">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_decl</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">decl</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ViewField"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The view field a property declaration (:class:`an.timing.spaces.FieldDecl`)</span>
+<span class="sd">        makes: its name, kind, unit and description, at ``rest``."""</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">decl</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
+            <span class="n">decl</span><span class="o">.</span><span class="n">unit</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">decl</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="n">decl</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">field_kind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The field kind that interpolates this axis: its own, else the one its</span>
+<span class="sd">        ``scale`` names (``linear`` and ``log`` numbers, a shortest-arc angle).</span>
+
+<span class="sd">        &gt;&gt;&gt; ViewField("zoom", "ratio", "log").field_kind</span>
+<span class="sd">        NumberKind(space='log')</span>
+<span class="sd">        &gt;&gt;&gt; ViewField("roll", "rad", "angle").field_kind</span>
+<span class="sd">        AngleKind(unit='rad', wrap=True)</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANGLE_UNITS</span><span class="p">,</span> <span class="n">AngleKind</span><span class="p">,</span> <span class="n">NumberKind</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">==</span> <span class="s2">"angle"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ANGLE_UNITS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"view field </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: an angle's unit must be one of </span><span class="si">{</span><span class="n">ANGLE_UNITS</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">!r}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">AngleKind</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">NumberKind</span><span class="p">(</span><span class="n">space</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ViewField.decl">
+<a class="viewcode-back" href="../../../_autosummary/an.semantic.views.html#an.semantic.views.ViewField.decl">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""This axis as a property declaration (:class:`an.timing.spaces.FieldDecl`)."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldDecl</span>
+
+        <span class="k">return</span> <span class="n">FieldDecl</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_kind</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span>
-            <span class="s2">"unit"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
-            <span class="s2">"scale"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
-            <span class="s2">"default"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
-        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">value_schema</span><span class="p">(),</span>
+                <span class="s2">"kind"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">to_spec</span><span class="p">(),</span>
+                <span class="s2">"unit"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">,</span>
+                <span class="s2">"unit"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                <span class="s2">"scale"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+            <span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">"description"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
         <span class="k">return</span> <span class="n">out</span></div>
@@ -800,10 +874,30 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">entry</span><span class="p">:</span> <span class="n">Entry</span>
     <span class="n">capability</span><span class="p">:</span> <span class="n">Capability</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ViewField</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">requirement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span>
+
+<div class="viewcode-block" id="ViewSpace.property_space">
+<a class="viewcode-back" href="../../../_autosummary/an.semantic.views.html#an.semantic.views.ViewSpace.property_space">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">property_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The space as an engine's property space (:class:`an.timing.spaces.PropertySpace`,</span>
+<span class="sd">        ``view.&lt;name&gt;``): each axis's declaration, the one an engine whose state</span>
+<span class="sd">        this view space moves registers (an#788).</span>
+
+<span class="sd">        &gt;&gt;&gt; [(d.pattern, d.kind.to_spec()) for d in ORBIT_3D.property_space().fields]</span>
+<span class="sd">        [('orbit', {'kind': 'orbit'})]</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">PropertySpace</span>
+
+        <span class="k">return</span> <span class="n">PropertySpace</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">decl</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">),</span>
+            <span class="n">description</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
 
 
 
@@ -828,7 +922,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
-        <span class="n">usage</span><span class="o">=</span><span class="s2">"axes: "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">scale</span><span class="si">}</span><span class="s2">)"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">),</span>
+        <span class="n">usage</span><span class="o">=</span><span class="s2">"axes: "</span>
+        <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">f</span><span class="o">.</span><span class="n">kind</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">f</span><span class="o">.</span><span class="n">scale</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span>
+        <span class="p">),</span>
         <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span> <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">schema</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">}},</span>
         <span class="n">levels</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"a"</span><span class="p">}),</span>
     <span class="p">)</span>
@@ -838,7 +936,7 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s2">"render with an engine that lowers the </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> view space"</span><span class="p">,</span>
         <span class="n">subject</span><span class="o">=</span><span class="s2">"engine"</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">ViewSpace</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">capability</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">ViewSpace</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">capability</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span></div>
 
 
 
@@ -874,20 +972,45 @@ window.runMermaid = runMermaid;</script>
     <span class="n">description</span><span class="o">=</span><span class="s2">"a 2D framing that also travels in depth through planes (a dolly)"</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="c1">#: The 3D orbit space: a camera on a sphere around a target (previz's turntable).</span>
+
+<span class="c1">#: The orbit camera, declared ONCE (an#788): the field kind the timing kernel</span>
+<span class="c1">#: interpolates (:class:`an.timing.kinds.OrbitKind`, degrees, as previz's camera</span>
+<span class="c1">#: field), and the one axis of the ``orbit3d`` view space. An engine whose state</span>
+<span class="c1">#: an orbit moves registers it in its property space</span>
+<span class="c1">#: (``ORBIT_3D.property_space()``).</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_orbit_decl</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrbitKind</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldDecl</span>
+
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">OrbitKind</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">FieldDecl</span><span class="p">(</span>
+        <span class="s2">"orbit"</span><span class="p">,</span>
+        <span class="n">kind</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>  <span class="c1"># its angles' unit; distance and target say theirs in the schema</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"a camera on a sphere around its target: {azimuth, elevation, distance, target?}"</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="n">ORBIT_DECL</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">_orbit_decl</span><span class="p">()</span>
+
+<span class="c1">#: The 3D orbit space: a camera on a sphere around a target (previz's turntable),</span>
+<span class="c1">#: one ``orbit`` value, version 2 (version 1 split it into radian scalars and a</span>
+<span class="c1">#: flattened target, which matched neither the kernel's kind nor previz).</span>
 <span class="n">ORBIT_3D</span><span class="p">:</span> <span class="n">ViewSpace</span> <span class="o">=</span> <span class="n">view_space</span><span class="p">(</span>
     <span class="s2">"orbit3d"</span><span class="p">,</span>
     <span class="p">(</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"azimuth"</span><span class="p">,</span> <span class="s2">"rad"</span><span class="p">,</span> <span class="s2">"angle"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"around the target"</span><span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span>
-            <span class="s2">"elevation"</span><span class="p">,</span> <span class="s2">"rad"</span><span class="p">,</span> <span class="s2">"angle"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"above the target's horizon"</span>
+        <span class="n">ViewField</span><span class="o">.</span><span class="n">from_decl</span><span class="p">(</span>
+            <span class="n">ORBIT_DECL</span><span class="p">,</span>
+            <span class="n">rest</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">"azimuth"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"elevation"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"distance"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s2">"target"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+            <span class="p">},</span>
         <span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"distance"</span><span class="p">,</span> <span class="s2">"scene units"</span><span class="p">,</span> <span class="s2">"log"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"from the target"</span><span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"target_x"</span><span class="p">,</span> <span class="s2">"scene units"</span><span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"target_y"</span><span class="p">,</span> <span class="s2">"scene units"</span><span class="p">),</span>
-        <span class="n">ViewField</span><span class="p">(</span><span class="s2">"target_z"</span><span class="p">,</span> <span class="s2">"scene units"</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">"an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)"</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="s2">"2"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1">#: The view spaces the core declares (registered by :mod:`an.semantic.seeds`).</span>

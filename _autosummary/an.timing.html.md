@@ -145,6 +145,14 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### *class* an.timing.Channel(target, property, keyframes=list())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -256,6 +264,14 @@ The value between keys `a` and `b` at eased progress `u`.
 
 True when the value (or part of it) switches on TIME rather than moving.
 
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### *exception* an.timing.FieldKindError
 
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
@@ -301,6 +317,14 @@ The value between keys `a` and `b` at eased progress `u`.
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
 ### *class* an.timing.OrbitKind(unit='deg')
 
 Bases: [`FieldKind`](an.timing.kinds.html.md#an.timing.kinds.FieldKind)
@@ -329,6 +353,18 @@ The value between keys `a` and `b` at eased progress `u`.
 #### switches *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[[bool](https://docs.python.org/3/builtins/functions.html#bool)]* *= True*
 
 True when the value (or part of it) switches on TIME rather than moving.
+
+#### value_schema()
+
+The orbit’s shape, the ONE declaration a view space reads (an#788).
+
+```pycon
+>>> sorted(OrbitKind().value_schema()["properties"]), OrbitKind().value_schema()["required"]
+(['azimuth', 'distance', 'elevation', 'target'], ['azimuth', 'elevation', 'distance'])
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.timing.PlacedClip(clip, start_time=0.0, duration=None, speed=1.0, blend_in=0.0, blend_out=0.0)
 
@@ -376,6 +412,14 @@ The value between keys `a` and `b` at eased progress `u`.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### *class* an.timing.Segment(t, start, end)
 
@@ -450,6 +494,14 @@ The value between keys `a` and `b` at eased progress `u`.
 
 * **Return type:**
   [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### value_schema()
+
+The JSON schema of one value of this kind (its shape and unit), what a
+view space’s field states ([`an.semantic.views`](an.semantic.views.html.md#module-an.semantic.views)); `{}`: any value.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.timing.apply_easing(spec, t, , names=None, calls=())
 
