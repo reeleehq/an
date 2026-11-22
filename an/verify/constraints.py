@@ -113,6 +113,7 @@ __all__ = [
     "OBJECT_PERMANENCE",
     "HELD_ITEM",
     "RIGIDITY",
+    "LETTERING",
     "MOTION_STYLE",
     "GRAVITY",
     "gravity_of",
@@ -2236,6 +2237,91 @@ LIGHT = Constraint(
 )
 
 
+# -----------------------------------------------------------------------------
+# lettering (an#819): art with lettering never reads backwards
+# -----------------------------------------------------------------------------
+
+
+def check_lettering(ctx: Any) -> None:
+    """The core's ``lettering`` check (an#819): a member whose art declares
+    ``metadata.lettering: true`` and is drawn mirrored on the set (its own or a
+    parent's mirror: carried, placed, fallen, flipped by hand) reads backwards
+    unless the ``mirror_states`` pass swapped that drawing to its mirror state:
+    one warning per member, saying from when. The drawings judged are those a
+    declared mirror state applies to (its lettered ones), or every drawing of
+    art that declares none (a one-drawing sign included). A shot the stage
+    does not draw, or that does not compile, is not judged."""
+    from an.stage.mirror_states import (
+        applicable_pairs,
+        declares_lettering,
+        drawing_states,
+        mirror_channel_targets,
+        mirror_states_of,
+    )
+    from an.stage.solve import _node_index, frame_times
+
+    def store_doc(e):
+        return ((ctx.stores or {}).get(e.store) or {}).get(e.ref) if e.store else None
+
+    declared = [
+        (e, doc) for e in ctx.shot.entities if declares_lettering(doc := store_doc(e))
+    ]
+    if not declared:
+        return
+    doc = compiled_shot(ctx)
+    if doc is None:
+        return
+    times = frame_times(ctx.shot.duration, fps=doc.meta.fps, step_hz=doc.meta.step_hz)
+    swapped = mirror_channel_targets(doc)
+    nodes = _node_index(doc)
+    for e, art in declared:
+        try:
+            states = mirror_states_of(art)
+        except ValueError:
+            continue  # malformed: the compile refused it, `not_compiled` says so
+
+        def pairs(s):
+            sets = nodes[s.path].visual.asset_sets or {}
+            return applicable_pairs(states, sets.get(s.swap_set, ()))
+
+        def lettered(s):
+            if not states:
+                return True
+            sets = nodes[s.path].visual.asset_sets or {}
+            return any(applicable_pairs(states, keys) for keys in sets.values())
+
+        def reads(s):  # swapped by the pass to a mirror drawing
+            return (s.path, s.swap_set) in swapped and s.key in pairs(s).values()
+
+        backwards = next(
+            (
+                s
+                for s in drawing_states(doc, e.id, times, swap_sets_only=False)
+                if s.mirrored and lettered(s) and not reads(s)
+            ),
+            None,
+        )
+        if backwards is None:
+            continue
+        shown = f"drawing {backwards.key!r}" if backwards.key else f"drawing {backwards.path!r}"
+        ctx.report.add(
+            "warning",
+            f"{ctx.path}/entities",
+            f"{e.id!r} has lettering and is drawn mirrored from {backwards.t:.2f} s "
+            f"showing {shown}, with no mirror state swapped in: it reads backwards. "
+            "Give the art a drawing with the lettering flipped back, in the same swap "
+            f"set, and declare it (`metadata.mirror_states: {{{backwards.key or '<key>'}: "
+            "<its mirror key>}`), or keep the member from being mirrored.",
+        )
+
+
+LETTERING = Constraint(
+    "lettering",
+    check_lettering,
+    description="art that declares lettering is never drawn mirrored without its mirror drawing (an#819)",
+)
+
+
 #: The core's constraints, in the order their checks run within a stage.
 CONSTRAINTS: tuple[Constraint, ...] = (
     CONTINUITY,
@@ -2250,6 +2336,7 @@ CONSTRAINTS: tuple[Constraint, ...] = (
     CAUSALITY,
     CUE_EVENT,
     LIGHT,
+    LETTERING,
 )
 
 
