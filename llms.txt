@@ -180,6 +180,7 @@
 - [an.stage.fidelity](_autosummary/an.stage.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
 - [an.stage.gradients](_autosummary/an.stage.gradients.html.md): Gradient fills on the stage: a &#96;Gradient&#96; drawn as an inline SVG texture.
 - [an.stage.hold](_autosummary/an.stage.hold.html.md): The hold layer: what carries each item, frame by frame, and the hands that move it (an#502, catalogu...
+- [an.stage.mirror_states](_autosummary/an.stage.mirror_states.html.md): Mirror states (an#819): the drawing art uses when it is drawn mirrored.
 - [an.stage.path_geometry](_autosummary/an.stage.path_geometry.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
 - [an.stage.path_wobble](_autosummary/an.stage.path_wobble.html.md): A hand-drawn wobble for stroked paths, applied at compile time (an#161).
 - [an.stage.paths](_autosummary/an.stage.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
@@ -246,7 +247,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 09:07 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 09:27 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

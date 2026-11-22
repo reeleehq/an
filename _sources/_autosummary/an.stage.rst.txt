@@ -31,6 +31,7 @@ an.stage
    fidelity
    gradients
    hold
+   mirror_states
    path_geometry
    path_wobble
    paths

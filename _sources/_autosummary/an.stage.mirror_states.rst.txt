@@ -1,0 +1,43 @@
+an.stage.mirror\_states
+=======================
+
+.. automodule:: an.stage.mirror_states
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      MIRROR_STATES_KEY
+      LETTERING_KEY
+      ART_METADATA_KEY
+      MIRROR_STATES_ORDER
+      MIRROR_TRACK
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      applicable_pairs
+      art_metadata
+      declares_lettering
+      drawing_states
+      is_mirrored
+      mirror_channel_targets
+      mirror_channels
+      mirror_states_of
+      mirror_states_pass
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DrawingState
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MirrorStatesError
+      MirrorStatesWarning
+   

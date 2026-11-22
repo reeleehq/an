@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=fb25779e"></script>
+    <script src="../../../_static/documentation_options.js?v=133fd45c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.407" />
+  <meta name="docsearch:version" content="0.1.408" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -827,6 +827,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"OBJECT_PERMANENCE"</span><span class="p">,</span>
     <span class="s2">"HELD_ITEM"</span><span class="p">,</span>
     <span class="s2">"RIGIDITY"</span><span class="p">,</span>
+    <span class="s2">"LETTERING"</span><span class="p">,</span>
     <span class="s2">"MOTION_STYLE"</span><span class="p">,</span>
     <span class="s2">"GRAVITY"</span><span class="p">,</span>
     <span class="s2">"gravity_of"</span><span class="p">,</span>
@@ -3016,6 +3017,95 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># lettering (an#819): art with lettering never reads backwards</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_lettering</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's ``lettering`` check (an#819): a member whose art declares</span>
+<span class="sd">    ``metadata.lettering: true`` and is drawn mirrored on the set (its own or a</span>
+<span class="sd">    parent's mirror: carried, placed, fallen, flipped by hand) reads backwards</span>
+<span class="sd">    unless the ``mirror_states`` pass swapped that drawing to its mirror state:</span>
+<span class="sd">    one warning per member, saying from when. The drawings judged are those a</span>
+<span class="sd">    declared mirror state applies to (its lettered ones), or every drawing of</span>
+<span class="sd">    art that declares none (a one-drawing sign included). A shot the stage</span>
+<span class="sd">    does not draw, or that does not compile, is not judged."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.mirror_states</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">applicable_pairs</span><span class="p">,</span>
+        <span class="n">declares_lettering</span><span class="p">,</span>
+        <span class="n">drawing_states</span><span class="p">,</span>
+        <span class="n">mirror_channel_targets</span><span class="p">,</span>
+        <span class="n">mirror_states_of</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_node_index</span><span class="p">,</span> <span class="n">frame_times</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">store_doc</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">store</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">ref</span><span class="p">)</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">store</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="n">declared</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">declares_lettering</span><span class="p">(</span><span class="n">doc</span> <span class="o">:=</span> <span class="n">store_doc</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">frame_times</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">step_hz</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">)</span>
+    <span class="n">swapped</span> <span class="o">=</span> <span class="n">mirror_channel_targets</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">_node_index</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">art</span> <span class="ow">in</span> <span class="n">declared</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">states</span> <span class="o">=</span> <span class="n">mirror_states_of</span><span class="p">(</span><span class="n">art</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># malformed: the compile refused it, `not_compiled` says so</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">pairs</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="n">sets</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">asset_sets</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="k">return</span> <span class="n">applicable_pairs</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">swap_set</span><span class="p">,</span> <span class="p">()))</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">lettered</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">states</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">sets</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">asset_sets</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">applicable_pairs</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span> <span class="k">for</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">sets</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">reads</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="c1"># swapped by the pass to a mirror drawing</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">swap_set</span><span class="p">)</span> <span class="ow">in</span> <span class="n">swapped</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+        <span class="n">backwards</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">s</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">drawing_states</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">swap_sets_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">mirrored</span> <span class="ow">and</span> <span class="n">lettered</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">reads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">backwards</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">shown</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"drawing </span><span class="si">{</span><span class="n">backwards</span><span class="o">.</span><span class="n">key</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="n">backwards</span><span class="o">.</span><span class="n">key</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"drawing </span><span class="si">{</span><span class="n">backwards</span><span class="o">.</span><span class="n">path</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> has lettering and is drawn mirrored from </span><span class="si">{</span><span class="n">backwards</span><span class="o">.</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s "</span>
+            <span class="sa">f</span><span class="s2">"showing </span><span class="si">{</span><span class="n">shown</span><span class="si">}</span><span class="s2">, with no mirror state swapped in: it reads backwards. "</span>
+            <span class="s2">"Give the art a drawing with the lettering flipped back, in the same swap "</span>
+            <span class="sa">f</span><span class="s2">"set, and declare it (`metadata.mirror_states: </span><span class="se">{{</span><span class="si">{</span><span class="n">backwards</span><span class="o">.</span><span class="n">key</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'&lt;key&gt;'</span><span class="si">}</span><span class="s2">: "</span>
+            <span class="s2">"&lt;its mirror key&gt;}`), or keep the member from being mirrored."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="n">LETTERING</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
+    <span class="s2">"lettering"</span><span class="p">,</span>
+    <span class="n">check_lettering</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"art that declares lettering is never drawn mirrored without its mirror drawing (an#819)"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
 <span class="c1">#: The core's constraints, in the order their checks run within a stage.</span>
 <span class="n">CONSTRAINTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Constraint</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">CONTINUITY</span><span class="p">,</span>
@@ -3030,6 +3120,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">CAUSALITY</span><span class="p">,</span>
     <span class="n">CUE_EVENT</span><span class="p">,</span>
     <span class="n">LIGHT</span><span class="p">,</span>
+    <span class="n">LETTERING</span><span class="p">,</span>
 <span class="p">)</span>
 
 
