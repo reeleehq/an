@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../_static/documentation_options.js?v=54633717"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.dialogue.html">an.ir.dialogue</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
@@ -830,7 +831,7 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Captions" title="an.ir.schema.Captions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Captions</span></code></a>(*[, burn, sidecar, max_chars, ...])</p></td>
 <td><p>Captions for the whole film, built from the dialogue's word timings.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(*, when[, reaches, event, nth, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.CueAnchor" title="an.ir.schema.CueAnchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueAnchor</span></code></a>(*, when[, reaches, event, ...])</p></td>
 <td><p>A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column, or when an item's hold event happens.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.CueUntil" title="an.ir.schema.CueUntil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CueUntil</span></code></a>(*, cue[, offset])</p></td>
@@ -1350,7 +1351,7 @@ over its duration, with a warning; <code class="docutils literal notranslate"><s
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.CueAnchor">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CueAnchor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">when</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reaches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CueAnchor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CueAnchor" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">CueAnchor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">when</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reaches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CueAnchor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CueAnchor" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
 <p>A sound cue’s time, taken from the picture (an#317): when a node reaches
 a frame row or column, or when an item’s hold event happens.</p>
@@ -1367,6 +1368,12 @@ shot’s hold report records it (<a class="reference internal" href="an.stage.ho
 floor), <code class="docutils literal notranslate"><span class="pre">bounce</span></code>, <code class="docutils literal notranslate"><span class="pre">rest</span></code>; <code class="docutils literal notranslate"><span class="pre">nth</span></code> picks the n-th such event (1: the
 first). The swap’s clink is <code class="docutils literal notranslate"><span class="pre">{when:</span> <span class="pre">sabre,</span> <span class="pre">event:</span> <span class="pre">place}</span></code>; the drop’s
 thud <code class="docutils literal notranslate"><span class="pre">{when:</span> <span class="pre">musket,</span> <span class="pre">event:</span> <span class="pre">land}</span></code>.</p>
+<p><strong>An authored change</strong> (an#815): <code class="docutils literal notranslate"><span class="pre">when</span></code> is the node a <code class="docutils literal notranslate"><span class="pre">set</span></code> or a
+<code class="docutils literal notranslate"><span class="pre">tween</span></code> of the shot targets and <code class="docutils literal notranslate"><span class="pre">changes</span></code> the property it changes;
+<code class="docutils literal notranslate"><span class="pre">to</span></code> (optional) the value it changes it to. The anchor is the instant of
+the <code class="docutils literal notranslate"><span class="pre">nth</span></code> such action in the shot’s own actions (a <code class="docutils literal notranslate"><span class="pre">set</span></code>’s <code class="docutils literal notranslate"><span class="pre">at</span></code>, a
+<code class="docutils literal notranslate"><span class="pre">tween</span></code>’s start), so a page-turn sound follows the page wherever its
+<code class="docutils literal notranslate"><span class="pre">set</span></code> is retimed: <code class="docutils literal notranslate"><span class="pre">{when:</span> <span class="pre">book/body,</span> <span class="pre">changes:</span> <span class="pre">state,</span> <span class="pre">to:</span> <span class="pre">page_l}</span></code>.</p>
 <p>Resolved when the film is laid out, never written back into the scene: a
 layout or timing change moves the sound with the picture. <code class="docutils literal notranslate"><span class="pre">offset</span></code> is
 added after. <code class="docutils literal notranslate"><span class="pre">shot</span></code> names the shot to look in, for a cue in
@@ -1377,6 +1384,8 @@ added after. <code class="docutils literal notranslate"><span class="pre">shot</
 <span class="go">'musket land'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">CueAnchor</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="s2">"musket"</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s2">"land"</span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
 <span class="go">{'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">CueAnchor</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="s2">"book/body"</span><span class="p">,</span> <span class="n">changes</span><span class="o">=</span><span class="s2">"state"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="s2">"page_l"</span><span class="p">)</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+<span class="go">'book/body state to page_l'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1387,10 +1396,17 @@ added after. <code class="docutils literal notranslate"><span class="pre">shot</
 <dd><p><code class="docutils literal notranslate"><span class="pre">(axis,</span> <span class="pre">pixels)</span></code> of a crossing.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CueAnchor.changes">
+<span class="sig-name descname"><span class="pre">changes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.CueAnchor.changes" title="Link to this definition">#</a></dt>
+<dd><p>The property whose authored change (a <code class="docutils literal notranslate"><span class="pre">set</span></code>, a <code class="docutils literal notranslate"><span class="pre">tween</span></code>) is the anchor.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="an.ir.schema.CueAnchor.describe">
 <span class="sig-name descname"><span class="pre">describe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#CueAnchor.describe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.CueAnchor.describe" title="Link to this definition">#</a></dt>
-<dd><p>The anchor in words, for a finding: <code class="docutils literal notranslate"><span class="pre">crawl/line_7</span> <span class="pre">reached</span> <span class="pre">y=840</span></code>, <code class="docutils literal notranslate"><span class="pre">musket</span> <span class="pre">land</span></code>.</p>
+<dd><p>The anchor in words, for a finding: <code class="docutils literal notranslate"><span class="pre">crawl/line_7</span> <span class="pre">reached</span> <span class="pre">y=840</span></code>,
+<code class="docutils literal notranslate"><span class="pre">musket</span> <span class="pre">land</span></code>, <code class="docutils literal notranslate"><span class="pre">book/body</span> <span class="pre">state</span> <span class="pre">to</span> <span class="pre">page_l</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -1402,6 +1418,17 @@ added after. <code class="docutils literal notranslate"><span class="pre">shot</
 <dt class="sig sig-object py" id="an.ir.schema.CueAnchor.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.15)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.CueAnchor.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.CueAnchor.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span><a class="headerlink" href="#an.ir.schema.CueAnchor.to" title="Link to this definition">#</a></dt>
+<dd><p>only a change to this value counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>With <code class="docutils literal notranslate"><span class="pre">changes</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3311,8 +3338,10 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor"><code class="docutils literal notranslate"><span class="pre">CueAnchor</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.axis"><code class="docutils literal notranslate"><span class="pre">CueAnchor.axis</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.changes"><code class="docutils literal notranslate"><span class="pre">CueAnchor.changes</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.describe"><code class="docutils literal notranslate"><span class="pre">CueAnchor.describe()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.model_config"><code class="docutils literal notranslate"><span class="pre">CueAnchor.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueAnchor.to"><code class="docutils literal notranslate"><span class="pre">CueAnchor.to</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.CueUntil"><code class="docutils literal notranslate"><span class="pre">CueUntil</span></code></a><ul class="nav section-nav flex-column">

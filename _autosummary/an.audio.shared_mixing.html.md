@@ -9,6 +9,12 @@ of that failure, used around the lazy imports in [`an.audio.loudness`](an.audio.
 imports themselves stay written out where they are, so the licence firewall
 (`tests/test_captions.py::test_an_never_imports_mixing`) still reads them.
 
+A keyword `an` passes cannot be found by importing a name: an older function
+takes the call and fails on it. [`lacks_keywords()`](#an.audio.shared_mixing.lacks_keywords) asks the function’s
+signature instead (`level_group(subject=)`, mixing#171, an#765), and
+[`mixing_problem()`](#an.audio.shared_mixing.mixing_problem) and [`an.audio.loudness`](an.audio.loudness.html.md#module-an.audio.loudness) word a missing one as a
+`mixing` too old, like a missing part.
+
 ```pycon
 >>> with mixing_too_old(needed_for="testing", error=RuntimeError):
 ...     from mixing import no_such_part
@@ -29,16 +35,19 @@ RuntimeError: testing needs mixing.loudness.no_such_name, which the installed mi
 
 ### Module Attributes
 
-| [`MIXING`](#an.audio.shared_mixing.MIXING)       | The package, and what the user runs when theirs predates a part `an` needs.   |
-|---------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [`INSTALL_HINT`](#an.audio.shared_mixing.INSTALL_HINT) |                                                                               |
+| [`MIXING`](#an.audio.shared_mixing.MIXING)               | The package, and what the user runs when theirs predates a part `an` needs.   |
+|-----------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`INSTALL_HINT`](#an.audio.shared_mixing.INSTALL_HINT)         |                                                                               |
+| [`LEVEL_GROUP_KEYWORDS`](#an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS) | `subject` names the voice in its `GainCappedWarning` (mixing#171, an#765).    |
 
 ### Functions
 
-| [`mixing_problem`](#an.audio.shared_mixing.mixing_problem)()                      | Why the installed `mixing` cannot serve `an`: a part it uses is missing (`mixing.loudness` with `group_lufs` and `GainCappedWarning`, an#699; `mixing.filtergraph`), or it is absent; `None` when it can.                                                                                                                     |
-|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`mixing_too_old`](#an.audio.shared_mixing.mixing_too_old)(\*, needed_for, error) | Run an import of a part of `mixing`; an `ImportError` becomes `error`, saying the installed `mixing` is too old when it lacks the part, else what failed.                                                                                                                                                                     |
-| [`warn_if_mixing_too_old`](#an.audio.shared_mixing.warn_if_mixing_too_old)()              | Say once per process, before anything is billed, that the installed `mixing` cannot serve `an` ([`mixing_problem()`](#an.audio.shared_mixing.mixing_problem)): the entry points that may bill (a render, `an voices design`, `audition` and `reroll`) call it, so an old `mixing` is not found after synthesis (an#644). |
+| [`keywords_too_old`](#an.audio.shared_mixing.keywords_too_old)(func, keywords, \*, needed_for)   | Why `func` (a function of `mixing`) cannot serve `needed_for`: the keywords of `keywords` it does not take, worded as a `mixing` too old; `None` when it takes them all.                                                                                                                                                      |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`lacks_keywords`](#an.audio.shared_mixing.lacks_keywords)(func, keywords)                     | The `keywords` `func` does not take (none when it takes `**kwargs`, or when its signature cannot be read: the call then says for itself).                                                                                                                                                                                     |
+| [`mixing_problem`](#an.audio.shared_mixing.mixing_problem)()                                   | Why the installed `mixing` cannot serve `an`: a part it uses is missing (`mixing.loudness` with `group_lufs` and `GainCappedWarning`, an#699; `mixing.filtergraph`), a keyword `an` passes is not taken (`level_group(subject=)`, an#765), or it is absent; `None` when it can.                                               |
+| [`mixing_too_old`](#an.audio.shared_mixing.mixing_too_old)(\*, needed_for, error)              | Run an import of a part of `mixing`; an `ImportError` becomes `error`, saying the installed `mixing` is too old when it lacks the part, else what failed.                                                                                                                                                                     |
+| [`warn_if_mixing_too_old`](#an.audio.shared_mixing.warn_if_mixing_too_old)()                           | Say once per process, before anything is billed, that the installed `mixing` cannot serve `an` ([`mixing_problem()`](#an.audio.shared_mixing.mixing_problem)): the entry points that may bill (a render, `an voices design`, `audition` and `reroll`) call it, so an old `mixing` is not found after synthesis (an#644). |
 
 ### Exceptions
 
@@ -48,6 +57,14 @@ RuntimeError: testing needs mixing.loudness.no_such_name, which the installed mi
 ### an.audio.shared_mixing.INSTALL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'pip install mixing'*
 
 … and when it is not installed at all (an install with `--no-deps`).
+
+### an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('subject',)*
+
+`subject`
+names the voice in its `GainCappedWarning` (mixing#171, an#765).
+
+* **Type:**
+  The keywords `an` passes to `mixing.loudness.level_group()`
 
 ### an.audio.shared_mixing.MIXING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'mixing'*
 
@@ -59,11 +76,44 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 The installed `mixing` lacks a part `an` uses (or is absent).
 
+### an.audio.shared_mixing.keywords_too_old(func, keywords, , needed_for)
+
+Why `func` (a function of `mixing`) cannot serve `needed_for`: the
+keywords of `keywords` it does not take, worded as a `mixing` too old;
+`None` when it takes them all.
+
+```pycon
+>>> def level_group(segments, rate): ...
+>>> level_group.__module__ = "mixing.loudness"
+>>> keywords_too_old(level_group, ["subject"], needed_for="testing")
+'testing needs mixing.loudness.level_group(subject=), which the installed mixing is too old to have: `pip install -U mixing`'
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.shared_mixing.lacks_keywords(func, keywords)
+
+The `keywords` `func` does not take (none when it takes `**kwargs`,
+or when its signature cannot be read: the call then says for itself).
+
+```pycon
+>>> def old(segments, rate, *, target_lufs): ...
+>>> lacks_keywords(old, ["target_lufs", "subject"])
+['subject']
+>>> lacks_keywords(lambda *a, **kw: None, ["subject"])
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
 ### an.audio.shared_mixing.mixing_problem()
 
 Why the installed `mixing` cannot serve `an`: a part it uses is
 missing (`mixing.loudness` with `group_lufs` and `GainCappedWarning`,
-an#699; `mixing.filtergraph`), or it is absent;
+an#699; `mixing.filtergraph`), a keyword `an` passes is not taken
+(`level_group(subject=)`, an#765), or it is absent;
 `None` when it can. Asked of the code, not of a version number: an
 editable install’s metadata keeps the version it was installed at (an#644).
 

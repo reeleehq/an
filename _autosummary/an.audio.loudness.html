@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../_static/documentation_options.js?v=54633717"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.dialogue.html">an.ir.dialogue</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
@@ -687,8 +688,8 @@ Without a target, <a class="reference internal" href="#an.audio.loudness.loudnes
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.group_lufs()</span></code> measures a voice’s lines back to back (looped
 to <a class="reference internal" href="#an.audio.loudness.MIN_MEASURE_S" title="an.audio.loudness.MIN_MEASURE_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">MIN_MEASURE_S</span></code></a>, channels kept when they agree), and
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.level_group()</span></code> does the same and caps the gain, its
-<code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code> said again of the voice as a <a class="reference internal" href="#an.audio.loudness.VoiceLoudnessWarning" title="an.audio.loudness.VoiceLoudnessWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudnessWarning</span></code></a>
-(an#699). Lines at another rate than the voice’s highest are resampled to it by
+<code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code> naming the voice (<code class="docutils literal notranslate"><span class="pre">subject=</span></code>, mixing#171) and re-issued
+as a <a class="reference internal" href="#an.audio.loudness.VoiceLoudnessWarning" title="an.audio.loudness.VoiceLoudnessWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceLoudnessWarning</span></code></a> (an#699, an#765). Lines at another rate than the voice’s highest are resampled to it by
 ffmpeg, one call per rate (mixing’s own resampler needs scipy, an#578). The meter injected into both is <a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-data docutils literal notranslate"><span class="pre">METER</span></code></a>, ffmpeg’s
 <code class="docutils literal notranslate"><span class="pre">ebur128</span></code> run by the ffmpeg on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (required: never the pip-bundled build
 <code class="docutils literal notranslate"><span class="pre">mixing</span></code> would otherwise prefer, an#578), so <code class="docutils literal notranslate"><span class="pre">an</span></code> takes no scipy.
@@ -728,7 +729,10 @@ raises <a class="reference internal" href="#an.audio.loudness.VoiceLoudnessError
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.MISS_WARNING_DB" title="an.audio.loudness.MISS_WARNING_DB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MISS_WARNING_DB</span></code></a></p></td>
 <td><p>A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METER</span></code></a>(data, fs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.loudness.DFLT_LEVEL_SUBJECT" title="an.audio.loudness.DFLT_LEVEL_SUBJECT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_LEVEL_SUBJECT</span></code></a></p></td>
+<td><p>What a capped gain's warning names when the caller does not say: <code class="docutils literal notranslate"><span class="pre">mixing.loudness.level_group</span></code>'s own default.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.loudness.METER" title="an.audio.loudness.METER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METER</span></code></a>(data, fs)</p></td>
 <td><p>The loudness meter, <code class="docutils literal notranslate"><span class="pre">(samples,</span> <span class="pre">rate)</span> <span class="pre">-&gt;</span> <span class="pre">LUFS</span></code>, injected into <code class="xref py py-mod docutils literal notranslate"><span class="pre">mixing.loudness</span></code> (looked up at call time, so it can be swapped): ffmpeg's <code class="docutils literal notranslate"><span class="pre">ebur128</span></code> by the PATH ffmpeg, so <code class="docutils literal notranslate"><span class="pre">an</span></code> needs no scipy for <code class="docutils literal notranslate"><span class="pre">mixing</span></code>'s numpy meter.</p></td>
 </tr>
 </tbody>
@@ -797,6 +801,13 @@ raises <a class="reference internal" href="#an.audio.loudness.VoiceLoudnessError
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.loudness.DFLT_LEVEL_SUBJECT">
+<span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">DFLT_LEVEL_SUBJECT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'group'</span></span><a class="headerlink" href="#an.audio.loudness.DFLT_LEVEL_SUBJECT" title="Link to this definition">#</a></dt>
+<dd><p>What a capped gain’s warning names when the caller does not say:
+<code class="docutils literal notranslate"><span class="pre">mixing.loudness.level_group</span></code>’s own default.</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.audio.loudness.GAIN_STEP_DB">
 <span class="sig-prename descclassname"><span class="pre">an.audio.loudness.</span></span><span class="sig-name descname"><span class="pre">GAIN_STEP_DB</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#an.audio.loudness.GAIN_STEP_DB" title="Link to this definition">#</a></dt>
@@ -1112,6 +1123,7 @@ pack (reeleehq/cutan#148).</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.DFLT_LEVEL_SUBJECT"><code class="docutils literal notranslate"><span class="pre">DFLT_LEVEL_SUBJECT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.GAIN_STEP_DB"><code class="docutils literal notranslate"><span class="pre">GAIN_STEP_DB</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.LEVEL_VERSION"><code class="docutils literal notranslate"><span class="pre">LEVEL_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.loudness.LIMITER_WINDOW_S"><code class="docutils literal notranslate"><span class="pre">LIMITER_WINDOW_S</span></code></a></li>

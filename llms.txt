@@ -101,6 +101,7 @@
 - [an.ir.assets](_autosummary/an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
 - [an.ir.camera](_autosummary/an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](_autosummary/an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
+- [an.ir.dialogue](_autosummary/an.ir.dialogue.html.md): Where each dialogue line of a shot will play (an#767): the layout &#96;an validate&#96; and the genres’ chec...
 - [an.ir.events](_autosummary/an.ir.events.html.md): The visible events a compiled shot records, by name: what a sound cue’s &#96;event&#96; may say (an#804).
 - [an.ir.frames](_autosummary/an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
 - [an.ir.holds](_autosummary/an.ir.holds.html.md): Holding things: &#96;grasp&#96;, &#96;place&#96;, &#96;release&#96;, &#96;handover&#96; and &#96;swap&#96; (an#502, catalogue A4).
@@ -247,7 +248,7 @@
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [an.world_cli](_autosummary/an.world_cli.html.md): &#96;an world …&#96;: the scene’s world from the shell (ADR 0009).
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 09:27 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-22 11:12 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

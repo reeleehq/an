@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../../_static/documentation_options.js?v=54633717"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -732,6 +732,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  ``topple``'s, :mod:`an.stage.topple`), ``nth`` picking the n-th; plus</span>
 <span class="sd">  ``offset``. A swap's clink lands on the frame the sabre reaches the socket,</span>
 <span class="sd">  wherever the timing of the reach moves it;</span>
+<span class="sd">- ``at: {when: book/body, changes: state, to: page_l}`` — the instant of the</span>
+<span class="sd">  shot's ``nth`` ``set`` (or ``tween``) of that node's property (to that value,</span>
+<span class="sd">  when ``to`` is given), read from the shot's own actions: no stage document</span>
+<span class="sd">  is needed, so it works in any shot (an#815); plus ``offset``. A page-turn</span>
+<span class="sd">  sound follows the page wherever its ``set`` is retimed;</span>
 <span class="sd">- ``until: {cue: scratch, offset: 0.12}`` — the cue ends at that cue's start</span>
 <span class="sd">  plus ``offset`` (its ``duration`` is derived).</span>
 
@@ -759,6 +764,7 @@ window.runMermaid = runMermaid;</script>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"SoundAnchorError"</span><span class="p">,</span>
     <span class="s2">"anchor_in_document"</span><span class="p">,</span>
+    <span class="s2">"change_in_shot"</span><span class="p">,</span>
     <span class="s2">"crossing_in_document"</span><span class="p">,</span>
     <span class="s2">"event_in_document"</span><span class="p">,</span>
     <span class="s2">"resolve_cue_anchors"</span><span class="p">,</span>
@@ -900,6 +906,104 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="n">_NO_VALUE</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+
+<span class="c1">#: How YAML 1.1 spells a boolean: an unquoted ``to: on`` in ``scene.md`` reads</span>
+<span class="c1">#: as ``True``, while the ``set`` it means stores ``value: 'on'``.</span>
+<span class="n">_YAML_BOOLS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kc">True</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"on"</span><span class="p">,</span> <span class="s2">"yes"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">}),</span>
+    <span class="kc">False</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"off"</span><span class="p">,</span> <span class="s2">"no"</span><span class="p">,</span> <span class="s2">"n"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">}),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_value</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether an action's value is the anchor's ``to``: numbers within float</span>
+<span class="sd">    noise, a boolean never a number, and a boolean the string YAML read it from.</span>
+
+<span class="sd">    &gt;&gt;&gt; _same_value("on", True), _same_value(True, "Off"), _same_value(1, True)</span>
+<span class="sd">    (True, False, False)</span>
+<span class="sd">    &gt;&gt;&gt; _same_value(0.1 + 0.2, 0.3)</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+        <span class="n">flag</span><span class="p">,</span> <span class="n">word</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">word</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">_YAML_BOOLS</span><span class="p">[</span><span class="n">flag</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
+
+
+<div class="viewcode-block" id="change_in_shot">
+<a class="viewcode-back" href="../../_autosummary/an.sound_anchors.html#an.sound_anchors.change_in_shot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">change_in_shot</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">play_extent</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor``'s authored change: the start of the</span>
+<span class="sd">    ``nth`` ``set`` or ``tween`` of ``shot`` whose target is ``anchor.when``</span>
+<span class="sd">    and property ``anchor.changes`` (and whose value, a set's ``value`` or a</span>
+<span class="sd">    tween's ``to_value``, is ``anchor.to`` when given), in time order.</span>
+<span class="sd">    ``play_extent`` is the compile's (:func:`an.stage.compile.play_extent_of`),</span>
+<span class="sd">    so a ``set`` after a natural-length ``play`` in a ``sequence`` is timed</span>
+<span class="sd">    where the picture has it.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import SetAction, Shot</span>
+<span class="sd">    &gt;&gt;&gt; shot = Shot(id="s", actions=[</span>
+<span class="sd">    ...     SetAction(target="book/body", property="state", value="page_l", at=1.5),</span>
+<span class="sd">    ...     SetAction(target="book/body", property="state", value="page_r", at=3.0),</span>
+<span class="sd">    ... ])</span>
+<span class="sd">    &gt;&gt;&gt; change_in_shot(shot, CueAnchor(when="book/body", changes="state", to="page_r"), where="x")</span>
+<span class="sd">    3.0</span>
+<span class="sd">    &gt;&gt;&gt; change_in_shot(shot, CueAnchor(when="book/body", changes="state", nth=2), where="x")</span>
+<span class="sd">    3.0</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
+
+    <span class="n">changes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">changes</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"to_value"</span><span class="p">,</span> <span class="n">_NO_VALUE</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="n">_NO_VALUE</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">changes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">value</span><span class="p">))</span>
+    <span class="n">changes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">mine</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">changes</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="p">]</span>
+    <span class="n">matching</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">mine</span> <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">to</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_same_value</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">anchor</span><span class="o">.</span><span class="n">to</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matching</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">nth</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matching</span><span class="p">[</span><span class="n">anchor</span><span class="o">.</span><span class="n">nth</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">mine</span><span class="p">:</span>
+        <span class="n">have</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2"> at </span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s"</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">_w</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mine</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"its </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">changes</span><span class="si">!r}</span><span class="s2"> changes in shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">have</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">_t</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_v</span> <span class="ow">in</span> <span class="n">changes</span><span class="p">})</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no set or tween of </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">changes</span><span class="si">}</span><span class="s2"> in shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="o">+</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"; the nodes whose </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">changes</span><span class="si">!r}</span><span class="s2"> it changes: </span><span class="si">{</span><span class="n">targets</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">if</span> <span class="n">targets</span>
+                <span class="k">else</span> <span class="s2">""</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">!r}</span><span class="s2"> does not happen (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">matching</span><span class="p">)</span><span class="si">}</span><span class="s2"> such "</span>
+        <span class="sa">f</span><span class="s2">"change(s), #</span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">nth</span><span class="si">}</span><span class="s2"> asked): </span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="anchor_in_document">
 <a class="viewcode-back" href="../../_autosummary/an.sound_anchors.html#an.sound_anchors.anchor_in_document">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">anchor_in_document</span><span class="p">(</span>
@@ -910,8 +1014,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor`` (an event, or a crossing), before its ``offset``."""</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor`` (an event, an authored change of</span>
+<span class="sd">    ``shot``, or a crossing), before its ``offset``."""</span>
+    <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_change</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">event_in_document</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">shot_id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">crossing_in_document</span><span class="p">(</span>
@@ -920,10 +1029,35 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_change</span><span class="p">(</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":func:`change_in_shot`, with the play extent ``doc`` was compiled with</span>
+<span class="sd">    when there is one (a shot no stage draws flattens with the default)."""</span>
+    <span class="k">if</span> <span class="n">shot</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="si">!r}</span><span class="s2"> is read from the shot's actions, "</span>
+            <span class="s2">"and none were given"</span>
+        <span class="p">)</span>
+    <span class="n">extent</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">play_extent_of</span>
+
+        <span class="n">extent</span> <span class="o">=</span> <span class="n">play_extent_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">change_in_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_crossing</span><span class="p">(</span>
     <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor``: its event, or when ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
+<span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor``: its authored change, its event, or</span>
+<span class="sd">    when ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
+    <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">draws_on_stage</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.cache_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">compiled_document</span>
+
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">_change</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s2">"mall"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">anchor_in_document</span><span class="p">(</span>
         <span class="n">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderer</span><span class="p">),</span>
         <span class="n">anchor</span><span class="p">,</span>
@@ -946,9 +1080,20 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">shot</span><span class="p">)</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">root</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+    <span class="n">casting</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">i</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">root</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># the first shot that has the change (an#815)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">casting</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">change_in_shot</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">SoundAnchorError</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="k">return</span> <span class="n">i</span>
+    <span class="k">if</span> <span class="n">casting</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">casting</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"meta.sounds anchor </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">!r}</span><span class="s2">: no shot casts </span><span class="si">{</span><span class="n">root</span><span class="si">!r}</span><span class="s2">; add "</span>
         <span class="sa">f</span><span class="s2">"`shot: &lt;id&gt;` to the anchor (the shots are </span><span class="si">{</span><span class="n">ids</span><span class="si">}</span><span class="s2">)"</span>

@@ -9,6 +9,7 @@ an.sound\_anchors
    .. autosummary::
    
       anchor_in_document
+      change_in_shot
       crossing_in_document
       event_in_document
       resolve_cue_anchors

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../../../_static/documentation_options.js?v=54633717"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -754,8 +754,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">:func:`mixing.loudness.group_lufs` measures a voice's lines back to back (looped</span>
 <span class="sd">to :data:`MIN_MEASURE_S`, channels kept when they agree), and</span>
 <span class="sd">:func:`mixing.loudness.level_group` does the same and caps the gain, its</span>
-<span class="sd">``GainCappedWarning`` said again of the voice as a :class:`VoiceLoudnessWarning`</span>
-<span class="sd">(an#699). Lines at another rate than the voice's highest are resampled to it by</span>
+<span class="sd">``GainCappedWarning`` naming the voice (``subject=``, mixing#171) and re-issued</span>
+<span class="sd">as a :class:`VoiceLoudnessWarning` (an#699, an#765). Lines at another rate than the voice's highest are resampled to it by</span>
 <span class="sd">ffmpeg, one call per rate (mixing's own resampler needs scipy, an#578). The meter injected into both is :data:`METER`, ffmpeg's</span>
 <span class="sd">``ebur128`` run by the ffmpeg on ``PATH`` (required: never the pip-bundled build</span>
 <span class="sd">``mixing`` would otherwise prefer, an#578), so ``an`` takes no scipy.</span>
@@ -778,7 +778,11 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.shared_mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">mixing_too_old</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.shared_mixing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LEVEL_GROUP_KEYWORDS</span><span class="p">,</span>
+    <span class="n">keywords_too_old</span><span class="p">,</span>
+    <span class="n">mixing_too_old</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="c1">#: Bumped whenever a leveled line's bytes would change for the same inputs</span>
 <span class="c1">#: (the limiter, its window, the encoding); part of every leveled line's key.</span>
@@ -853,10 +857,16 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_component</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">""":mod:`mixing.loudness`, or :class:`VoiceLoudnessError` when the installed</span>
 <span class="sd">    ``mixing`` predates it or the parts used here: ``group_lufs`` and</span>
-<span class="sd">    ``GainCappedWarning`` (mixing#85, an#699)."""</span>
+<span class="sd">    ``GainCappedWarning`` (mixing#85, an#699), ``level_group(subject=)``</span>
+<span class="sd">    (mixing#171, an#765)."""</span>
     <span class="k">with</span> <span class="n">mixing_too_old</span><span class="p">(</span><span class="n">needed_for</span><span class="o">=</span><span class="s2">"leveling voices"</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">VoiceLoudnessError</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">loudness</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">mixing.loudness</span><span class="w"> </span><span class="kn">import</span> <span class="n">GainCappedWarning</span><span class="p">,</span> <span class="n">group_lufs</span>  <span class="c1"># noqa: F401</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">keywords_too_old</span><span class="p">(</span>
+        <span class="n">loudness</span><span class="o">.</span><span class="n">level_group</span><span class="p">,</span> <span class="n">LEVEL_GROUP_KEYWORDS</span><span class="p">,</span> <span class="n">needed_for</span><span class="o">=</span><span class="s2">"leveling voices"</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceLoudnessError</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">loudness</span>
 
 
@@ -932,9 +942,21 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_level_group</span><span class="p">(</span><span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">target_lufs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_gain_db</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="c1">#: What a capped gain's warning names when the caller does not say:</span>
+<span class="c1">#: ``mixing.loudness.level_group``'s own default.</span>
+<span class="n">DFLT_LEVEL_SUBJECT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"group"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_level_group</span><span class="p">(</span>
+    <span class="n">pcms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Pcm</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">target_lufs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_gain_db</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_LEVEL_SUBJECT</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">""":func:`mixing.loudness.level_group` over a voice's decoded lines:</span>
-<span class="sd">    ``(gain_db, measured_lufs)``, measured by :data:`METER`."""</span>
+<span class="sd">    ``(gain_db, measured_lufs)``, measured by :data:`METER`; a capped gain's</span>
+<span class="sd">    warning names ``subject`` (mixing#171)."""</span>
     <span class="n">segments</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">_group_args</span><span class="p">(</span><span class="n">pcms</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_component</span><span class="p">()</span><span class="o">.</span><span class="n">level_group</span><span class="p">(</span>
         <span class="n">segments</span><span class="p">,</span>
@@ -943,32 +965,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">meter</span><span class="o">=</span><span class="n">_meter</span><span class="p">,</span>
         <span class="n">max_gain_db</span><span class="o">=</span><span class="n">max_gain_db</span><span class="p">,</span>
         <span class="n">min_measure_s</span><span class="o">=</span><span class="n">MIN_MEASURE_S</span><span class="p">,</span>
-    <span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_capped_message</span><span class="p">(</span><span class="n">voice</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">capped</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""What ``mixing``'s ``GainCappedWarning`` says (of a "group"), said of</span>
-<span class="sd">    ``voice`` from its fields (an#699); its own words, prefixed with the voice,</span>
-<span class="sd">    when a field is missing.</span>
-
-<span class="sd">    Goes once ``level_group`` takes the subject to name (reeleehq/mixing#171).</span>
-
-<span class="sd">    &gt;&gt;&gt; class Capped(UserWarning):</span>
-<span class="sd">    ...     measured_lufs, target_lufs = -62.0, -16.0</span>
-<span class="sd">    ...     requested_gain_db, max_gain_db = 46.0, 24.0</span>
-<span class="sd">    &gt;&gt;&gt; _capped_message("kid", Capped())</span>
-<span class="sd">    "voice 'kid' measures -62.0 LUFS: reaching -16 would take 46.0 dB, mostly noise; capped at +24 dB"</span>
-<span class="sd">    &gt;&gt;&gt; Capped.target_lufs = None  # a field missing: mixing's own words</span>
-<span class="sd">    &gt;&gt;&gt; _capped_message("kid", Capped("group measures -62.0 LUFS"))</span>
-<span class="sd">    "voice 'kid': group measures -62.0 LUFS"</span>
-<span class="sd">    """</span>
-    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"measured_lufs"</span><span class="p">,</span> <span class="s2">"target_lufs"</span><span class="p">,</span> <span class="s2">"requested_gain_db"</span><span class="p">,</span> <span class="s2">"max_gain_db"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">capped</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">capped</span><span class="si">}</span><span class="s2">"</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice</span><span class="si">!r}</span><span class="s2"> measures </span><span class="si">{</span><span class="n">capped</span><span class="o">.</span><span class="n">measured_lufs</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> LUFS: reaching "</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">capped</span><span class="o">.</span><span class="n">target_lufs</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> would take </span><span class="si">{</span><span class="n">capped</span><span class="o">.</span><span class="n">requested_gain_db</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dB, "</span>
-        <span class="sa">f</span><span class="s2">"mostly noise; capped at +</span><span class="si">{</span><span class="n">capped</span><span class="o">.</span><span class="n">max_gain_db</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> dB"</span>
+        <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1233,15 +1230,14 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">[</span><span class="n">_decode</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">],</span>
                 <span class="n">target_lufs</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
                 <span class="n">max_gain_db</span><span class="o">=</span><span class="n">MAX_GAIN_DB</span><span class="p">,</span>
+                <span class="n">subject</span><span class="o">=</span><span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="n">level</span> <span class="o">=</span> <span class="n">VoiceLevel</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="n">lufs</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
         <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">caught</span> <span class="ow">in</span> <span class="n">capped</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">caught</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">_component</span><span class="p">()</span><span class="o">.</span><span class="n">GainCappedWarning</span><span class="p">):</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="n">_capped_message</span><span class="p">(</span><span class="n">voice</span><span class="p">,</span> <span class="n">caught</span><span class="o">.</span><span class="n">message</span><span class="p">),</span>
-                    <span class="n">VoiceLoudnessWarning</span><span class="p">,</span>
-                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>  <span class="c1"># mixing's words, naming the voice (mixing#171)</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="o">.</span><span class="n">message</span><span class="p">),</span> <span class="n">VoiceLoudnessWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># anything else is not ours to relabel: pass it on as it was</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn_explicit</span><span class="p">(</span>

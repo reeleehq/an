@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../../../_static/documentation_options.js?v=54633717"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -3526,6 +3526,148 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_carried_spans</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Each span over which a body carries an item: ``{item, where, by,</span>
+<span class="sd">    opened, role, align, entity, k0, k1, cleared}`` (frames ``[k0, k1)``).</span>
+
+<span class="sd">    ``opened`` is the verb that put it there (``grasp``, ``take``: the hand of</span>
+<span class="sd">    a handover that meets halfway, ``handover``: a hand given it whole,</span>
+<span class="sd">    ``place``: a socket, ``held_by``); ``role`` the holder's (``hand`` or</span>
+<span class="sd">    ``socket``); ``align`` whether the taking hand turns it (a grasp's or a</span>
+<span class="sd">    take's). A span opens when a hand takes the item, when a place puts it in</span>
+<span class="sd">    a hand or socket, or at frame 0 for an item ``held_by`` a body; it closes</span>
+<span class="sd">    when a ``place`` starts its reach (that lays the item where it goes), at a</span>
+<span class="sd">    let-go, or when another hand takes it. ``cleared`` is false for a take</span>
+<span class="sd">    from the floor or a surface: the item lies where it lay (``floating_item``</span>
+<span class="sd">    judges that), and is judged from the frame it first clears its carrier's</span>
+<span class="sd">    floor, so an item lifted from a lower floor line is not called sunk. A</span>
+<span class="sd">    surface (``crate@surface``) is not a carrier."""</span>
+    <span class="n">spans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">entity_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)}</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">:</span>
+        <span class="n">open_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">nonlocal</span> <span class="n">open_</span>
+            <span class="k">if</span> <span class="n">open_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">open_</span><span class="p">[</span><span class="s2">"k0"</span><span class="p">]:</span>
+                <span class="n">spans</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">open_</span><span class="p">,</span> <span class="s2">"k1"</span><span class="p">:</span> <span class="n">k</span><span class="p">})</span>
+            <span class="n">open_</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">first</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">first</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"body"</span><span class="p">:</span>
+            <span class="n">open_</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"item"</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span>
+                <span class="s2">"where"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"entities/</span><span class="si">{</span><span class="n">entity_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">/overrides/</span><span class="si">{</span><span class="n">ON_OVERRIDE</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"by"</span><span class="p">:</span> <span class="n">first</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span>
+                <span class="s2">"opened"</span><span class="p">:</span> <span class="n">ON_OVERRIDE</span><span class="p">,</span>
+                <span class="s2">"role"</span><span class="p">:</span> <span class="n">first</span><span class="o">.</span><span class="n">role</span><span class="p">,</span>
+                <span class="s2">"align"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"entity"</span><span class="p">:</span> <span class="n">first</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span>
+                <span class="s2">"k0"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">"cleared"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">for</span> <span class="n">ev</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">()):</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">ev</span><span class="o">.</span><span class="n">gesture</span>
+            <span class="k">if</span> <span class="n">ev</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"take"</span><span class="p">:</span>
+                <span class="n">from_body</span> <span class="o">=</span> <span class="n">open_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>  <span class="c1"># a handover: it was carried already</span>
+                <span class="n">close</span><span class="p">(</span><span class="n">ev</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+                <span class="n">open_</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">"item"</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span>
+                    <span class="s2">"where"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
+                    <span class="s2">"by"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+                    <span class="s2">"opened"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+                    <span class="s2">"role"</span><span class="p">:</span> <span class="s2">"hand"</span><span class="p">,</span>
+                    <span class="s2">"align"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">align</span><span class="p">),</span>
+                    <span class="s2">"entity"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span>
+                    <span class="s2">"k0"</span><span class="p">:</span> <span class="n">ev</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                    <span class="s2">"cleared"</span><span class="p">:</span> <span class="n">from_body</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="k">elif</span> <span class="n">ev</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"carry"</span><span class="p">,</span> <span class="s2">"drop"</span><span class="p">):</span>
+                <span class="n">close</span><span class="p">(</span><span class="n">ev</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">ev</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"put"</span><span class="p">:</span>
+                <span class="n">close</span><span class="p">(</span><span class="n">ev</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"body"</span><span class="p">:</span>
+                    <span class="n">hand</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">role</span> <span class="o">==</span> <span class="s2">"hand"</span>
+                    <span class="n">open_</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">"item"</span><span class="p">:</span> <span class="n">item</span><span class="p">,</span>
+                        <span class="s2">"where"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">where</span><span class="p">,</span>
+                        <span class="s2">"by"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span>
+                        <span class="s2">"opened"</span><span class="p">:</span> <span class="s2">"handover"</span> <span class="k">if</span> <span class="n">hand</span> <span class="k">else</span> <span class="s2">"place"</span><span class="p">,</span>
+                        <span class="s2">"role"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">role</span><span class="p">,</span>
+                        <span class="s2">"align"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">"entity"</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span>
+                        <span class="s2">"k0"</span><span class="p">:</span> <span class="n">ev</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">"cleared"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="p">}</span>
+        <span class="n">close</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">times</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">spans</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_declared_floor</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The carrier's floor when the shot says where it is: the shot's</span>
+<span class="sd">    ``ground``, the world's under the carrier, or the line of the point it</span>
+<span class="sd">    stands on (``ctx.stands``); ``None`` for a carrier whose floor would only</span>
+<span class="sd">    be the bottom of its own parts (a stand hung by its top has no floor to</span>
+<span class="sd">    sink through)."""</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">ground</span>
+    <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stands</span> <span class="ow">or</span> <span class="n">_world_floor_y</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_ground_at</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sunk</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">walk</span><span class="p">:</span> <span class="n">Walk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Where a carried item hangs through its carrier's floor line (an#806):</span>
+<span class="sd">    one entry per run of frames at which its lowest ink is below the floor</span>
+<span class="sd">    (:func:`_declared_floor`) by more than :data:`SUPPORT_TOLERANCE_PX`,</span>
+<span class="sd">    ``{item, where, by, opened, role, align, from, to, below, at, ground}``</span>
+<span class="sd">    (seconds; ``below`` the deepest, at ``at``)."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">r2</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">_carried_spans</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">span</span><span class="p">[</span><span class="s2">"item"</span><span class="p">]</span>
+        <span class="n">corners</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">corners</span>
+        <span class="n">poses</span> <span class="o">=</span> <span class="n">walk</span><span class="o">.</span><span class="n">poses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="n">cleared</span> <span class="o">=</span> <span class="n">span</span><span class="p">[</span><span class="s2">"cleared"</span><span class="p">]</span>
+        <span class="n">run_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">nonlocal</span> <span class="n">run_</span>
+            <span class="k">if</span> <span class="n">run_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_</span><span class="p">)</span>
+            <span class="n">run_</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="s2">"k0"</span><span class="p">],</span> <span class="nb">min</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="s2">"k1"</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">poses</span><span class="p">))):</span>
+            <span class="n">ground</span> <span class="o">=</span> <span class="n">_declared_floor</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">span</span><span class="p">[</span><span class="s2">"entity"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">flush</span><span class="p">()</span>
+                <span class="k">continue</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="n">_lowest</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">corners</span><span class="p">)</span> <span class="o">-</span> <span class="n">ground</span>
+            <span class="k">if</span> <span class="n">depth</span> <span class="o">&lt;=</span> <span class="n">SUPPORT_TOLERANCE_PX</span><span class="p">:</span>
+                <span class="n">cleared</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">flush</span><span class="p">()</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cleared</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">r2</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">run_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">run_</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">key</span><span class="p">:</span> <span class="n">span</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"item"</span><span class="p">,</span> <span class="s2">"where"</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">,</span> <span class="s2">"opened"</span><span class="p">,</span> <span class="s2">"role"</span><span class="p">,</span> <span class="s2">"align"</span><span class="p">)</span>
+                <span class="p">}</span>
+                <span class="n">run_</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"from"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s2">"to"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s2">"below"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span> <span class="s2">"at"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s2">"ground"</span><span class="p">:</span> <span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">)})</span>
+            <span class="n">run_</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+            <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="n">run_</span><span class="p">[</span><span class="s2">"below"</span><span class="p">]:</span>
+                <span class="n">run_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">below</span><span class="o">=</span><span class="n">r2</span><span class="p">(</span><span class="n">depth</span><span class="p">),</span> <span class="n">at</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">ground</span><span class="o">=</span><span class="n">r2</span><span class="p">(</span><span class="n">ground</span><span class="p">))</span>
+        <span class="n">flush</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_report</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">walk</span><span class="p">:</span> <span class="n">Walk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">r2</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.0</span>
@@ -3615,6 +3757,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"gestures"</span><span class="p">:</span> <span class="n">gestures</span><span class="p">,</span>
         <span class="s2">"holders"</span><span class="p">:</span> <span class="n">holders</span><span class="p">,</span>
         <span class="s2">"floating"</span><span class="p">:</span> <span class="n">floating</span><span class="p">,</span>
+        <span class="s2">"sunk"</span><span class="p">:</span> <span class="n">_sunk</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">walk</span><span class="p">),</span>
         <span class="s2">"warnings"</span><span class="p">:</span> <span class="n">ctx</span><span class="o">.</span><span class="n">warnings</span><span class="p">,</span>
     <span class="p">}</span>
 </pre></div>

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../../../_static/documentation_options.js?v=54633717"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,6 +721,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">imports themselves stay written out where they are, so the licence firewall</span>
 <span class="sd">(``tests/test_captions.py::test_an_never_imports_mixing``) still reads them.</span>
 
+<span class="sd">A keyword ``an`` passes cannot be found by importing a name: an older function</span>
+<span class="sd">takes the call and fails on it. :func:`lacks_keywords` asks the function's</span>
+<span class="sd">signature instead (``level_group(subject=)``, mixing#171, an#765), and</span>
+<span class="sd">:func:`mixing_problem` and :mod:`an.audio.loudness` word a missing one as a</span>
+<span class="sd">``mixing`` too old, like a missing part.</span>
+
 <span class="sd">&gt;&gt;&gt; with mixing_too_old(needed_for="testing", error=RuntimeError):</span>
 <span class="sd">...     from mixing import no_such_part</span>
 <span class="sd">Traceback (most recent call last):</span>
@@ -740,7 +746,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 
@@ -749,6 +755,9 @@ window.runMermaid = runMermaid;</script>
 <span class="n">UPGRADE_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pip install -U mixing"</span>
 <span class="c1">#: ... and when it is not installed at all (an install with ``--no-deps``).</span>
 <span class="n">INSTALL_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pip install mixing"</span>
+<span class="c1">#: The keywords ``an`` passes to :func:`mixing.loudness.level_group`: ``subject``</span>
+<span class="c1">#: names the voice in its ``GainCappedWarning`` (mixing#171, an#765).</span>
+<span class="n">LEVEL_GROUP_KEYWORDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"subject"</span><span class="p">,)</span>
 <span class="c1">#: How Python words ``from mixing import part`` failing on ``part``.</span>
 <span class="n">_CANNOT_IMPORT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"cannot import name '(\w+)'"</span><span class="p">)</span>
 
@@ -815,12 +824,64 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="lacks_keywords">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.shared_mixing.html#an.audio.shared_mixing.lacks_keywords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lacks_keywords</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">keywords</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ``keywords`` ``func`` does not take (none when it takes ``**kwargs``,</span>
+<span class="sd">    or when its signature cannot be read: the call then says for itself).</span>
+
+<span class="sd">    &gt;&gt;&gt; def old(segments, rate, *, target_lufs): ...</span>
+<span class="sd">    &gt;&gt;&gt; lacks_keywords(old, ["target_lufs", "subject"])</span>
+<span class="sd">    ['subject']</span>
+<span class="sd">    &gt;&gt;&gt; lacks_keywords(lambda *a, **kw: None, ["subject"])</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">is</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keywords</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="keywords_too_old">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.shared_mixing.html#an.audio.shared_mixing.keywords_too_old">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">keywords_too_old</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">keywords</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">needed_for</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Why ``func`` (a function of ``mixing``) cannot serve ``needed_for``: the</span>
+<span class="sd">    keywords of ``keywords`` it does not take, worded as a ``mixing`` too old;</span>
+<span class="sd">    ``None`` when it takes them all.</span>
+
+<span class="sd">    &gt;&gt;&gt; def level_group(segments, rate): ...</span>
+<span class="sd">    &gt;&gt;&gt; level_group.__module__ = "mixing.loudness"</span>
+<span class="sd">    &gt;&gt;&gt; keywords_too_old(level_group, ["subject"], needed_for="testing")</span>
+<span class="sd">    'testing needs mixing.loudness.level_group(subject=), which the installed mixing is too old to have: `pip install -U mixing`'</span>
+<span class="sd">    """</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">lacks_keywords</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">"__module__"</span><span class="p">,</span> <span class="n">MIXING</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">module</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="w"> </span><span class="s1">'__qualname__'</span><span class="p">,</span><span class="w"> </span><span class="n">func</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">said</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">="</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">needed_for</span><span class="si">}</span><span class="s2"> needs </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">said</span><span class="si">}</span><span class="s2">), which the installed </span><span class="si">{</span><span class="n">MIXING</span><span class="si">}</span><span class="s2"> is too "</span>
+        <span class="sa">f</span><span class="s2">"old to have: `</span><span class="si">{</span><span class="n">UPGRADE_HINT</span><span class="si">}</span><span class="s2">`"</span>
+    <span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="mixing_problem">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.shared_mixing.html#an.audio.shared_mixing.mixing_problem">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mixing_problem</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Why the installed ``mixing`` cannot serve ``an``: a part it uses is</span>
 <span class="sd">    missing (``mixing.loudness`` with ``group_lufs`` and ``GainCappedWarning``,</span>
-<span class="sd">    an#699; ``mixing.filtergraph``), or it is absent;</span>
+<span class="sd">    an#699; ``mixing.filtergraph``), a keyword ``an`` passes is not taken</span>
+<span class="sd">    (``level_group(subject=)``, an#765), or it is absent;</span>
 <span class="sd">    ``None`` when it can. Asked of the code, not of a version number: an</span>
 <span class="sd">    editable install's metadata keeps the version it was installed at (an#644).</span>
 <span class="sd">    """</span>
@@ -831,7 +892,7 @@ window.runMermaid = runMermaid;</script>
             <span class="kn">from</span><span class="w"> </span><span class="nn">mixing.loudness</span><span class="w"> </span><span class="kn">import</span> <span class="n">GainCappedWarning</span><span class="p">,</span> <span class="n">group_lufs</span>  <span class="c1"># noqa: F401</span>
     <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="k">return</span> <span class="n">keywords_too_old</span><span class="p">(</span><span class="n">loudness</span><span class="o">.</span><span class="n">level_group</span><span class="p">,</span> <span class="n">LEVEL_GROUP_KEYWORDS</span><span class="p">,</span> <span class="n">needed_for</span><span class="o">=</span><span class="s2">"an"</span><span class="p">)</span></div>
 
 
 

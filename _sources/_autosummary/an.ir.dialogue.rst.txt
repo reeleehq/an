@@ -1,0 +1,18 @@
+an.ir.dialogue
+==============
+
+.. automodule:: an.ir.dialogue
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      dialogue_layout
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LinePlacement
+   

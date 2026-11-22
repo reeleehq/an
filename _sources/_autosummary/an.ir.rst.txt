@@ -19,6 +19,7 @@ an.ir
       delay
       loop
       flatten
+      dialogue_layout
       validate_schema
       validate_semantic
       migrate
@@ -60,6 +61,7 @@ an.ir
       Travel
       Stream
       FlatAction
+      LinePlacement
       ValidationReport
       ValidationFinding
       DocumentKind
@@ -73,6 +75,7 @@ an.ir
    assets
    camera
    compose
+   dialogue
    events
    frames
    holds

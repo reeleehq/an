@@ -20,6 +20,11 @@ when the film is laid out:
   `topple`’s, [`an.stage.topple`](an.stage.topple.html.md#module-an.stage.topple)), `nth` picking the n-th; plus
   `offset`. A swap’s clink lands on the frame the sabre reaches the socket,
   wherever the timing of the reach moves it;
+- `at: {when: book/body, changes: state, to: page_l}` — the instant of the
+  shot’s `nth` `set` (or `tween`) of that node’s property (to that value,
+  when `to` is given), read from the shot’s own actions: no stage document
+  is needed, so it works in any shot (an#815); plus `offset`. A page-turn
+  sound follows the page wherever its `set` is retimed;
 - `until: {cue: scratch, offset: 0.12}` — the cue ends at that cue’s start
   plus `offset` (its `duration` is derived).
 
@@ -36,11 +41,12 @@ draws) refuses before any browser launches.
 
 ### Functions
 
-| [`anchor_in_document`](#an.sound_anchors.anchor_in_document)(doc, anchor, \*, shot_id, ...)   | Shot-local seconds of `anchor` (an event, or a crossing), before its `offset`.                                   |
-|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| [`crossing_in_document`](#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)          | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document. |
-| [`event_in_document`](#an.sound_anchors.event_in_document)(doc, anchor, \*, shot_id, where)  | Shot-local seconds of `anchor`'s hold event (the `nth` `event` of item `when`) in a compiled stage document.     |
-| [`resolve_cue_anchors`](#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...)     | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                   |
+| [`anchor_in_document`](#an.sound_anchors.anchor_in_document)(doc, anchor, \*, shot_id, ...)   | Shot-local seconds of `anchor` (an event, an authored change of `shot`, or a crossing), before its `offset`.                                                                                                                                                          |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`change_in_shot`](#an.sound_anchors.change_in_shot)(shot, anchor, \*, where[, ...])      | Shot-local seconds of `anchor`'s authored change: the start of the `nth` `set` or `tween` of `shot` whose target is `anchor.when` and property `anchor.changes` (and whose value, a set's `value` or a tween's `to_value`, is `anchor.to` when given), in time order. |
+| [`crossing_in_document`](#an.sound_anchors.crossing_in_document)(doc, anchor, \*, ...)          | Shot-local seconds at which `anchor.when`'s centre first reaches `anchor.reaches`, in a compiled stage document.                                                                                                                                                      |
+| [`event_in_document`](#an.sound_anchors.event_in_document)(doc, anchor, \*, shot_id, where)  | Shot-local seconds of `anchor`'s hold event (the `nth` `event` of item `when`) in a compiled stage document.                                                                                                                                                          |
+| [`resolve_cue_anchors`](#an.sound_anchors.resolve_cue_anchors)(scene, ctx, renderers, ...)     | `scene` (a copy) with every anchored `at` resolved to seconds and every `until` to a duration.                                                                                                                                                                        |
 
 ### Exceptions
 
@@ -53,9 +59,35 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A cue’s anchor cannot be resolved: the message says which and why.
 
-### an.sound_anchors.anchor_in_document(doc, anchor, , shot_id, fps, duration, where)
+### an.sound_anchors.anchor_in_document(doc, anchor, , shot_id, fps, duration, where, shot=None, mall=None)
 
-Shot-local seconds of `anchor` (an event, or a crossing), before its `offset`.
+Shot-local seconds of `anchor` (an event, an authored change of
+`shot`, or a crossing), before its `offset`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.sound_anchors.change_in_shot(shot, anchor, , where, play_extent=None)
+
+Shot-local seconds of `anchor`’s authored change: the start of the
+`nth` `set` or `tween` of `shot` whose target is `anchor.when`
+and property `anchor.changes` (and whose value, a set’s `value` or a
+tween’s `to_value`, is `anchor.to` when given), in time order.
+`play_extent` is the compile’s ([`an.stage.compile.play_extent_of()`](an.stage.compile.html.md#an.stage.compile.play_extent_of)),
+so a `set` after a natural-length `play` in a `sequence` is timed
+where the picture has it.
+
+```pycon
+>>> from an.ir.schema import SetAction, Shot
+>>> shot = Shot(id="s", actions=[
+...     SetAction(target="book/body", property="state", value="page_l", at=1.5),
+...     SetAction(target="book/body", property="state", value="page_r", at=3.0),
+... ])
+>>> change_in_shot(shot, CueAnchor(when="book/body", changes="state", to="page_r"), where="x")
+3.0
+>>> change_in_shot(shot, CueAnchor(when="book/body", changes="state", nth=2), where="x")
+3.0
+```
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)

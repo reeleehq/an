@@ -10,11 +10,14 @@ an.audio.shared\_mixing
    
       MIXING
       INSTALL_HINT
+      LEVEL_GROUP_KEYWORDS
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      keywords_too_old
+      lacks_keywords
       mixing_problem
       mixing_too_old
       warn_if_mixing_too_old

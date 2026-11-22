@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../../../_static/documentation_options.js?v=54633717"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -792,8 +792,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  (warning). :func:`av_offset_fault` is the pure function under it. Dialogue and</span>
 <span class="sd">  lip-sync consistency are not built.</span>
 <span class="sd">- ``cue_event``: a shot sound cue timed by a hold event (``at: {when: musket,</span>
-<span class="sd">  event: land}``) names an event the compiled shot has (error, listing the</span>
-<span class="sd">  item's events, else an ``info`` line with its second).</span>
+<span class="sd">  event: land}``) names an event the compiled shot has, and one timed by an</span>
+<span class="sd">  authored change (``at: {when: book/body, changes: state, to: page_l}``,</span>
+<span class="sd">  an#815) a ``set`` or ``tween`` the shot has (error, listing what there is,</span>
+<span class="sd">  else an ``info`` line with its second).</span>
 <span class="sd">- ``light`` (catalogue D1): under the scene's one ``meta.light``, a member whose</span>
 <span class="sd">  art declares ``metadata.shaded_side`` (or ``overrides.shaded_side``) is shaded</span>
 <span class="sd">  on the side facing away from it, read where that side faces on screen as the</span>
@@ -2652,13 +2654,17 @@ window.runMermaid = runMermaid;</script>
     <span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">cues</span><span class="p">:</span>
         <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">draws_on_stage</span>
+
     <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="c1"># a stage shot that did not compile: `not_compiled` says so</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAnchorError</span><span class="p">,</span> <span class="n">anchor_in_document</span>
 
     <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">:</span>
         <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/sounds/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># a crossing or an event needs the picture</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">cause_t</span> <span class="o">=</span> <span class="n">anchor_in_document</span><span class="p">(</span>
                 <span class="n">doc</span><span class="p">,</span>
@@ -2667,6 +2673,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">fps</span><span class="o">=</span><span class="n">_fps</span><span class="p">(</span><span class="n">ctx</span><span class="p">),</span>
                 <span class="n">duration</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
                 <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+                <span class="n">mall</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="n">SoundAnchorError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">/cause"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
@@ -2692,6 +2700,8 @@ window.runMermaid = runMermaid;</script>
             <span class="o">+</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="se">{{</span><span class="s2">when: </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2">, event: </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">event</span><span class="si">}</span><span class="se">}}</span><span class="s2">`."</span>
                 <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="n">_change_text</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="k">else</span> <span class="s2">"{when: ..., reaches: ...}`."</span>
             <span class="p">),</span>
         <span class="p">)</span>
@@ -2704,27 +2714,56 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_change_text</span><span class="p">(</span><span class="n">anchor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A ``changes`` anchor as the YAML a cue's ``at`` would say (``to``</span>
+<span class="sd">    quoted, so ``on`` stays a string when pasted back)."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+    <span class="n">to</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", to: </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">anchor</span><span class="o">.</span><span class="n">to</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">nth</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", nth: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">nth</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">nth</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="se">{{</span><span class="s2">when: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">when</span><span class="si">}</span><span class="s2">, changes: </span><span class="si">{</span><span class="n">anchor</span><span class="o">.</span><span class="n">changes</span><span class="si">}{</span><span class="n">to</span><span class="si">}{</span><span class="n">nth</span><span class="si">}</span><span class="se">}}</span><span class="s2">`."</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">check_cue_event</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The core's ``cue_event`` check: each shot cue timed by a hold event</span>
-<span class="sd">    (``at: {when: musket, event: land}``) names one the shot has; it says when."""</span>
+<span class="sd">    (``at: {when: musket, event: land}``) or by an authored change</span>
+<span class="sd">    (``at: {when: book/body, changes: state, to: page_l}``, an#815) names one</span>
+<span class="sd">    the shot has; it says when."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CueAnchor</span>
 
     <span class="n">cues</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">sounds</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">cues</span><span class="p">:</span>
         <span class="k">return</span>
+    <span class="c1"># An authored change is read from the shot's actions: it needs the compiled</span>
+    <span class="c1"># document only for its play extent (none, in a shot no stage draws: the</span>
+    <span class="c1"># default extent). A stage shot that did not compile: `not_compiled` says so.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">draws_on_stage</span>
+
     <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_shot</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">):</span>
         <span class="k">return</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAnchorError</span><span class="p">,</span> <span class="n">event_in_document</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sound_anchors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundAnchorError</span><span class="p">,</span> <span class="n">anchor_in_document</span>
 
     <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">:</span>
         <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/sounds/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/at"</span>
+        <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="o">.</span><span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># a shot that did not compile: `not_compiled` says so</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">event_in_document</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">anchor_in_document</span><span class="p">(</span>
+                <span class="n">doc</span><span class="p">,</span>
+                <span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span>
+                <span class="n">shot_id</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">fps</span><span class="o">=</span><span class="n">_fps</span><span class="p">(</span><span class="n">ctx</span><span class="p">),</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+                <span class="n">mall</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="n">SoundAnchorError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
             <span class="k">continue</span>
@@ -2738,7 +2777,7 @@ window.runMermaid = runMermaid;</script>
 <span class="n">CUE_EVENT</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span>
     <span class="s2">"cue_event"</span><span class="p">,</span>
     <span class="n">check_cue_event</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">"a sound cue timed by a hold event (`at: {when: item, event: land}`) names an event the shot has"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"a sound cue timed by a hold event (`at: {when: item, event: land}`) or an authored change (`at: {when: node, changes: state}`) names one the shot has"</span><span class="p">,</span>
 <span class="p">)</span>
 
 

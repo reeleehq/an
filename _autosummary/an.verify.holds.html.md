@@ -15,13 +15,16 @@ did in `meta.extensions.solve.holds`):
 - `floating_item` (warning): an item that a hand takes from the floor (or
   from a body’s surface the holds name: `crate@surface`, an#536) hovers
   above it (or sinks into it) before it is taken, and a released item
-  with no ground below it or no gravity, that stays in the air.
+  with no ground below it or no gravity, that stays in the air;
+- `sunk_item` (warning): a carried item that hangs through its carrier’s
+  floor line (a long musket in a short arm’s hand), with the span it does so
+  and how to carry it higher (an#806).
 
-All three are silent for a shot that holds nothing.
+All four are silent for a shot that holds nothing.
 
 ```pycon
 >>> [c.name for c in HOLD_CONSTRAINTS]
-['hold_conflict', 'unreachable_hold', 'floating_item']
+['hold_conflict', 'unreachable_hold', 'floating_item', 'sunk_item']
 ```
 
 ### Module Attributes
@@ -29,6 +32,6 @@ All three are silent for a shot that holds nothing.
 | [`HOLD_CONSTRAINTS`](#an.verify.holds.HOLD_CONSTRAINTS)   | The hold checks, in the order they run.   |
 |---------------------------------------------------------------------|-------------------------------------------|
 
-### an.verify.holds.HOLD_CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='hold_conflict', check=<function check_hold_conflict>, stage='shot', order=255.0, description='what holds each item, and when, adds up (grasp, place, release, handover, swap)', term=None), Constraint(name='unreachable_hold', check=<function check_unreachable_hold>, stage='shot', order=255.0, description='a hand arrives where it takes or puts its item (an#502)', term=None), Constraint(name='floating_item', check=<function check_floating_item>, stage='shot', order=255.0, description='an item taken from the floor lies on it, and a released item comes down (catalogue A1)', term=None))*
+### an.verify.holds.HOLD_CONSTRAINTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Constraint](an.verify.constraints.html.md#an.verify.constraints.Constraint), ...]* *= (Constraint(name='hold_conflict', check=<function check_hold_conflict>, stage='shot', order=255.0, description='what holds each item, and when, adds up (grasp, place, release, handover, swap)', term=None), Constraint(name='unreachable_hold', check=<function check_unreachable_hold>, stage='shot', order=255.0, description='a hand arrives where it takes or puts its item (an#502)', term=None), Constraint(name='floating_item', check=<function check_floating_item>, stage='shot', order=255.0, description='an item taken from the floor lies on it, and a released item comes down (catalogue A1)', term=None), Constraint(name='sunk_item', check=<function check_sunk_item>, stage='shot', order=255.0, description="a carried item does not hang through its carrier's floor line (an#806)", term=None))*
 
 The hold checks, in the order they run.

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../../../_static/documentation_options.js?v=54633717"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -752,6 +752,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentMigrationError</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneValidationError</span><span class="p">,</span> <span class="n">scene_from_json_doc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.dialogue</span><span class="w"> </span><span class="kn">import</span> <span class="n">dialogue_layout</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="n">SceneIR</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.world</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorldError</span><span class="p">,</span> <span class="n">has_world</span><span class="p">,</span> <span class="n">viewpoint_key</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SUPPORTED_RENDERERS</span>
@@ -3887,30 +3888,9 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">60</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""``(k, line, start, end, estimated)`` for each dialogue line of ``shot``.</span>
-
-<span class="sd">    Where each line WILL play: the audio pipeline's own rule</span>
-<span class="sd">    (:meth:`an.ir.schema.Dialogue.planned_start`) over the real duration when</span>
-<span class="sd">    the line was synthesized, else the offline voice's estimate</span>
-<span class="sd">    (:func:`an.audio.offline_tts.estimate_speech_duration`) divided by the</span>
-<span class="sd">    line's voice ``tempo`` (``tempo_of(line)``; an#265 — the effect applies</span>
-<span class="sd">    under every provider). Never the stamped ``start``, which a pause edited</span>
-<span class="sd">    since the last synthesis has made stale.</span>
-<span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_speech_duration</span>
-
-    <span class="n">cursor</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
-        <span class="n">estimated</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span>
-        <span class="n">length</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">estimate_speech_duration</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">tempo_of</span> <span class="k">else</span> <span class="mf">1.0</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">estimated</span>
-            <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">start</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
-        <span class="n">cursor</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span>
-        <span class="k">yield</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">estimated</span>
+<span class="c1">#: The private name cutan's eyeline check imported before the layout was</span>
+<span class="c1">#: public (an#767); kept until it reads :func:`an.ir.dialogue.dialogue_layout`.</span>
+<span class="n">_dialogue_layout</span> <span class="o">=</span> <span class="n">dialogue_layout</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_dialogue_fits</span><span class="p">(</span>
@@ -3924,7 +3904,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``pause`` cannot). Two speakers talking over each other is legal.</span>
 <span class="sd">    """</span>
     <span class="n">speaking_until</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">dialogue_layout</span><span class="p">(</span>
         <span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">)</span>
     <span class="p">):</span>
         <span class="n">previous</span> <span class="o">=</span> <span class="n">speaking_until</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">)</span>
@@ -3985,7 +3965,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">tempo_of</span> <span class="o">=</span> <span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">_start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">tempo_of</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">_start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">tempo_of</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">+</span> <span class="n">tolerance_s</span> <span class="ow">or</span> <span class="p">(</span><span class="n">synthesized_only</span> <span class="ow">and</span> <span class="n">estimated</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">tempo</span> <span class="o">=</span> <span class="n">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tempo_of</span> <span class="ow">and</span> <span class="n">estimated</span><span class="p">)</span> <span class="k">else</span> <span class="mf">1.0</span>
@@ -4085,7 +4065,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">overlap_out</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="k">else</span> <span class="mf">0.0</span>
         <span class="n">overlap_in</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">fps</span>
         <span class="n">effects_of</span> <span class="o">=</span> <span class="n">effects_of_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="k">if</span> <span class="n">effects_of_shot</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">layout</span> <span class="o">=</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">))</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">layout</span><span class="p">:</span>
             <span class="n">where</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">overlap_in</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">overlap_in</span><span class="p">:</span>

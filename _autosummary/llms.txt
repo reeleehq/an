@@ -99,6 +99,7 @@
 - [an.ir.assets](an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
 - [an.ir.camera](an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
 - [an.ir.compose](an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
+- [an.ir.dialogue](an.ir.dialogue.html.md): Where each dialogue line of a shot will play (an#767): the layout &#96;an validate&#96; and the genres’ chec...
 - [an.ir.events](an.ir.events.html.md): The visible events a compiled shot records, by name: what a sound cue’s &#96;event&#96; may say (an#804).
 - [an.ir.frames](an.ir.frames.html.md): Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).
 - [an.ir.holds](an.ir.holds.html.md): Holding things: &#96;grasp&#96;, &#96;place&#96;, &#96;release&#96;, &#96;handover&#96; and &#96;swap&#96; (an#502, catalogue A4).

@@ -27,6 +27,7 @@ authoring-time DSL to canonical-form actions.
 | [`delay`](#an.ir.delay)(duration)                                    | An empty span that consumes time.                                                                                                                                                                  |
 | [`loop`](#an.ir.loop)(action, count)                                | Repeat `action` `count` times.                                                                                                                                                                     |
 | [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.                                                                                                                                |
+| [`dialogue_layout`](#an.ir.dialogue_layout)(shot, \*[, tempo_of])              | A [`LinePlacement`](#an.ir.LinePlacement) for each dialogue line of `shot`, in order.                                                                                       |
 | [`validate_schema`](#an.ir.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                        |
 | [`validate_semantic`](#an.ir.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                                                                                                                                       |
 | [`migrate`](#an.ir.migrate)(doc[, target_version, kind])               | Migrate a document to `target_version` (default: its kind's current).                                                                                                                              |
@@ -67,6 +68,7 @@ authoring-time DSL to canonical-form actions.
 | [`Travel`](#an.ir.Travel)(\*[, direction, speed, near, far, ...])    | The viewpoints moving through the world in film time (ADR 0009 decision 4).                                                        |
 | [`Stream`](#an.ir.Stream)(\*, id, ref[, kind, store, height, ...])   | A row of one prop along a travel's direction (ADR 0009 decision 4).                                                                |
 | [`FlatAction`](#an.ir.FlatAction)(start, end, action)                    | A leaf action with its absolute start and end times.                                                                               |
+| [`LinePlacement`](#an.ir.LinePlacement)(k, line, start, end, estimated)     | One line of a shot and where it plays (shot-local seconds).                                                                        |
 | [`ValidationReport`](#an.ir.ValidationReport)([passed, findings])              | Result of running one or more validators.                                                                                          |
 | [`ValidationFinding`](#an.ir.ValidationFinding)(severity, ir_path, description) | A single validation issue with a path into the IR.                                                                                 |
 | [`DocumentKind`](#an.ir.DocumentKind)(name, version_field, ...)            | A schema-versioned document kind.                                                                                                  |
@@ -385,6 +387,35 @@ A frame translating at a constant velocity: sugar for a frame whose
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.LinePlacement(k, line, start, end, estimated)
+
+Bases: [`NamedTuple`](https://docs.python.org/3/library/typing.html#typing.NamedTuple)
+
+One line of a shot and where it plays (shot-local seconds).
+
+A tuple, so `for k, line, start, end, estimated in dialogue_layout(shot)`
+reads it as the private layout it replaces did.
+
+#### end *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Alias for field number 3
+
+#### estimated *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+Whether `end` comes from the offline estimate (the line has no audio yet).
+
+#### k *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+The line’s index in `shot.dialogue`.
+
+#### line *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
+
+Alias for field number 1
+
+#### start *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Alias for field number 2
 
 ### *class* an.ir.Meta(\*, title='', author='', duration=0.0, fps=30, resolution=<factory>, default_renderer='cutout', notes='', step_hz=None, style_pack=None, default_easing=None, sounds=<factory>, captions=None, closing_transition=None, voice_loudness=None, light=None, \*\*extra_data)
 
@@ -866,6 +897,18 @@ An empty span that consumes time. Useful inside `sequence`.
 
 * **Return type:**
   [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction)
+
+### an.ir.dialogue_layout(shot, , tempo_of=None)
+
+A [`LinePlacement`](#an.ir.LinePlacement) for each dialogue line of `shot`, in order.
+
+A line synthesized plays for its `duration`; one not yet synthesized for
+the offline voice’s estimate ([`an.audio.offline_tts.estimate_speech_duration()`](an.audio.offline_tts.html.md#an.audio.offline_tts.estimate_speech_duration))
+divided by its voice’s `tempo`, `tempo_of(line)` (an#265: the effect
+applies under every provider; default 1).
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`LinePlacement`](an.ir.dialogue.html.md#an.ir.dialogue.LinePlacement)]
 
 ### an.ir.fan_out(action, members, , crowd_id=None)
 
@@ -1360,15 +1403,16 @@ which decides how long a dissolve’s overlap is.
 
 ### Modules
 
-| [`assets`](an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                                |
-|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| [`camera`](an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                        |
-| [`compose`](an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                             |
-| [`events`](an.ir.events.html.md#module-an.ir.events)                   | The visible events a compiled shot records, by name: what a sound cue's `event` may say (an#804). |
-| [`frames`](an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).           |
-| [`holds`](an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4).        |
-| [`joints`](an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).              |
-| [`schema`](an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                              |
-| [`validate`](an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                             |
-| [`world`](an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).                    |
-| [`world_from_shot`](an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                       |
+| [`assets`](an.ir.assets.html.md#module-an.ir.assets)                   | Where a third-party asset came from, and what its licence obliges.                                            |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| [`camera`](an.ir.camera.html.md#module-an.ir.camera)                   | Camera semantics: the named moves, and the one resolver that expands them.                                    |
+| [`compose`](an.ir.compose.html.md#module-an.ir.compose)                 | Composition combinators for authoring action trees, plus a flattener.                                         |
+| [`dialogue`](an.ir.dialogue.html.md#module-an.ir.dialogue)               | Where each dialogue line of a shot will play (an#767): the layout `an validate` and the genres' checks share. |
+| [`events`](an.ir.events.html.md#module-an.ir.events)                   | The visible events a compiled shot records, by name: what a sound cue's `event` may say (an#804).             |
+| [`frames`](an.ir.frames.html.md#module-an.ir.frames)                   | Frames of reference: a tree of named poses over film time (ADR 0009 amendment, an#501).                       |
+| [`holds`](an.ir.holds.html.md#module-an.ir.holds)                     | Holding things: `grasp`, `place`, `release`, `handover` and `swap` (an#502, catalogue A4).                    |
+| [`joints`](an.ir.joints.html.md#module-an.ir.joints)                   | The constraint layer's verbs: `pin`, `pull`, `join` and `unjoin` (ADR 0008, an#512).                          |
+| [`schema`](an.ir.schema.html.md#module-an.ir.schema)                   | Pydantic v2 models for the Scene IR.                                                                          |
+| [`validate`](an.ir.validate.html.md#module-an.ir.validate)               | Schema and semantic validation for SceneIR documents.                                                         |
+| [`world`](an.ir.world.html.md#module-an.ir.world)                     | One world, many shots: the scene world's geometry and its lowering (ADR 0009).                                |
+| [`world_from_shot`](an.ir.world_from_shot.html.md#module-an.ir.world_from_shot) | World members from a shot placed by hand (an#514): the projection inverted.                                   |

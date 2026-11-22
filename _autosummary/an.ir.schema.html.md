@@ -93,7 +93,7 @@ True
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*[, at, x, y, zoom, rotation, ...])     | One camera pose at one time — the explicit door behind the named moves.                                                                                                                                                                                                                  |
 | [`CameraShake`](#an.ir.schema.CameraShake)(\*[, at, duration, amplitude, ...])    | A jolt of the frame inside a shot (an#429): seeded screen-space jitter.                                                                                                                                                                                                                  |
 | [`Captions`](#an.ir.schema.Captions)(\*[, burn, sidecar, max_chars, ...])      | Captions for the whole film, built from the dialogue's word timings.                                                                                                                                                                                                                     |
-| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when[, reaches, event, nth, ...])    | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column, or when an item's hold event happens.                                                                                                                                                    |
+| [`CueAnchor`](#an.ir.schema.CueAnchor)(\*, when[, reaches, event, ...])         | A sound cue's time, taken from the picture (an#317): when a node reaches a frame row or column, or when an item's hold event happens.                                                                                                                                                    |
 | [`CueUntil`](#an.ir.schema.CueUntil)(\*, cue[, offset])                        | Where a sound cue ends: at another cue's start, plus `offset` (an#317).                                                                                                                                                                                                                  |
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*[, name, kind])                      | Composition: an empty span that consumes time.                                                                                                                                                                                                                                           |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*, speaker, text[, voice_ref, ...])      | One line of spoken dialogue.                                                                                                                                                                                                                                                             |
@@ -466,7 +466,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 A line with no word timings is captioned with its words spread evenly
 over its duration, with a warning; `strict` makes that an error.
 
-### *class* an.ir.schema.CueAnchor(, when, reaches=None, event=None, nth=1, offset=0.0, shot=None, \*\*extra_data)
+### *class* an.ir.schema.CueAnchor(, when, reaches=None, event=None, changes=None, to=None, nth=1, offset=0.0, shot=None, \*\*extra_data)
 
 Bases: `_IRModel`
 
@@ -488,6 +488,13 @@ floor), `bounce`, `rest`; `nth` picks the n-th such event (1: the
 first). The swap’s clink is `{when: sabre, event: place}`; the drop’s
 thud `{when: musket, event: land}`.
 
+**An authored change** (an#815): `when` is the node a `set` or a
+`tween` of the shot targets and `changes` the property it changes;
+`to` (optional) the value it changes it to. The anchor is the instant of
+the `nth` such action in the shot’s own actions (a `set`’s `at`, a
+`tween`’s start), so a page-turn sound follows the page wherever its
+`set` is retimed: `{when: book/body, changes: state, to: page_l}`.
+
 Resolved when the film is laid out, never written back into the scene: a
 layout or timing change moves the sound with the picture. `offset` is
 added after. `shot` names the shot to look in, for a cue in
@@ -500,15 +507,22 @@ added after. `shot` names the shot to look in, for a cue in
 'musket land'
 >>> CueAnchor(when="musket", event="land").model_dump()
 {'when': 'musket', 'event': 'land', 'offset': 0.0, 'shot': None}
+>>> CueAnchor(when="book/body", changes="state", to="page_l").describe()
+'book/body state to page_l'
 ```
 
 #### *property* axis *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 `(axis, pixels)` of a crossing.
 
+#### changes *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The property whose authored change (a `set`, a `tween`) is the anchor.
+
 #### describe()
 
-The anchor in words, for a finding: `crawl/line_7 reached y=840`, `musket land`.
+The anchor in words, for a finding: `crawl/line_7 reached y=840`,
+`musket land`, `book/body state to page_l`.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -516,6 +530,13 @@ The anchor in words, for a finding: `crawl/line_7 reached y=840`, `musket land`.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### to *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
+
+only a change to this value counts.
+
+* **Type:**
+  With `changes`
 
 ### *class* an.ir.schema.CueUntil(, cue, offset=0.0, \*\*extra_data)
 

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../_static/documentation_options.js?v=54633717"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.dialogue.html">an.ir.dialogue</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
@@ -655,6 +656,11 @@ of that failure, used around the lazy imports in <a class="reference internal" h
 (<code class="docutils literal notranslate"><span class="pre">mixing.loudness</span></code>) and <a class="reference internal" href="an.audio.effects.html#module-an.audio.effects" title="an.audio.effects"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.effects</span></code></a> (<code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>). The
 imports themselves stay written out where they are, so the licence firewall
 (<code class="docutils literal notranslate"><span class="pre">tests/test_captions.py::test_an_never_imports_mixing</span></code>) still reads them.</p>
+<p>A keyword <code class="docutils literal notranslate"><span class="pre">an</span></code> passes cannot be found by importing a name: an older function
+takes the call and fails on it. <a class="reference internal" href="#an.audio.shared_mixing.lacks_keywords" title="an.audio.shared_mixing.lacks_keywords"><code class="xref py py-func docutils literal notranslate"><span class="pre">lacks_keywords()</span></code></a> asks the function’s
+signature instead (<code class="docutils literal notranslate"><span class="pre">level_group(subject=)</span></code>, mixing#171, an#765), and
+<a class="reference internal" href="#an.audio.shared_mixing.mixing_problem" title="an.audio.shared_mixing.mixing_problem"><code class="xref py py-func docutils literal notranslate"><span class="pre">mixing_problem()</span></code></a> and <a class="reference internal" href="an.audio.loudness.html#module-an.audio.loudness" title="an.audio.loudness"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.loudness</span></code></a> word a missing one as a
+<code class="docutils literal notranslate"><span class="pre">mixing</span></code> too old, like a missing part.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">mixing_too_old</span><span class="p">(</span><span class="n">needed_for</span><span class="o">=</span><span class="s2">"testing"</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="kn">from</span><span class="w"> </span><span class="nn">mixing</span><span class="w"> </span><span class="kn">import</span> <span class="n">no_such_part</span>
 <span class="gt">Traceback (most recent call last):</span>
@@ -679,14 +685,23 @@ imports themselves stay written out where they are, so the licence firewall
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.shared_mixing.INSTALL_HINT" title="an.audio.shared_mixing.INSTALL_HINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INSTALL_HINT</span></code></a></p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS" title="an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LEVEL_GROUP_KEYWORDS</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subject</span></code> names the voice in its <code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code> (mixing#171, an#765).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.keywords_too_old" title="an.audio.shared_mixing.keywords_too_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keywords_too_old</span></code></a>(func, keywords, *, needed_for)</p></td>
+<td><p>Why <code class="docutils literal notranslate"><span class="pre">func</span></code> (a function of <code class="docutils literal notranslate"><span class="pre">mixing</span></code>) cannot serve <code class="docutils literal notranslate"><span class="pre">needed_for</span></code>: the keywords of <code class="docutils literal notranslate"><span class="pre">keywords</span></code> it does not take, worded as a <code class="docutils literal notranslate"><span class="pre">mixing</span></code> too old; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it takes them all.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.shared_mixing.lacks_keywords" title="an.audio.shared_mixing.lacks_keywords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lacks_keywords</span></code></a>(func, keywords)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">keywords</span></code> <code class="docutils literal notranslate"><span class="pre">func</span></code> does not take (none when it takes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>, or when its signature cannot be read: the call then says for itself).</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.shared_mixing.mixing_problem" title="an.audio.shared_mixing.mixing_problem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mixing_problem</span></code></a>()</p></td>
-<td><p>Why the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code>: a part it uses is missing (<code class="docutils literal notranslate"><span class="pre">mixing.loudness</span></code> with <code class="docutils literal notranslate"><span class="pre">group_lufs</span></code> and <code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code>, an#699; <code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), or it is absent; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it can.</p></td>
+<td><p>Why the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code>: a part it uses is missing (<code class="docutils literal notranslate"><span class="pre">mixing.loudness</span></code> with <code class="docutils literal notranslate"><span class="pre">group_lufs</span></code> and <code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code>, an#699; <code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), a keyword <code class="docutils literal notranslate"><span class="pre">an</span></code> passes is not taken (<code class="docutils literal notranslate"><span class="pre">level_group(subject=)</span></code>, an#765), or it is absent; <code class="docutils literal notranslate"><span class="pre">None</span></code> when it can.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.shared_mixing.mixing_too_old" title="an.audio.shared_mixing.mixing_too_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mixing_too_old</span></code></a>(*, needed_for, error)</p></td>
 <td><p>Run an import of a part of <code class="docutils literal notranslate"><span class="pre">mixing</span></code>; an <code class="docutils literal notranslate"><span class="pre">ImportError</span></code> becomes <code class="docutils literal notranslate"><span class="pre">error</span></code>, saying the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> is too old when it lacks the part, else what failed.</p></td>
@@ -713,6 +728,18 @@ imports themselves stay written out where they are, so the licence firewall
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS">
+<span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">LEVEL_GROUP_KEYWORDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('subject',)</span></span><a class="headerlink" href="#an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">subject</span></code>
+names the voice in its <code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code> (mixing#171, an#765).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The keywords <code class="docutils literal notranslate"><span class="pre">an</span></code> passes to <code class="xref py py-func docutils literal notranslate"><span class="pre">mixing.loudness.level_group()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.audio.shared_mixing.MIXING">
 <span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">MIXING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mixing'</span></span><a class="headerlink" href="#an.audio.shared_mixing.MIXING" title="Link to this definition">#</a></dt>
 <dd><p>The package, and what the user runs when theirs predates a part <code class="docutils literal notranslate"><span class="pre">an</span></code> needs.</p>
@@ -726,11 +753,50 @@ imports themselves stay written out where they are, so the licence firewall
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.shared_mixing.keywords_too_old">
+<span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">keywords_too_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">needed_for</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#keywords_too_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.keywords_too_old" title="Link to this definition">#</a></dt>
+<dd><p>Why <code class="docutils literal notranslate"><span class="pre">func</span></code> (a function of <code class="docutils literal notranslate"><span class="pre">mixing</span></code>) cannot serve <code class="docutils literal notranslate"><span class="pre">needed_for</span></code>: the
+keywords of <code class="docutils literal notranslate"><span class="pre">keywords</span></code> it does not take, worded as a <code class="docutils literal notranslate"><span class="pre">mixing</span></code> too old;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when it takes them all.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">level_group</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">rate</span><span class="p">):</span> <span class="o">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">level_group</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">=</span> <span class="s2">"mixing.loudness"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">keywords_too_old</span><span class="p">(</span><span class="n">level_group</span><span class="p">,</span> <span class="p">[</span><span class="s2">"subject"</span><span class="p">],</span> <span class="n">needed_for</span><span class="o">=</span><span class="s2">"testing"</span><span class="p">)</span>
+<span class="go">'testing needs mixing.loudness.level_group(subject=), which the installed mixing is too old to have: `pip install -U mixing`'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.shared_mixing.lacks_keywords">
+<span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">lacks_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#lacks_keywords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.lacks_keywords" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">keywords</span></code> <code class="docutils literal notranslate"><span class="pre">func</span></code> does not take (none when it takes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>,
+or when its signature cannot be read: the call then says for itself).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">old</span><span class="p">(</span><span class="n">segments</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target_lufs</span><span class="p">):</span> <span class="o">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lacks_keywords</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="p">[</span><span class="s2">"target_lufs"</span><span class="p">,</span> <span class="s2">"subject"</span><span class="p">])</span>
+<span class="go">['subject']</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lacks_keywords</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="s2">"subject"</span><span class="p">])</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.shared_mixing.mixing_problem">
 <span class="sig-prename descclassname"><span class="pre">an.audio.shared_mixing.</span></span><span class="sig-name descname"><span class="pre">mixing_problem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/shared_mixing.html#mixing_problem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.shared_mixing.mixing_problem" title="Link to this definition">#</a></dt>
 <dd><p>Why the installed <code class="docutils literal notranslate"><span class="pre">mixing</span></code> cannot serve <code class="docutils literal notranslate"><span class="pre">an</span></code>: a part it uses is
 missing (<code class="docutils literal notranslate"><span class="pre">mixing.loudness</span></code> with <code class="docutils literal notranslate"><span class="pre">group_lufs</span></code> and <code class="docutils literal notranslate"><span class="pre">GainCappedWarning</span></code>,
-an#699; <code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), or it is absent;
+an#699; <code class="docutils literal notranslate"><span class="pre">mixing.filtergraph</span></code>), a keyword <code class="docutils literal notranslate"><span class="pre">an</span></code> passes is not taken
+(<code class="docutils literal notranslate"><span class="pre">level_group(subject=)</span></code>, an#765), or it is absent;
 <code class="docutils literal notranslate"><span class="pre">None</span></code> when it can. Asked of the code, not of a version number: an
 editable install’s metadata keeps the version it was installed at (an#644).</p>
 <dl class="field-list simple">
@@ -818,8 +884,11 @@ that may bill (a render, <code class="docutils literal notranslate"><span class=
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.INSTALL_HINT"><code class="docutils literal notranslate"><span class="pre">INSTALL_HINT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.LEVEL_GROUP_KEYWORDS"><code class="docutils literal notranslate"><span class="pre">LEVEL_GROUP_KEYWORDS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.MIXING"><code class="docutils literal notranslate"><span class="pre">MIXING</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.MixingTooOldWarning"><code class="docutils literal notranslate"><span class="pre">MixingTooOldWarning</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.keywords_too_old"><code class="docutils literal notranslate"><span class="pre">keywords_too_old()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.lacks_keywords"><code class="docutils literal notranslate"><span class="pre">lacks_keywords()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.mixing_problem"><code class="docutils literal notranslate"><span class="pre">mixing_problem()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.mixing_too_old"><code class="docutils literal notranslate"><span class="pre">mixing_too_old()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.shared_mixing.warn_if_mixing_too_old"><code class="docutils literal notranslate"><span class="pre">warn_if_mixing_too_old()</span></code></a></li>

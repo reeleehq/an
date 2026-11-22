@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=133fd45c"></script>
+    <script src="../_static/documentation_options.js?v=54633717"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.408" />
+  <meta name="docsearch:version" content="0.1.410" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.dialogue.html">an.ir.dialogue</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.events.html">an.ir.events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.frames.html">an.ir.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.ir.holds.html">an.ir.holds</a></li>
@@ -664,6 +665,11 @@ happens in the compiled shot (the hold report’s <code class="docutils literal 
 <code class="docutils literal notranslate"><span class="pre">topple</span></code>’s, <a class="reference internal" href="an.stage.topple.html#module-an.stage.topple" title="an.stage.topple"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.stage.topple</span></code></a>), <code class="docutils literal notranslate"><span class="pre">nth</span></code> picking the n-th; plus
 <code class="docutils literal notranslate"><span class="pre">offset</span></code>. A swap’s clink lands on the frame the sabre reaches the socket,
 wherever the timing of the reach moves it;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">at:</span> <span class="pre">{when:</span> <span class="pre">book/body,</span> <span class="pre">changes:</span> <span class="pre">state,</span> <span class="pre">to:</span> <span class="pre">page_l}</span></code> — the instant of the
+shot’s <code class="docutils literal notranslate"><span class="pre">nth</span></code> <code class="docutils literal notranslate"><span class="pre">set</span></code> (or <code class="docutils literal notranslate"><span class="pre">tween</span></code>) of that node’s property (to that value,
+when <code class="docutils literal notranslate"><span class="pre">to</span></code> is given), read from the shot’s own actions: no stage document
+is needed, so it works in any shot (an#815); plus <code class="docutils literal notranslate"><span class="pre">offset</span></code>. A page-turn
+sound follows the page wherever its <code class="docutils literal notranslate"><span class="pre">set</span></code> is retimed;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">until:</span> <span class="pre">{cue:</span> <span class="pre">scratch,</span> <span class="pre">offset:</span> <span class="pre">0.12}</span></code> — the cue ends at that cue’s start
 plus <code class="docutils literal notranslate"><span class="pre">offset</span></code> (its <code class="docutils literal notranslate"><span class="pre">duration</span></code> is derived).</p></li>
 </ul>
@@ -680,15 +686,18 @@ draws) refuses before any browser launches.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.anchor_in_document" title="an.sound_anchors.anchor_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">anchor_in_document</span></code></a>(doc, anchor, *, shot_id, ...)</p></td>
-<td><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> (an event, or a crossing), before its <code class="docutils literal notranslate"><span class="pre">offset</span></code>.</p></td>
+<td><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> (an event, an authored change of <code class="docutils literal notranslate"><span class="pre">shot</span></code>, or a crossing), before its <code class="docutils literal notranslate"><span class="pre">offset</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.crossing_in_document" title="an.sound_anchors.crossing_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crossing_in_document</span></code></a>(doc, anchor, *, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.change_in_shot" title="an.sound_anchors.change_in_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_in_shot</span></code></a>(shot, anchor, *, where[, ...])</p></td>
+<td><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code>'s authored change: the start of the <code class="docutils literal notranslate"><span class="pre">nth</span></code> <code class="docutils literal notranslate"><span class="pre">set</span></code> or <code class="docutils literal notranslate"><span class="pre">tween</span></code> of <code class="docutils literal notranslate"><span class="pre">shot</span></code> whose target is <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code> and property <code class="docutils literal notranslate"><span class="pre">anchor.changes</span></code> (and whose value, a set's <code class="docutils literal notranslate"><span class="pre">value</span></code> or a tween's <code class="docutils literal notranslate"><span class="pre">to_value</span></code>, is <code class="docutils literal notranslate"><span class="pre">anchor.to</span></code> when given), in time order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.crossing_in_document" title="an.sound_anchors.crossing_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crossing_in_document</span></code></a>(doc, anchor, *, ...)</p></td>
 <td><p>Shot-local seconds at which <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code>'s centre first reaches <code class="docutils literal notranslate"><span class="pre">anchor.reaches</span></code>, in a compiled stage document.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.event_in_document" title="an.sound_anchors.event_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event_in_document</span></code></a>(doc, anchor, *, shot_id, where)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.event_in_document" title="an.sound_anchors.event_in_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event_in_document</span></code></a>(doc, anchor, *, shot_id, where)</p></td>
 <td><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code>'s hold event (the <code class="docutils literal notranslate"><span class="pre">nth</span></code> <code class="docutils literal notranslate"><span class="pre">event</span></code> of item <code class="docutils literal notranslate"><span class="pre">when</span></code>) in a compiled stage document.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.sound_anchors.resolve_cue_anchors" title="an.sound_anchors.resolve_cue_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_cue_anchors</span></code></a>(scene, ctx, renderers, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.sound_anchors.resolve_cue_anchors" title="an.sound_anchors.resolve_cue_anchors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_cue_anchors</span></code></a>(scene, ctx, renderers, ...)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code> (a copy) with every anchored <code class="docutils literal notranslate"><span class="pre">at</span></code> resolved to seconds and every <code class="docutils literal notranslate"><span class="pre">until</span></code> to a duration.</p></td>
 </tr>
 </tbody>
@@ -712,8 +721,37 @@ draws) refuses before any browser launches.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.sound_anchors.anchor_in_document">
-<span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">anchor_in_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#anchor_in_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.anchor_in_document" title="Link to this definition">#</a></dt>
-<dd><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> (an event, or a crossing), before its <code class="docutils literal notranslate"><span class="pre">offset</span></code>.</p>
+<span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">anchor_in_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#anchor_in_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.anchor_in_document" title="Link to this definition">#</a></dt>
+<dd><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> (an event, an authored change of
+<code class="docutils literal notranslate"><span class="pre">shot</span></code>, or a crossing), before its <code class="docutils literal notranslate"><span class="pre">offset</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.sound_anchors.change_in_shot">
+<span class="sig-prename descclassname"><span class="pre">an.sound_anchors.</span></span><span class="sig-name descname"><span class="pre">change_in_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">play_extent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/sound_anchors.html#change_in_shot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.sound_anchors.change_in_shot" title="Link to this definition">#</a></dt>
+<dd><p>Shot-local seconds of <code class="docutils literal notranslate"><span class="pre">anchor</span></code>’s authored change: the start of the
+<code class="docutils literal notranslate"><span class="pre">nth</span></code> <code class="docutils literal notranslate"><span class="pre">set</span></code> or <code class="docutils literal notranslate"><span class="pre">tween</span></code> of <code class="docutils literal notranslate"><span class="pre">shot</span></code> whose target is <code class="docutils literal notranslate"><span class="pre">anchor.when</span></code>
+and property <code class="docutils literal notranslate"><span class="pre">anchor.changes</span></code> (and whose value, a set’s <code class="docutils literal notranslate"><span class="pre">value</span></code> or a
+tween’s <code class="docutils literal notranslate"><span class="pre">to_value</span></code>, is <code class="docutils literal notranslate"><span class="pre">anchor.to</span></code> when given), in time order.
+<code class="docutils literal notranslate"><span class="pre">play_extent</span></code> is the compile’s (<a class="reference internal" href="an.stage.compile.html#an.stage.compile.play_extent_of" title="an.stage.compile.play_extent_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.stage.compile.play_extent_of()</span></code></a>),
+so a <code class="docutils literal notranslate"><span class="pre">set</span></code> after a natural-length <code class="docutils literal notranslate"><span class="pre">play</span></code> in a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> is timed
+where the picture has it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SetAction</span><span class="p">,</span> <span class="n">Shot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">actions</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>    <span class="n">SetAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"book/body"</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="s2">"state"</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">"page_l"</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">1.5</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">SetAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"book/body"</span><span class="p">,</span> <span class="nb">property</span><span class="o">=</span><span class="s2">"state"</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">"page_r"</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">change_in_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="s2">"book/body"</span><span class="p">,</span> <span class="n">changes</span><span class="o">=</span><span class="s2">"state"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="s2">"page_r"</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="s2">"x"</span><span class="p">)</span>
+<span class="go">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">change_in_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="s2">"book/body"</span><span class="p">,</span> <span class="n">changes</span><span class="o">=</span><span class="s2">"state"</span><span class="p">,</span> <span class="n">nth</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="s2">"x"</span><span class="p">)</span>
+<span class="go">3.0</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
@@ -812,6 +850,7 @@ film_starts: each shot’s start in film time (a <code class="docutils literal n
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.SoundAnchorError"><code class="docutils literal notranslate"><span class="pre">SoundAnchorError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.anchor_in_document"><code class="docutils literal notranslate"><span class="pre">anchor_in_document()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.change_in_shot"><code class="docutils literal notranslate"><span class="pre">change_in_shot()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.crossing_in_document"><code class="docutils literal notranslate"><span class="pre">crossing_in_document()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.event_in_document"><code class="docutils literal notranslate"><span class="pre">event_in_document()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.sound_anchors.resolve_cue_anchors"><code class="docutils literal notranslate"><span class="pre">resolve_cue_anchors()</span></code></a></li>

@@ -42,8 +42,8 @@ The measuring and the limiter are the fleet’s shared loudness component,
 `mixing.loudness.group_lufs()` measures a voice’s lines back to back (looped
 to [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S), channels kept when they agree), and
 `mixing.loudness.level_group()` does the same and caps the gain, its
-`GainCappedWarning` said again of the voice as a [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning)
-(an#699). Lines at another rate than the voice’s highest are resampled to it by
+`GainCappedWarning` naming the voice (`subject=`, mixing#171) and re-issued
+as a [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning) (an#699, an#765). Lines at another rate than the voice’s highest are resampled to it by
 ffmpeg, one call per rate (mixing’s own resampler needs scipy, an#578). The meter injected into both is [`METER`](#an.audio.loudness.METER), ffmpeg’s
 `ebur128` run by the ffmpeg on `PATH` (required: never the pip-bundled build
 `mixing` would otherwise prefer, an#578), so `an` takes no scipy.
@@ -56,17 +56,18 @@ raises [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError) telling the
 
 ### Module Attributes
 
-| [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION)     | Bumped whenever a leveled line's bytes would change for the same inputs (the limiter, its window, the encoding); part of every leveled line's key.                                                                                  |
-|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`GAIN_STEP_DB`](#an.audio.loudness.GAIN_STEP_DB)      | A voice's gain is rounded to this, so a new line that moves its voice's loudness by less than half of it re-renders nothing else (half a dB is below what a listener hears between two lines; the measurement itself is to 0.1 LU). |
-| [`SILENCE_LUFS`](#an.audio.loudness.SILENCE_LUFS)      | never leveled.                                                                                                                                                                                                                      |
-| [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB) | Voices further apart than this, with no target set, are warned about.                                                                                                                                                               |
-| [`LIMITER_WINDOW_S`](#an.audio.loudness.LIMITER_WINDOW_S)  | the gain eases into a peak and back out over this much on each side, so nothing below ~20 Hz is modulated within a cycle (a 5 ms release distorted anything under 100 Hz, an#315 review).                                           |
-| [`MAX_GAIN_DB`](#an.audio.loudness.MAX_GAIN_DB)       | The largest gain leveling gives a voice; beyond it the voice is mostly noise (room tone measured at -62 LUFS asked for +46 dB).                                                                                                     |
-| [`OFFSET_LIMITS_DB`](#an.audio.loudness.OFFSET_LIMITS_DB)  | `loudness_offset_db` bounds on a voice document.                                                                                                                                                                                    |
-| [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S)     | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
-| [`MISS_WARNING_DB`](#an.audio.loudness.MISS_WARNING_DB)   | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
-| [`METER`](#an.audio.loudness.METER)(data, fs)   | The loudness meter, `(samples, rate) -> LUFS`, injected into `mixing.loudness` (looked up at call time, so it can be swapped): ffmpeg's `ebur128` by the PATH ffmpeg, so `an` needs no scipy for `mixing`'s numpy meter.            |
+| [`LEVEL_VERSION`](#an.audio.loudness.LEVEL_VERSION)      | Bumped whenever a leveled line's bytes would change for the same inputs (the limiter, its window, the encoding); part of every leveled line's key.                                                                                  |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`GAIN_STEP_DB`](#an.audio.loudness.GAIN_STEP_DB)       | A voice's gain is rounded to this, so a new line that moves its voice's loudness by less than half of it re-renders nothing else (half a dB is below what a listener hears between two lines; the measurement itself is to 0.1 LU). |
+| [`SILENCE_LUFS`](#an.audio.loudness.SILENCE_LUFS)       | never leveled.                                                                                                                                                                                                                      |
+| [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB)  | Voices further apart than this, with no target set, are warned about.                                                                                                                                                               |
+| [`LIMITER_WINDOW_S`](#an.audio.loudness.LIMITER_WINDOW_S)   | the gain eases into a peak and back out over this much on each side, so nothing below ~20 Hz is modulated within a cycle (a 5 ms release distorted anything under 100 Hz, an#315 review).                                           |
+| [`MAX_GAIN_DB`](#an.audio.loudness.MAX_GAIN_DB)        | The largest gain leveling gives a voice; beyond it the voice is mostly noise (room tone measured at -62 LUFS asked for +46 dB).                                                                                                     |
+| [`OFFSET_LIMITS_DB`](#an.audio.loudness.OFFSET_LIMITS_DB)   | `loudness_offset_db` bounds on a voice document.                                                                                                                                                                                    |
+| [`MIN_MEASURE_S`](#an.audio.loudness.MIN_MEASURE_S)      | EBU R128 gates in 400 ms blocks, and a voice of only short lines would read as silence.                                                                                                                                             |
+| [`MISS_WARNING_DB`](#an.audio.loudness.MISS_WARNING_DB)    | A leveled voice that ends further than this from its target (the limiter held its peaks, or the gain was capped) is warned about.                                                                                                   |
+| [`DFLT_LEVEL_SUBJECT`](#an.audio.loudness.DFLT_LEVEL_SUBJECT) | What a capped gain's warning names when the caller does not say: `mixing.loudness.level_group`'s own default.                                                                                                                       |
+| [`METER`](#an.audio.loudness.METER)(data, fs)    | The loudness meter, `(samples, rate) -> LUFS`, injected into `mixing.loudness` (looked up at call time, so it can be swapped): ffmpeg's `ebur128` by the PATH ffmpeg, so `an` needs no scipy for `mixing`'s numpy meter.            |
 
 ### Functions
 
@@ -94,6 +95,11 @@ raises [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError) telling the
 | [`VoiceLoudnessError`](#an.audio.loudness.VoiceLoudnessError)   | The voices cannot be measured or leveled (no ffmpeg, an unreadable line).                                             |
 |-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
 | [`VoiceLoudnessWarning`](#an.audio.loudness.VoiceLoudnessWarning) | The film's voices differ in loudness by more than [`SPREAD_WARNING_DB`](#an.audio.loudness.SPREAD_WARNING_DB). |
+
+### an.audio.loudness.DFLT_LEVEL_SUBJECT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'group'*
+
+What a capped gain’s warning names when the caller does not say:
+`mixing.loudness.level_group`’s own default.
 
 ### an.audio.loudness.GAIN_STEP_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 

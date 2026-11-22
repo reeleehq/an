@@ -17,6 +17,7 @@ an.audio.loudness
       OFFSET_LIMITS_DB
       MIN_MEASURE_S
       MISS_WARNING_DB
+      DFLT_LEVEL_SUBJECT
       METER
    
    .. rubric:: Functions
