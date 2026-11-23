@@ -1,0 +1,1 @@
+- **Support/contacts spec: the six open choices decided as recommended** (an#791): `support_contacts_spec.md` §8 now records (a)-(f) as decided, so the rank-2 build PRs proceed on them.
