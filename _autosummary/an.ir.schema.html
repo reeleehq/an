@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=05425d7c"></script>
+    <script src="../_static/documentation_options.js?v=a13ad965"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.424" />
+  <meta name="docsearch:version" content="0.1.425" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -696,7 +696,7 @@ refuse by name. The union is never rebuilt at registration.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_FOV_DEG" title="an.ir.schema.DFLT_FOV_DEG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_FOV_DEG</span></code></a></p></td>
 <td><p>The horizontal field of view a viewpoint has when it names neither <code class="code docutils literal notranslate"><span class="pre">fov</span></code> nor <code class="code docutils literal notranslate"><span class="pre">focal</span></code>: a normal lens, neither wide nor long.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.SHOT_SIZES" title="an.ir.schema.SHOT_SIZES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.JUMP_CUT_SIZE_RATIO" title="an.ir.schema.JUMP_CUT_SIZE_RATIO"><code class="xref py py-obj docutils literal notranslate"><span class="pre">JUMP_CUT_SIZE_RATIO</span></code></a></p></td>
 <td><p>Shot sizes, by where the frame cuts the subject (the film convention, see ADR 0009): <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">(top,</span> <span class="pre">bottom,</span> <span class="pre">fill)</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.DFLT_TRAVEL_NEAR" title="an.ir.schema.DFLT_TRAVEL_NEAR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TRAVEL_NEAR</span></code></a></p></td>
@@ -1904,6 +1904,23 @@ and an impulse would flip it over for a frame.</p>
 <code class="docutils literal notranslate"><span class="pre">distance</span></code> with its <code class="docutils literal notranslate"><span class="pre">mode</span></code> set.</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.schema.JUMP_CUT_SIZE_RATIO">
+<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">JUMP_CUT_SIZE_RATIO</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.3</span></span><a class="headerlink" href="#an.ir.schema.JUMP_CUT_SIZE_RATIO" title="Link to this definition">#</a></dt>
+<dd><p>Shot sizes, by where the frame cuts the subject (the film convention, see
+ADR 0009): <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">(top,</span> <span class="pre">bottom,</span> <span class="pre">fill)</span></code>. <code class="docutils literal notranslate"><span class="pre">top</span></code>/<code class="docutils literal notranslate"><span class="pre">bottom</span></code> are the band of
+the subject’s box the frame shows, as fractions of its height from the top
+(<code class="docutils literal notranslate"><span class="pre">0.35</span></code>: head and shoulders; <code class="docutils literal notranslate"><span class="pre">0.55</span></code>: the waist); <code class="docutils literal notranslate"><span class="pre">fill</span></code> is how much of
+the frame’s height that band fills. These are human proportions; a genre
+gives a kind’s own bands from its rig (<code class="docutils literal notranslate"><span class="pre">EntityKind.shot_sizes</span></code>,
+reeleehq/cutan#106), and <code class="docutils literal notranslate"><span class="pre">fill</span></code> is always this table’s.
+Two views of one subject whose apparent sizes differ by less than this ratio
+(larger / smaller), from directions less than 30 degrees apart, are a jump cut
+(catalogue C4): about one shot-size step (a close-up fills 1.57 times a
+medium). The jump-cut check (<a class="reference internal" href="an.verify.constraints.html#module-an.verify.constraints" title="an.verify.constraints"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.verify.constraints</span></code></a>) and the framing’s
+crop policy (<a class="reference internal" href="an.ir.world.html#an.ir.world.resolve_viewpoint" title="an.ir.world.resolve_viewpoint"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.world.resolve_viewpoint()</span></code></a>) both read it.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.schema.JointSpec">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">JointSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">give</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#JointSpec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.JointSpec" title="Link to this definition">#</a></dt>
@@ -2196,18 +2213,6 @@ right, <code class="code docutils literal notranslate"><span class="pre">y</span
 <dt class="sig sig-object py" id="an.ir.schema.SEGMENT_JOINT_TYPES">
 <span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">SEGMENT_JOINT_TYPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.15)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'contact',</span> <span class="pre">'slide'})</span></span><a class="headerlink" href="#an.ir.schema.SEGMENT_JOINT_TYPES" title="Link to this definition">#</a></dt>
 <dd><p>The types that join a point to a segment (<code class="docutils literal notranslate"><span class="pre">b</span></code> is its start, <code class="docutils literal notranslate"><span class="pre">end</span></code> its end).</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.ir.schema.SHOT_SIZES">
-<span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">SHOT_SIZES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'close_up':</span> <span class="pre">(0.0,</span> <span class="pre">0.35,</span> <span class="pre">0.9),</span> <span class="pre">'full':</span> <span class="pre">(0.0,</span> <span class="pre">1.0,</span> <span class="pre">0.9),</span> <span class="pre">'medium':</span> <span class="pre">(0.0,</span> <span class="pre">0.55,</span> <span class="pre">0.9),</span> <span class="pre">'wide':</span> <span class="pre">(0.0,</span> <span class="pre">1.0,</span> <span class="pre">0.5)}</span></span><a class="headerlink" href="#an.ir.schema.SHOT_SIZES" title="Link to this definition">#</a></dt>
-<dd><p>Shot sizes, by where the frame cuts the subject (the film convention, see
-ADR 0009): <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">(top,</span> <span class="pre">bottom,</span> <span class="pre">fill)</span></code>. <code class="docutils literal notranslate"><span class="pre">top</span></code>/<code class="docutils literal notranslate"><span class="pre">bottom</span></code> are the band of
-the subject’s box the frame shows, as fractions of its height from the top
-(<code class="docutils literal notranslate"><span class="pre">0.35</span></code>: head and shoulders; <code class="docutils literal notranslate"><span class="pre">0.55</span></code>: the waist); <code class="docutils literal notranslate"><span class="pre">fill</span></code> is how much of
-the frame’s height that band fills. These are human proportions; a genre
-gives a kind’s own bands from its rig (<code class="docutils literal notranslate"><span class="pre">EntityKind.shot_sizes</span></code>,
-reeleehq/cutan#106), and <code class="docutils literal notranslate"><span class="pre">fill</span></code> is always this table’s.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -3403,6 +3408,7 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.GRAVITY_DIRECTIONS"><code class="docutils literal notranslate"><span class="pre">GRAVITY_DIRECTIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.GROUND_SURFACE"><code class="docutils literal notranslate"><span class="pre">GROUND_SURFACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JOINT_TYPES"><code class="docutils literal notranslate"><span class="pre">JOINT_TYPES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JUMP_CUT_SIZE_RATIO"><code class="docutils literal notranslate"><span class="pre">JUMP_CUT_SIZE_RATIO</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JointSpec"><code class="docutils literal notranslate"><span class="pre">JointSpec</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JointSpec.distance_mode"><code class="docutils literal notranslate"><span class="pre">JointSpec.distance_mode</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.JointSpec.id"><code class="docutils literal notranslate"><span class="pre">JointSpec.id</span></code></a></li>
@@ -3443,7 +3449,6 @@ without loading them (<a class="reference internal" href="an.genres.html#an.genr
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SEGMENT_JOINT_TYPES"><code class="docutils literal notranslate"><span class="pre">SEGMENT_JOINT_TYPES</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SHOT_SIZES"><code class="docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SPECIMEN_DURATION"><code class="docutils literal notranslate"><span class="pre">SPECIMEN_DURATION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SPECIMEN_SHOT_ID"><code class="docutils literal notranslate"><span class="pre">SPECIMEN_SHOT_ID</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.STAGE_NODE_SPACE"><code class="docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></li>

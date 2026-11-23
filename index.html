@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=05425d7c"></script>
+    <script src="_static/documentation_options.js?v=a13ad965"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.424" />
+  <meta name="docsearch:version" content="0.1.425" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -390,17 +390,13 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 <div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># Park Bench</span>
 
 <span class="sb">```yaml</span><span class="w"> </span>meta
-<span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Park Bench</span>
-<span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span>
-<span class="nt">fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">24</span>
-<span class="nt">resolution</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> width</span><span class="p">:</span><span class="w"> </span><span class="nv">640</span><span class="p p-Indicator">,</span><span class="nt"> height</span><span class="p">:</span><span class="w"> </span><span class="nv">360</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="nt">title: Park Bench duration: 12 fps: 24 resolution</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> width</span><span class="p">:</span><span class="w"> </span><span class="nv">640</span><span class="p p-Indicator">,</span><span class="nt"> height</span><span class="p">:</span><span class="w"> </span><span class="nv">360</span><span class="w"> </span><span class="p p-Indicator">}</span>
 <span class="sb">```</span>
 
 <span class="gu">## Shot s1 (cutout)</span>
 
 <span class="sb">```yaml</span><span class="w"> </span>shot
-<span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
-<span class="nt">camera</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> move</span><span class="p">:</span><span class="w"> </span><span class="nv">push_in</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="nt">duration: 6 camera</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> move</span><span class="p">:</span><span class="w"> </span><span class="nv">push_in</span><span class="w"> </span><span class="p p-Indicator">}</span>
 <span class="sb">```</span>
 
 <span class="sb">```yaml</span><span class="w"> </span>entities
@@ -410,8 +406,7 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 <span class="sb">```</span>
 
 <span class="sb">```dialogue</span>
-<span class="s">charlie [thinking]: Did you ever wonder why we always meet here?</span>
-<span class="s">maya [amused]: Because the pigeons trust us.</span>
+<span class="s">charlie [thinking]: Did you ever wonder why we always meet here? maya [amused]: Because the pigeons trust us.</span>
 <span class="sb">```</span>
 </pre></div>
 </div>
@@ -527,9 +522,7 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 <p>For a deeper as-built reference (module-by-module map, control flows, key invariants, content-hash caching strategy), see <a class="reference internal" href="#misc/docs/architecture_as_built.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/architecture_as_built.md</span></code></span></a>. The research reports next to it cover the design space the system was built against — they are not current state, and <code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code> is (verified fact, with the URLs each licence was read at).</p>
 <section id="injecting-word-timings-no-whisper-redundancy">
 <h3>Injecting word timings (no whisper redundancy)<a class="headerlink" href="#injecting-word-timings-no-whisper-redundancy" title="Link to this heading">#</a></h3>
-<p>When the caller already has authoritative word-level alignment data
-(e.g. from a separate lyric-alignment pipeline), <code class="docutils literal notranslate"><span class="pre">an</span></code> can skip its
-own transcription pass entirely:</p>
+<p>When the caller already has authoritative word-level alignment data (e.g. from a separate lyric-alignment pipeline), <code class="docutils literal notranslate"><span class="pre">an</span></code> can skip its own transcription pass entirely:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">an.audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">StaticWordTimings</span><span class="p">,</span> <span class="n">WordTimingsLipSync</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.orchestrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrate</span>
 
@@ -539,11 +532,7 @@ own transcription pass entirely:</p>
 <span class="n">orchestrate</span><span class="p">(</span><span class="s2">"my-scene"</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">orchestrate(...,</span> <span class="pre">tts=,</span> <span class="pre">lipsync=,</span> <span class="pre">parallel=)</span></code> accepts either provider
-name strings or instances. Plug in any <code class="docutils literal notranslate"><span class="pre">WordTimingProvider</span></code>
-(structural protocol with <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code> and <code class="docutils literal notranslate"><span class="pre">words_for(audio,</span> <span class="pre">transcript=)</span></code> returning <code class="docutils literal notranslate"><span class="pre">(text,</span> <span class="pre">start,</span> <span class="pre">end)</span></code> tuples). <code class="docutils literal notranslate"><span class="pre">muvid</span></code> uses
-this hook to feed <code class="docutils literal notranslate"><span class="pre">lacing</span></code> alignment-store timings straight into the
-cutout pipeline.</p>
+<p><code class="docutils literal notranslate"><span class="pre">orchestrate(...,</span> <span class="pre">tts=,</span> <span class="pre">lipsync=,</span> <span class="pre">parallel=)</span></code> accepts either provider name strings or instances. Plug in any <code class="docutils literal notranslate"><span class="pre">WordTimingProvider</span></code> (structural protocol with <code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code> and <code class="docutils literal notranslate"><span class="pre">words_for(audio,</span> <span class="pre">transcript=)</span></code> returning <code class="docutils literal notranslate"><span class="pre">(text,</span> <span class="pre">start,</span> <span class="pre">end)</span></code> tuples). <code class="docutils literal notranslate"><span class="pre">muvid</span></code> uses this hook to feed <code class="docutils literal notranslate"><span class="pre">lacing</span></code> alignment-store timings straight into the cutout pipeline.</p>
 </section>
 <section id="synthetic-impact-clips-cutan-impacts">
 <span id="synthetic-impact-clips-cutanimpacts"></span><h3>Synthetic impact clips (<code class="docutils literal notranslate"><span class="pre">cutan.impacts</span></code>)<a class="headerlink" href="#synthetic-impact-clips-cutan-impacts" title="Link to this heading">#</a></h3>
@@ -580,33 +569,20 @@ cutout pipeline.</p>
 <ul class="simple">
 <li><p>3D animation, generative video, interactive output, SaaS hosting, music/sound-effect generation, in-house GUI, or editing of pre-existing video footage. <code class="docutils literal notranslate"><span class="pre">an</span></code> synthesizes; it does not cut.</p></li>
 <li><p>The Manim backend works for placeholder title cards but isn’t doing real shot-to-Manim translation; Remotion + whiteboard are skeleton implementations that respond correctly to <code class="docutils literal notranslate"><span class="pre">can_render</span></code> but can’t produce video yet.</p></li>
-<li><p>Lip-sync for face-baked characters. Characters whose descriptor declares
-<code class="docutils literal notranslate"><span class="pre">face_overlay:</span> <span class="pre">false</span></code> (DiceBear avatars, or any hand-declared baked face)
-carry their face inside the head SVG, so the
-compiler suppresses both the overlay mouth and the viseme channel — they speak
-without moving their mouths. Hand-rigged characters lip-sync normally; see
-<code class="docutils literal notranslate"><span class="pre">examples/promote_demo/</span></code>.</p></li>
+<li><p>Lip-sync for face-baked characters. Characters whose descriptor declares <code class="docutils literal notranslate"><span class="pre">face_overlay:</span> <span class="pre">false</span></code> (DiceBear avatars, or any hand-declared baked face) carry their face inside the head SVG, so the compiler suppresses both the overlay mouth and the viseme channel — they speak without moving their mouths. Hand-rigged characters lip-sync normally; see <code class="docutils literal notranslate"><span class="pre">examples/promote_demo/</span></code>.</p></li>
 <li><p>Multi-scene projects — <code class="docutils literal notranslate"><span class="pre">&quot;main&quot;</span></code> is the only scene key supported today.</p></li>
 </ul>
-<p>SVG character art <em>has</em> shipped — descriptors drive real sprites through
-<code class="docutils literal notranslate"><span class="pre">svg_sprite</span></code> visuals, not the placeholder geometry an earlier version of this
-list described.</p>
+<p>SVG character art <em>has</em> shipped — descriptors drive real sprites through <code class="docutils literal notranslate"><span class="pre">svg_sprite</span></code> visuals, not the placeholder geometry an earlier version of this list described.</p>
 </section>
 <hr class="docutils" />
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="#misc/docs/architecture_as_built.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/architecture_as_built.md</span></code></span></a> — module map, control flows, invariants, caching strategy.</p></li>
-<li><p><a class="reference internal" href="#misc/docs/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/</span></code></span></a> — the design-space research reports, plus
-<a class="reference internal" href="#misc/docs/wave1_verification.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code></span></a>, which is <em>verified current
-fact</em> rather than design space: licences with the URLs they were read at, and the
-silent-discard inventory.</p></li>
+<li><p><a class="reference internal" href="#misc/docs/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/</span></code></span></a> — the design-space research reports, plus <a class="reference internal" href="#misc/docs/wave1_verification.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code></span></a>, which is <em>verified current fact</em> rather than design space: licences with the URLs they were read at, and the silent-discard inventory.</p></li>
 <li><p><a class="reference internal" href="#misc/CHANGELOG.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/CHANGELOG.md</span></code></span></a> — phase-by-phase what shipped when.</p></li>
-<li><p><a class="reference internal" href="#.claude/skills/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code></span></a> — the skills the agent uses to drive the package
-(<code class="docutils literal notranslate"><span class="pre">an</span></code> to use it, <code class="docutils literal notranslate"><span class="pre">an-spec</span></code> to interview a director, <code class="docutils literal notranslate"><span class="pre">an-dev</span></code> to work on it, plus
-<code class="docutils literal notranslate"><span class="pre">an-dev-licensing</span></code> and <code class="docutils literal notranslate"><span class="pre">an-dev-runtime-assets</span></code> for the two things that fail silently).</p></li>
-<li><p><a class="reference internal" href="#examples/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">examples/</span></code></span></a> — the canonical demo scenes. <code class="docutils literal notranslate"><span class="pre">single_character/</span></code> is the smallest
-thing that renders; <code class="docutils literal notranslate"><span class="pre">character_gallery/build.py</span></code> goes end to end from character creation.</p></li>
+<li><p><a class="reference internal" href="#.claude/skills/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code></span></a> — the skills the agent uses to drive the package (<code class="docutils literal notranslate"><span class="pre">an</span></code> to use it, <code class="docutils literal notranslate"><span class="pre">an-spec</span></code> to interview a director, <code class="docutils literal notranslate"><span class="pre">an-dev</span></code> to work on it, plus <code class="docutils literal notranslate"><span class="pre">an-dev-licensing</span></code> and <code class="docutils literal notranslate"><span class="pre">an-dev-runtime-assets</span></code> for the things that fail silently).</p></li>
+<li><p><a class="reference internal" href="#examples/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">examples/</span></code></span></a> — the canonical demo scenes. <code class="docutils literal notranslate"><span class="pre">single_character/</span></code> is the smallest thing that renders; <code class="docutils literal notranslate"><span class="pre">character_gallery/build.py</span></code> goes end to end from character creation.</p></li>
 </ul>
 <p class="epythet-aggregates">This documentation as a single file: <a href="an.md">an.md</a> (Markdown, for agents).</p>
 <div class="toctree-wrapper compound">
@@ -614,7 +590,7 @@ thing that renders; <code class="docutils literal notranslate"><span class="pre"
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-23 00:39 UTC from <a href="https://github.com/reeleehq/an/commit/179cbb80455350a5edc1b2dda26b1945df1df3ce">179cbb8</a> (main) · an 0.1.424 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-23 03:21 UTC from <a href="https://github.com/reeleehq/an/commit/abc1f704f8dcb524c052fbb7184c0eb292fcbadf">abc1f70</a> (main) · an 0.1.425 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=05425d7c"></script>
+    <script src="../../../_static/documentation_options.js?v=a13ad965"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.424" />
+  <meta name="docsearch:version" content="0.1.425" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -930,8 +930,13 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: human. A size it does not give, or ``None`` here, is</span>
     <span class="c1">#: :data:`an.ir.schema.SHOT_SIZES`'; the frame's ``fill`` is always the</span>
     <span class="c1">#: table's (composition, not anatomy). Since ``an.genres.API_LEVEL`` 14.</span>
+    <span class="c1">#: A band may also give its own columns, ``(top, bottom, left, right)``, as</span>
+    <span class="c1">#: fractions of ``box``'s width from its left (a close-up as wide as the</span>
+    <span class="c1">#: head, centred on it, an#769): the framing then fits the band's true width</span>
+    <span class="c1">#: and crops the sides only to keep a size step from the next wider size.</span>
+    <span class="c1">#: Since ``an.genres.API_LEVEL`` 19.</span>
     <span class="n">shot_sizes</span><span class="p">:</span> <span class="p">(</span>
-        <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+        <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: ``(descriptor) -&gt; {name: (slot, point)}``: the named points of this</span>
     <span class="c1">#: kind's rigs that touch what the rig stands on (catalogue A1, an#519): a</span>

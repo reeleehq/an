@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=05425d7c"></script>
+    <script src="../_static/documentation_options.js?v=a13ad965"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.424" />
+  <meta name="docsearch:version" content="0.1.425" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1331,7 +1331,16 @@ critic share one definition of “far”.</p>
 units. <code class="docutils literal notranslate"><span class="pre">member_at</span></code> overrides a subject’s <code class="docutils literal notranslate"><span class="pre">at</span></code> with where it stands in
 the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).
 <code class="docutils literal notranslate"><span class="pre">bands</span></code> gives a subject’s own band for a size (its rig’s landmarks,
-<a class="reference internal" href="an.genres.html#an.genres.EntityKind.shot_sizes" title="an.genres.EntityKind.shot_sizes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">an.genres.EntityKind.shot_sizes</span></code></a>); otherwise <code class="xref py py-data docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>’.</p>
+<a class="reference internal" href="an.genres.html#an.genres.EntityKind.shot_sizes" title="an.genres.EntityKind.shot_sizes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">an.genres.EntityKind.shot_sizes</span></code></a>); otherwise <code class="xref py py-data docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>’.
+A band that names its own columns (<code class="docutils literal notranslate"><span class="pre">(top,</span> <span class="pre">bottom,</span> <span class="pre">left,</span> <span class="pre">right)</span></code>, an#769)
+is framed at its true width and centred on it.</p>
+<p><strong>Crop policy for a partial size</strong> (<code class="docutils literal notranslate"><span class="pre">medium</span></code>, <code class="docutils literal notranslate"><span class="pre">close_up</span></code>; an#769). When
+a band’s true width is known and fitting it would put the camera so far
+back that the size is not a jump-cut step
+(<a class="reference internal" href="an.ir.schema.html#an.ir.schema.JUMP_CUT_SIZE_RATIO" title="an.ir.schema.JUMP_CUT_SIZE_RATIO"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.ir.schema.JUMP_CUT_SIZE_RATIO</span></code></a>) nearer than the next
+wider size, the camera comes in to that step, but never nearer than the
+band’s height needs: the sides are cropped rather than the cut becoming a
+jump cut. A band without columns is fitted at its box’s aspect, as before.</p>
 <p>A viewpoint with <code class="docutils literal notranslate"><span class="pre">at</span></code> is that camera. One with a <code class="docutils literal notranslate"><span class="pre">subject</span></code> is computed:
 on the look direction, at the distance that fills <code class="docutils literal notranslate"><span class="pre">fill</span></code> of the frame
 with the subject’s band (<code class="code docutils literal notranslate"><span class="pre">SHOT_SIZES</span></code>; its rows at its box’s aspect,

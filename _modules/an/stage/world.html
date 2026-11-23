@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=05425d7c"></script>
+    <script src="../../../_static/documentation_options.js?v=a13ad965"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.424" />
+  <meta name="docsearch:version" content="0.1.425" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -831,15 +831,17 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">extents</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Box</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
     <span class="n">problems</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
-<span class="w">    </span><span class="sd">"""``{member id: {shot size: (top, bottom)}}`` for every positioned member</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""``{member id: {shot size: band}}`` for every positioned member</span>
 <span class="sd">    whose kind gives its own (:attr:`an.genres.EntityKind.shot_sizes`,</span>
 <span class="sd">    reeleehq/cutan#106): what :func:`an.ir.world.resolve_viewpoint` frames a</span>
 <span class="sd">    size by instead of :data:`an.ir.schema.SHOT_SIZES`. The hook is handed the</span>
 <span class="sd">    member's measured box (``extents``, :func:`member_extents`), the one its</span>
-<span class="sd">    fractions are of. A hook that raises, a band not ``0 &lt;= top &lt; bottom &lt;=</span>
-<span class="sd">    1``, or a size :data:`SHOT_SIZES` does not name is not used (the table's</span>
-<span class="sd">    applies) and ``problems`` (an out-parameter, ``{member id: {size: why}}``,</span>
+<span class="sd">    fractions are of. A band is ``(top, bottom)``, or ``(top, bottom, left,</span>
+<span class="sd">    right)`` when the kind also measured the band's columns (fractions of the</span>
+<span class="sd">    box's width from its left, an#769). A hook that raises, a band not ``0 &lt;=</span>
+<span class="sd">    top &lt; bottom &lt;= 1`` (and ``0 &lt;= left &lt; right &lt;= 1``), or a size</span>
+<span class="sd">    :data:`SHOT_SIZES` does not name is not used (the table's applies) and ``problems`` (an out-parameter, ``{member id: {size: why}}``,</span>
 <span class="sd">    ``"*"`` for every size when the hook itself failed) records why, which the</span>
 <span class="sd">    lowering reports on each shot that frames the member at that size.</span>
 
@@ -849,7 +851,7 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_kind</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHOT_SIZES</span>
 
-    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">world</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">out</span>
     <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
@@ -858,7 +860,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">box</span> <span class="o">=</span> <span class="n">extents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">hook</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">member</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">box</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">sane</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">sane</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">dropped</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">given</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hook</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
@@ -867,12 +869,15 @@ window.runMermaid = runMermaid;</script>
             <span class="n">given</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">band</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">band</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">band</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">band</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
-                <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">band</span><span class="p">)</span>
+                <span class="n">cut</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">band</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-                <span class="n">dropped</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">band</span><span class="si">!r}</span><span class="s2"> is not (top, bottom)"</span>
+                <span class="n">dropped</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">band</span><span class="si">!r}</span><span class="s2"> is not (top, bottom) or (top, bottom, left, right)"</span>
+                <span class="p">)</span>
                 <span class="k">continue</span>
+            <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">=</span> <span class="n">cut</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">size</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SHOT_SIZES</span><span class="p">:</span>
                 <span class="n">dropped</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">!r}</span><span class="s2"> is not a shot size (</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">SHOT_SIZES</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
@@ -881,8 +886,13 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">dropped</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">!r}</span><span class="s2">: (</span><span class="si">{</span><span class="n">top</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">bottom</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">) is not 0 &lt;= top &lt; bottom &lt;= 1"</span>
                 <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">cut</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">cut</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cut</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="n">dropped</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">!r}</span><span class="s2">: columns (</span><span class="si">{</span><span class="n">cut</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">cut</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">) are not "</span>
+                    <span class="s2">"0 &lt;= left &lt; right &lt;= 1"</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">sane</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)</span>
+                <span class="n">sane</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">cut</span>
         <span class="k">if</span> <span class="n">sane</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">sane</span>
         <span class="k">if</span> <span class="n">dropped</span> <span class="ow">and</span> <span class="n">problems</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

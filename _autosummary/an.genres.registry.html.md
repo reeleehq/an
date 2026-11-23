@@ -269,7 +269,7 @@ bone of that name wins. `None`: the kind names no point.
 A missing `ref` is NOT an error because the compiler draws a placeholder
 instead; the genre reports it with its own (warning) check.
 
-#### shot_sizes *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+#### shot_sizes *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any)], [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...]] | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
 
 where this kind’s
 rig puts each shot size’s band (reeleehq/cutan#106), as fractions of
@@ -277,8 +277,13 @@ rig puts each shot size’s band (reeleehq/cutan#106), as fractions of
 `(x0, y0, x1, y1)` ([`an.stage.world.member_extents()`](an.stage.world.html.md#an.stage.world.member_extents)): a close-up
 from the top of the head to the chin of THIS build rather than of a
 human. A size it does not give, or `None` here, is
-[`an.ir.schema.SHOT_SIZES`](an.ir.schema.html.md#an.ir.schema.SHOT_SIZES)’; the frame’s `fill` is always the
+`an.ir.schema.SHOT_SIZES`’; the frame’s `fill` is always the
 table’s (composition, not anatomy). Since `an.genres.API_LEVEL` 14.
+A band may also give its own columns, `(top, bottom, left, right)`, as
+fractions of `box`’s width from its left (a close-up as wide as the
+head, centred on it, an#769): the framing then fits the band’s true width
+and crops the sides only to keep a size step from the next wider size.
+Since `an.genres.API_LEVEL` 19.
 
 * **Type:**
   `(entity, mall, box) -> {shot size: (top, bottom)}`

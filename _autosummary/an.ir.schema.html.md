@@ -44,7 +44,7 @@ True
 |----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Point3`](#an.ir.schema.Point3)                    | the stage's axes extended with depth — `x` right, `y` DOWN, `z` away from the viewer.                                                                                                                                                                                     |
 | [`DFLT_FOV_DEG`](#an.ir.schema.DFLT_FOV_DEG)              | The horizontal field of view a viewpoint has when it names neither `fov` nor `focal`: a normal lens, neither wide nor long.                                                                                                                                               |
-| [`SHOT_SIZES`](#an.ir.schema.SHOT_SIZES)                | Shot sizes, by where the frame cuts the subject (the film convention, see ADR 0009): `name: (top, bottom, fill)`.                                                                                                                                                         |
+| [`JUMP_CUT_SIZE_RATIO`](#an.ir.schema.JUMP_CUT_SIZE_RATIO)       | Shot sizes, by where the frame cuts the subject (the film convention, see ADR 0009): `name: (top, bottom, fill)`.                                                                                                                                                         |
 | [`DFLT_TRAVEL_NEAR`](#an.ir.schema.DFLT_TRAVEL_NEAR)          | nearer than `near` an instance has passed the camera (and is hidden); beyond `far` it is effectively at infinity (the far plate's job, not a stream's).                                                                                                                   |
 | [`DFLT_TRAVEL_TOLERANCE_PX`](#an.ir.schema.DFLT_TRAVEL_TOLERANCE_PX)  | How far a stream instance's screen position may stray from the fitted tweens between two of their keys, in pixels: the fitting's tolerance.                                                                                                                               |
 | [`DFLT_TRAVEL_MAX_ACTIONS`](#an.ir.schema.DFLT_TRAVEL_MAX_ACTIONS)   | The most actions one shot's travel may lower to before the lowering refuses and names the knobs: a 10 s road with three streams is about four thousand; a minute of dense road markings would be fifty thousand, which is a document the runtime pays for on every frame. |
@@ -901,6 +901,21 @@ The joint types a scene declares. `string` (a distance held at most) and
 `rod` (a distance held exactly) are the puppeteer’s names for a
 `distance` with its `mode` set.
 
+### an.ir.schema.JUMP_CUT_SIZE_RATIO *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.3*
+
+Shot sizes, by where the frame cuts the subject (the film convention, see
+ADR 0009): `name: (top, bottom, fill)`. `top`/`bottom` are the band of
+the subject’s box the frame shows, as fractions of its height from the top
+(`0.35`: head and shoulders; `0.55`: the waist); `fill` is how much of
+the frame’s height that band fills. These are human proportions; a genre
+gives a kind’s own bands from its rig (`EntityKind.shot_sizes`,
+reeleehq/cutan#106), and `fill` is always this table’s.
+Two views of one subject whose apparent sizes differ by less than this ratio
+(larger / smaller), from directions less than 30 degrees apart, are a jump cut
+(catalogue C4): about one shot-size step (a close-up fills 1.57 times a
+medium). The jump-cut check ([`an.verify.constraints`](an.verify.constraints.html.md#module-an.verify.constraints)) and the framing’s
+crop policy ([`an.ir.world.resolve_viewpoint()`](an.ir.world.html.md#an.ir.world.resolve_viewpoint)) both read it.
+
 ### *class* an.ir.schema.JointSpec(, type, a, b=None, end=None, limits=None, length=None, mode=None, give=0.0, name=None, \*\*extra_data)
 
 Bases: `_IRModel`
@@ -1127,16 +1142,6 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 ### an.ir.schema.SEGMENT_JOINT_TYPES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'contact', 'slide'})*
 
 The types that join a point to a segment (`b` is its start, `end` its end).
-
-### an.ir.schema.SHOT_SIZES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'close_up': (0.0, 0.35, 0.9), 'full': (0.0, 1.0, 0.9), 'medium': (0.0, 0.55, 0.9), 'wide': (0.0, 1.0, 0.5)}*
-
-Shot sizes, by where the frame cuts the subject (the film convention, see
-ADR 0009): `name: (top, bottom, fill)`. `top`/`bottom` are the band of
-the subject’s box the frame shows, as fractions of its height from the top
-(`0.35`: head and shoulders; `0.55`: the waist); `fill` is how much of
-the frame’s height that band fills. These are human proportions; a genre
-gives a kind’s own bands from its rig (`EntityKind.shot_sizes`,
-reeleehq/cutan#106), and `fill` is always this table’s.
 
 ### an.ir.schema.SPECIMEN_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
 

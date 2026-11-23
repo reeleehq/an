@@ -527,6 +527,16 @@ units. `member_at` overrides a subject’s `at` with where it stands in
 the VIEWPOINT’s frame (a subject in another frame, at the shot’s start).
 `bands` gives a subject’s own band for a size (its rig’s landmarks,
 [`an.genres.EntityKind.shot_sizes`](an.genres.html.md#an.genres.EntityKind.shot_sizes)); otherwise `SHOT_SIZES`’.
+A band that names its own columns (`(top, bottom, left, right)`, an#769)
+is framed at its true width and centred on it.
+
+**Crop policy for a partial size** (`medium`, `close_up`; an#769). When
+a band’s true width is known and fitting it would put the camera so far
+back that the size is not a jump-cut step
+([`an.ir.schema.JUMP_CUT_SIZE_RATIO`](an.ir.schema.html.md#an.ir.schema.JUMP_CUT_SIZE_RATIO)) nearer than the next
+wider size, the camera comes in to that step, but never nearer than the
+band’s height needs: the sides are cropped rather than the cut becoming a
+jump cut. A band without columns is fitted at its box’s aspect, as before.
 
 A viewpoint with `at` is that camera. One with a `subject` is computed:
 on the look direction, at the distance that fills `fill` of the frame
