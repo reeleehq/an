@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=6ab349a8"></script>
+    <script src="../../../_static/documentation_options.js?v=cecbcdb1"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.422" />
+  <meta name="docsearch:version" content="0.1.423" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -749,6 +749,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">           forearm and a shade nested on it, posed by three tweens</span>
 <span class="sd">rig_interleave the same arm passing behind an unrelated panel and in front of it:</span>
 <span class="sd">           a global part order (an#430)</span>
+<span class="sd">floor_stand a floor (``solve.ground``) with a rig standing on its ``origin`` and a</span>
+<span class="sd">           cup naming its ``base`` contact, sliding along it: the one corpus shot</span>
+<span class="sd">           the ``support`` check's inferred path runs on (an#796), clean</span>
 <span class="sd">========== ===================================================================</span>
 
 <span class="sd">They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the</span>
@@ -768,7 +771,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">them. Nothing here imports the stage at module level.</span>
 
 <span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
-<span class="sd">['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']</span>
+<span class="sd">['after_plane', 'floor_stand', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -1088,6 +1091,21 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"that ignored `origin` (both posts at one height), placed parts "</span>
             <span class="s2">"about the wrong point, or broke the shared rig builder moves a "</span>
             <span class="s2">"golden."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"floor_stand"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/floor_stand"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"a floor at y 80 (`solve: </span><span class="si">{ground: 80}</span><span class="s2">`, an#796): the signpost of "</span>
+            <span class="s2">"`rig_origin` stands on its declared `origin`, the foot of its base, "</span>
+            <span class="s2">"and a cup naming its `base` in `metadata.contacts` slides right "</span>
+            <span class="s2">"along the floor (x 20 -&gt; 90). Between the goldens the cup moves and "</span>
+            <span class="s2">"its base stays on the floor line; the post does not move. A "</span>
+            <span class="s2">"regression that lifted or sank a standing entity, or placed either "</span>
+            <span class="s2">"by its box instead of the point it stands on, moves a golden; the "</span>
+            <span class="s2">"`support` check passes it clean (tests/test_support.py)."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"rig_rest"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
