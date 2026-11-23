@@ -240,5 +240,5 @@ SVG character art *has* shipped — descriptors drive real sprites through `svg_
 - [`misc/docs/architecture_as_built.md`](misc/docs/architecture_as_built.md) — module map, control flows, invariants, caching strategy.
 - [`misc/docs/`](misc/docs/) — the design-space research reports, plus [`wave1_verification.md`](misc/docs/wave1_verification.md), which is *verified current fact* rather than design space: licences with the URLs they were read at, and the silent-discard inventory.
 - [`misc/CHANGELOG.md`](misc/CHANGELOG.md) — phase-by-phase what shipped when.
-- [`.claude/skills/`](.claude/skills/) — the skills the agent uses to drive the package (`an` to use it, `an-spec` to interview a director, `an-dev` to work on it, plus `an-dev-licensing` and `an-dev-runtime-assets` for the two things that fail silently).
+- [`.claude/skills/`](.claude/skills/) — the skills the agent uses to drive the package (`an` to use it, `an-spec` to interview a director, `an-dev` to work on it, plus `an-dev-licensing` and `an-dev-runtime-assets` for the things that fail silently).
 - [`examples/`](examples/) — the canonical demo scenes. `single_character/` is the smallest thing that renders; `character_gallery/build.py` goes end to end from character creation.
