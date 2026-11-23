@@ -1319,39 +1319,31 @@ def _world_floor_y(ctx: _Ctx, entity: str, k: int) -> float | None:
 
 
 def _standing_entities(ctx: _Ctx, base: Run, *, vocab: Any = None) -> frozenset[str]:
-    """The shot's entities placed by the point they stand on (an#601): a
-    declared ``origin`` (an#338) that one of their parts' painted bottom
-    touches in the gesture-free solve as the shot opens (a figure's feet, a
-    stand's foot: within :data:`SUPPORT_TOLERANCE_PX`). An ``origin`` no part
-    rests on (a wheel's hub, a stick's middle, a stand placed by its middle)
-    is where the rig is held, not where it stands, and its floor stays the
-    bottom of its parts. The stance is the AUTHORED placement: a carrier a
-    shot joint moves (welded to a cart) keeps its floor at its ``stage.at``."""
-    from an.stage.solve import _descriptor, _field
+    """The shot's entities placed by the point they stand on (an#601): those whose
+    rig declares an ``origin`` (an#338) that they stand on, by the one rule
+    :func:`an.stage.support.origin_stands` (an#795), the rule :func:`~an.stage.support.contacts_of`
+    and the ``support`` check use: one of their root parts' painted bottom rests on it
+    at rest (a figure's feet, a stand's foot). An ``origin`` no part rests on (a wheel's
+    hub, a stick's middle, a stand placed by its middle) is where the rig is held, not
+    where it stands, and its floor stays the bottom of its parts. The stance is the
+    AUTHORED placement: a carrier a shot joint moves (welded to a cart) keeps its floor
+    at its ``stage.at``."""
+    from an.stage.solve import _descriptor, _field, _node_index, _rig_of
+    from an.stage.support import origin_stands
 
     puppet = ctx.puppet
-    parts: dict[str, list[str]] = {}
-    for path, b in puppet.bodies.items():
-        if b.parent_body is None:
-            parts.setdefault(b.entity, []).append(path)
+    rooted = {b.entity for b in puppet.bodies.values() if b.parent_body is None}
+    nodes = _node_index(ctx.doc)
     out = set()
     for e in ctx.shot.entities:
-        if e.id not in parts or e.id not in puppet.nodes or not base.evaluated:
+        if e.id not in rooted or e.id not in puppet.nodes or not base.evaluated:
             continue
         desc = (getattr(vocab, "descriptors", None) or {}).get(e.id) or _descriptor(
             e, ctx.mall
         )
         if _field(desc, "origin") is None:
             continue
-        stands_at = _apply(base.evaluated[0][e.id], (0.0, 0.0))[1]
-        bottoms = (
-            _lowest(
-                _body_world(puppet, base, 0, p),
-                ink_points(ctx.doc, puppet.nodes[p], ctx.mall),
-            )
-            for p in parts[e.id]
-        )
-        if any(abs(y - stands_at) <= SUPPORT_TOLERANCE_PX for y in bottoms):
+        if origin_stands(ctx.doc, e, _rig_of(e, ctx.mall, nodes), ctx.mall):
             out.add(e.id)
     return frozenset(out)
 
