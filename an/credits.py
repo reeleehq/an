@@ -892,9 +892,7 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
             continue
         known = digests.get(path.as_posix()) if digests else None
         plate = (
-            (lambda: None)
-            if known is not None
-            else (lambda p=path.as_posix(): read(p))
+            (lambda: None) if known is not None else (lambda p=path.as_posix(): read(p))
         )
         out[name] = _pinned_or_unknown(dict(raw), plate, src, digest=known)
     return out
@@ -987,7 +985,10 @@ def _pinned_or_unknown(
     )
     return {
         "provider": "unknown",
-        "extra": {"reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes", "file": src},
+        "extra": {
+            "reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes",
+            "file": src,
+        },
     }
 
 
