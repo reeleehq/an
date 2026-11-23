@@ -215,7 +215,7 @@ the world member that puts it in the frame (`world/members/<j>`).
 
 The reason, in words.
 
-### *class* an.ir.world.Projection(at, forward, right, down, focal)
+### *class* an.ir.world.Projection(at, forward, right, down, focal, aim=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -231,6 +231,15 @@ True
 >>> [round(v, 6) + 0.0 for v in rolled.project((1.0, 0.0, 10.0))]   # a point on the right: now at the bottom
 [0.0, 10.0, 10.0]
 ```
+
+#### aim *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+the centre of the band it
+frames (not the subject’s footing). `None` for a camera given by `at`.
+The jump-cut check measures a shot’s size there (an#853).
+
+* **Type:**
+  The point a subject-framed viewpoint aims at
 
 #### moved(by)
 

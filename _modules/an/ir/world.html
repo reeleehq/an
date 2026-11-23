@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=7ed8f0cd"></script>
+    <script src="../../../_static/documentation_options.js?v=9dfc979f"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.429" />
+  <meta name="docsearch:version" content="0.1.430" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1015,6 +1015,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">right</span><span class="p">:</span> <span class="n">Point3</span>
     <span class="n">down</span><span class="p">:</span> <span class="n">Point3</span>
     <span class="n">focal</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="c1">#: The point a subject-framed viewpoint aims at: the centre of the band it</span>
+    <span class="c1">#: frames (not the subject's footing). ``None`` for a camera given by ``at``.</span>
+    <span class="c1">#: The jump-cut check measures a shot's size there (an#853).</span>
+    <span class="n">aim</span><span class="p">:</span> <span class="n">Point3</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Projection.view">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.world.html#an.ir.Projection.view">[docs]</a>
@@ -1040,7 +1044,12 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">moved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">by</span><span class="p">:</span> <span class="n">Point3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Projection"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""The same camera translated by ``by`` (the vehicle moved)."""</span>
         <span class="k">return</span> <span class="n">Projection</span><span class="p">(</span>
-            <span class="n">_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">by</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">focal</span>
+            <span class="n">_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">by</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">focal</span><span class="p">,</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aim</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aim</span><span class="p">,</span> <span class="n">by</span><span class="p">),</span>
         <span class="p">)</span></div>
 
 
@@ -1065,6 +1074,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">pose</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">),</span>
             <span class="n">pose</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">focal</span><span class="p">,</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aim</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pose</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aim</span><span class="p">),</span>
         <span class="p">)</span></div>
 </div>
 
@@ -1319,10 +1329,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">needed_w</span> <span class="o">=</span> <span class="n">focal</span> <span class="o">*</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">fill</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">))</span>
         <span class="n">both</span> <span class="o">=</span> <span class="n">tall</span> <span class="o">=</span> <span class="n">_MIN_DEPTH</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">:</span>
-            <span class="n">ahead</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">_sub</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">centre</span><span class="p">),</span> <span class="n">forward</span><span class="p">)</span>  <span class="c1"># how far beyond the aim point</span>
+            <span class="n">ahead</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span>
+                <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">centre</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">forward</span>
+            <span class="p">)</span>  <span class="c1"># how far beyond the aim point, in depth only (an#853)</span>
             <span class="n">both</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">both</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">needed_h</span><span class="p">,</span> <span class="n">needed_w</span><span class="p">)</span> <span class="o">-</span> <span class="n">ahead</span><span class="p">)</span>
             <span class="n">tall</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tall</span><span class="p">,</span> <span class="n">needed_h</span> <span class="o">-</span> <span class="n">ahead</span><span class="p">)</span>
-        <span class="n">first_ahead</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">_sub</span><span class="p">(</span><span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">centre</span><span class="p">),</span> <span class="n">forward</span><span class="p">)</span>
+        <span class="n">first_ahead</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">positions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">centre</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">forward</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">centre</span><span class="p">,</span> <span class="n">both</span><span class="p">,</span> <span class="n">tall</span><span class="p">,</span> <span class="nb">any</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cuts</span><span class="p">),</span> <span class="n">first_ahead</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">distance_for</span><span class="p">(</span><span class="n">size</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point3</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
@@ -1335,13 +1347,13 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">wider</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">wider_width</span><span class="p">,</span> <span class="n">wider_depth</span> <span class="o">=</span> <span class="n">distance_for</span><span class="p">(</span><span class="n">wider</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">own_width</span> <span class="ow">or</span> <span class="n">wider_width</span><span class="p">:</span>
-                <span class="c1"># The jump-cut check's own measure: the subject's depth, which is</span>
-                <span class="c1"># the distance plus how far it stands beyond this size's aim point.</span>
-                <span class="n">step</span> <span class="o">=</span> <span class="n">wider_depth</span> <span class="o">/</span> <span class="p">(</span><span class="n">JUMP_CUT_SIZE_RATIO</span> <span class="o">*</span> <span class="n">_SIZE_STEP_MARGIN</span><span class="p">)</span> <span class="o">-</span> <span class="n">ahead</span>
+                <span class="c1"># The jump-cut check's own measure: the distance to the aim point,</span>
+                <span class="c1"># the centre of the framed band (an#853).</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="n">wider_depth</span> <span class="o">/</span> <span class="p">(</span><span class="n">JUMP_CUT_SIZE_RATIO</span> <span class="o">*</span> <span class="n">_SIZE_STEP_MARGIN</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">both</span> <span class="o">&gt;</span> <span class="n">step</span><span class="p">:</span>  <span class="c1"># its framing would make the cut a jump cut</span>
                     <span class="n">both</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tall</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>  <span class="c1"># crop the sides, never the band's height</span>
             <span class="n">own_width</span> <span class="o">=</span> <span class="n">own_width</span> <span class="ow">or</span> <span class="n">wider_width</span>
-        <span class="k">return</span> <span class="n">centre</span><span class="p">,</span> <span class="n">both</span><span class="p">,</span> <span class="n">own_width</span><span class="p">,</span> <span class="n">both</span> <span class="o">+</span> <span class="n">ahead</span>
+        <span class="k">return</span> <span class="n">centre</span><span class="p">,</span> <span class="n">both</span><span class="p">,</span> <span class="n">own_width</span><span class="p">,</span> <span class="n">both</span>
 
     <span class="n">centre</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">distance_for</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">vp</span><span class="o">.</span><span class="n">distance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1354,7 +1366,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">),</span>
         <span class="n">_mul</span><span class="p">(</span><span class="n">down</span><span class="p">,</span> <span class="n">sy</span> <span class="o">*</span> <span class="n">distance</span> <span class="o">/</span> <span class="n">focal</span><span class="p">),</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">Projection</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">down</span><span class="p">,</span> <span class="n">focal</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">Projection</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">down</span><span class="p">,</span> <span class="n">focal</span><span class="p">,</span> <span class="n">centre</span><span class="p">)</span></div>
 
 
 

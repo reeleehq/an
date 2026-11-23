@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=7ed8f0cd"></script>
+    <script src="_static/documentation_options.js?v=9dfc979f"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.429" />
+  <meta name="docsearch:version" content="0.1.430" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -519,7 +519,7 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 </tbody>
 </table>
 </div>
-<p>For a deeper as-built reference (module-by-module map, control flows, key invariants, content-hash caching strategy), see <a class="reference internal" href="#misc/docs/architecture_as_built.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/architecture_as_built.md</span></code></span></a>. The research reports next to it cover the design space the system was built against — they are not current state, and <code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code> is (verified fact, with the URLs each licence was read at).</p>
+<p>For a deeper as-built reference (module-by-module map, control flows, key invariants, content-hash caching strategy), see <a class="reference external" href="https://github.com/thorwhalen/an/blob/HEAD/misc/docs/architecture_as_built.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/architecture_as_built.md</span></code></span></a>. The research reports next to it cover the design space the system was built against — they are not current state, and <code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code> is (verified fact, with the URLs each licence was read at).</p>
 <section id="injecting-word-timings-no-whisper-redundancy">
 <h3>Injecting word timings (no whisper redundancy)<a class="headerlink" href="#injecting-word-timings-no-whisper-redundancy" title="Link to this heading">#</a></h3>
 <p>When the caller already has authoritative word-level alignment data (e.g. from a separate lyric-alignment pipeline), <code class="docutils literal notranslate"><span class="pre">an</span></code> can skip its own transcription pass entirely:</p>
@@ -578,10 +578,10 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="#misc/docs/architecture_as_built.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/architecture_as_built.md</span></code></span></a> — module map, control flows, invariants, caching strategy.</p></li>
-<li><p><a class="reference internal" href="#misc/docs/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/</span></code></span></a> — the design-space research reports, plus <a class="reference internal" href="#misc/docs/wave1_verification.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code></span></a>, which is <em>verified current fact</em> rather than design space: licences with the URLs they were read at, and the silent-discard inventory.</p></li>
-<li><p><a class="reference internal" href="#misc/CHANGELOG.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/CHANGELOG.md</span></code></span></a> — phase-by-phase what shipped when.</p></li>
-<li><p><a class="reference internal" href="#.claude/skills/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code></span></a> — the skills the agent uses to drive the package (<code class="docutils literal notranslate"><span class="pre">an</span></code> to use it, <code class="docutils literal notranslate"><span class="pre">an-spec</span></code> to interview a director, <code class="docutils literal notranslate"><span class="pre">an-dev</span></code> to work on it, plus <code class="docutils literal notranslate"><span class="pre">an-dev-licensing</span></code> and <code class="docutils literal notranslate"><span class="pre">an-dev-runtime-assets</span></code> for the things that fail silently).</p></li>
+<li><p><a class="reference external" href="https://github.com/thorwhalen/an/blob/HEAD/misc/docs/architecture_as_built.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/architecture_as_built.md</span></code></span></a> — module map, control flows, invariants, caching strategy.</p></li>
+<li><p><a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/misc/docs"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/docs/</span></code></span></a> — the design-space research reports, plus <a class="reference external" href="https://github.com/thorwhalen/an/blob/HEAD/misc/docs/wave1_verification.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">wave1_verification.md</span></code></span></a>, which is <em>verified current fact</em> rather than design space: licences with the URLs they were read at, and the silent-discard inventory.</p></li>
+<li><p><a class="reference external" href="https://github.com/thorwhalen/an/blob/HEAD/misc/CHANGELOG.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">misc/CHANGELOG.md</span></code></span></a> — phase-by-phase what shipped when.</p></li>
+<li><p><a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">.claude/skills/</span></code></span></a> — the skills the agent uses to drive the package (<code class="docutils literal notranslate"><span class="pre">an</span></code> to use it, <code class="docutils literal notranslate"><span class="pre">an-spec</span></code> to interview a director, <code class="docutils literal notranslate"><span class="pre">an-dev</span></code> to work on it, plus <code class="docutils literal notranslate"><span class="pre">an-dev-licensing</span></code> and <code class="docutils literal notranslate"><span class="pre">an-dev-runtime-assets</span></code> for the things that fail silently).</p></li>
 <li><p><a class="reference internal" href="#examples/"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">examples/</span></code></span></a> — the canonical demo scenes. <code class="docutils literal notranslate"><span class="pre">single_character/</span></code> is the smallest thing that renders; <code class="docutils literal notranslate"><span class="pre">character_gallery/build.py</span></code> goes end to end from character creation.</p></li>
 </ul>
 <p class="epythet-aggregates">This documentation as a single file: <a href="an.md">an.md</a> (Markdown, for agents).</p>
@@ -590,7 +590,7 @@ an<span class="w"> </span>impacts<span class="w"> </span>clip-set<span class="w"
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-23 07:50 UTC from <a href="https://github.com/reeleehq/an/commit/1adba3dd6642526c81fa9b09335abe79f1cdf496">1adba3d</a> (main) · an 0.1.429 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-23 09:17 UTC from <a href="https://github.com/reeleehq/an/commit/9ec4780621d35edffa7a97fe78436388b7b6f45f">9ec4780</a> (main) · an 0.1.430 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               
