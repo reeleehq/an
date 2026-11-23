@@ -24,7 +24,9 @@ from an.ir.schema import (
 )
 from an.orchestrate import render_project
 from an.project import load
+from an.verify import media
 from an.verify.media import (
+    adjacent_ssims,
     audio_volume,
     detect_silence,
     extract_frames,
@@ -45,6 +47,42 @@ from an.verify.media import (
 # -----------------------------------------------------------------------------
 # SSIM (no rendering needed)
 # -----------------------------------------------------------------------------
+
+
+def _write_frames(directory: Path, count: int, *, size=(32, 24)) -> list[Path]:
+    """``count`` small grey PNGs that differ frame to frame (seeded noise)."""
+    from PIL import Image
+
+    rng = np.random.default_rng(7)
+    paths = []
+    for i in range(count):
+        pixels = (rng.random((size[1], size[0])) * 255).astype(np.uint8)
+        path = directory / f"frame_{i:04d}.png"
+        Image.fromarray(pixels, mode="L").save(path)
+        paths.append(path)
+    return paths
+
+
+def test_adjacent_ssims_equals_pairwise_and_decodes_each_frame_once(tmp_path, monkeypatch):
+    """an#855: the verifier's frozen-render probe decoded interior frames twice."""
+    frames = _write_frames(tmp_path, 6)
+    pairwise = [ssim_image_files(a, b) for a, b in zip(frames, frames[1:])]
+    decoded = []
+    read_gray = media._read_gray
+    monkeypatch.setattr(media, "_read_gray", lambda p: decoded.append(p) or read_gray(p))
+    assert adjacent_ssims(frames) == pairwise  # the same floats, not approximately
+    assert decoded == frames
+
+
+def test_adjacent_ssims_short_inputs_and_size_mismatch(tmp_path):
+    (one,) = _write_frames(tmp_path, 1)
+    assert adjacent_ssims([]) == []
+    assert adjacent_ssims([one]) == []
+    smaller = tmp_path / "smaller"
+    smaller.mkdir()
+    (other,) = _write_frames(smaller, 1, size=(16, 16))
+    with pytest.raises(ValueError, match="frame size mismatch"):
+        adjacent_ssims([one, other])
 
 
 def test_ssim_self_is_one():

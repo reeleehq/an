@@ -24,10 +24,10 @@ from an.adapters._base import RenderResult
 from an.ir.schema import SceneIR
 from an.verify._base import VerificationReport
 from an.verify.media import (
+    adjacent_ssims,
     audio_volume,
     detect_silence,
     extract_frames,
-    ssim_image_files,
 )
 
 
@@ -103,10 +103,7 @@ class MediaQualityVerifier:
             with tempfile.TemporaryDirectory() as d:
                 frames = extract_frames(render.mp4_path, d, fps=self.frame_sample_fps)
                 if len(frames) >= 2:
-                    ssims = [
-                        ssim_image_files(frames[i], frames[i + 1])
-                        for i in range(len(frames) - 1)
-                    ]
+                    ssims = adjacent_ssims(frames)  # each frame decoded once
                     mean_ssim = sum(ssims) / len(ssims)
                     if mean_ssim > self.frozen_ssim_threshold:
                         report.add(
