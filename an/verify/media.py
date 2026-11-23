@@ -15,6 +15,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Iterable
 
 import numpy as np
 
@@ -164,15 +165,45 @@ def ssim(a: np.ndarray, b: np.ndarray) -> float:
     return float(num / den)
 
 
-def ssim_image_files(path_a: str | Path, path_b: str | Path) -> float:
-    """SSIM between two image files (any format Pillow can read)."""
+def _read_gray(path: str | Path) -> np.ndarray:
+    """An image file's luma (Pillow mode ``"L"``) as float64 in ``[0, 1]``."""
     from PIL import Image
 
-    a = np.asarray(Image.open(path_a).convert("L"), dtype=np.float64) / 255.0
-    b = np.asarray(Image.open(path_b).convert("L"), dtype=np.float64) / 255.0
+    with Image.open(path) as image:
+        return np.asarray(image.convert("L"), dtype=np.float64) / 255.0
+
+
+def _ssim_same_size(a: np.ndarray, b: np.ndarray) -> float:
+    """:func:`ssim` of two decoded frames, refusing frames of different sizes."""
     if a.shape != b.shape:
         raise ValueError(f"frame size mismatch: {a.shape} vs {b.shape}")
     return ssim(a, b)
+
+
+def ssim_image_files(path_a: str | Path, path_b: str | Path) -> float:
+    """SSIM between two image files (any format Pillow can read)."""
+    return _ssim_same_size(_read_gray(path_a), _read_gray(path_b))
+
+
+def adjacent_ssims(paths: Iterable[str | Path]) -> list[float]:
+    """SSIM of each adjacent pair of image files, decoding every file once.
+
+    The same numbers as ``[ssim_image_files(a, b) for a, b in zip(paths, paths[1:])]``,
+    at half the decoding: that form decodes every interior frame twice, once on each
+    side of a pair, and decoding costs more than the SSIM it feeds (an#855). Only two
+    frames are held in memory at a time. Fewer than two paths give an empty list.
+
+    >>> adjacent_ssims([])
+    []
+    """
+    out: list[float] = []
+    previous = None
+    for path in paths:
+        current = _read_gray(path)
+        if previous is not None:
+            out.append(_ssim_same_size(previous, current))
+        previous = current
+    return out
 
 
 def extract_frames(
