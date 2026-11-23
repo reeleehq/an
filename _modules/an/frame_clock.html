@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -732,7 +732,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">It also owns the GRIDS a shot is laid onto, the pure rules every layer shares</span>
 <span class="sd">(the IR's camera, the stage's compiler and solve): :func:`frame_times` (every</span>
 <span class="sd">frame, the end included), :func:`step_times` (a stepped shot's pose grid,</span>
-<span class="sd">an#89), :func:`grid_times` (one or the other, the solve's grid) and</span>
+<span class="sd">an#89; the rule lives in :mod:`an.timing.grid`, an#784), :func:`grid_times` (one or the other, the solve's grid) and</span>
 <span class="sd">:func:`camera_grid` (an#626), the instants a camera the runtime cannot</span>
 <span class="sd">evaluate itself — a follow, a dolly — is keyed at so that every instant the</span>
 <span class="sd">render samples, a shutter's sub-frame ones included, lands on an exact key.</span>
@@ -769,6 +769,10 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Sequence</span>
 
+<span class="c1"># The step grid is a timing policy the kernel's other implementations honour, so it</span>
+<span class="c1"># lives in an.timing (an#784); it is re-exported here, where the grids are built.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.grid</span><span class="w"> </span><span class="kn">import</span> <span class="n">STEP_GRID_EPS</span><span class="p">,</span> <span class="n">step_times</span>
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"DEFAULT_EXPOSURE_SAMPLES"</span><span class="p">,</span>
     <span class="s2">"MAX_JITTER_FRACTION"</span><span class="p">,</span>
@@ -802,9 +806,6 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: two neighbouring reported timestamps can never cross on a regular grid.</span>
 <span class="n">MAX_REPORT_NOISE_FRACTION</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.24</span>
 
-<span class="c1">#: A step instant this close to the end of a span is not a step of it</span>
-<span class="c1">#: (``0.25 s × 12 Hz`` is 3 steps, not 4, whatever the float product rounds to).</span>
-<span class="n">STEP_GRID_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
 
 <span class="c1">#: Two camera key instants closer than this (s) are one key: a shutter sample</span>
 <span class="c1">#: that IS a frame up to float noise adds no key beside it (two keys a</span>
@@ -848,46 +849,6 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    [0.0, 0.25, 0.5]</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">n</span> <span class="o">/</span> <span class="n">fps</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frame_count</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span></div>
-
-
-
-<div class="viewcode-block" id="step_times">
-<a class="viewcode-back" href="../../_autosummary/an.frame_clock.html#an.frame_clock.step_times">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">step_times</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Clip-local times at which a stepped tween updates its pose (an#89).</span>
-
-<span class="sd">    The grid is SHOT-wide — multiples of ``1/step_hz`` on the shot's clock,</span>
-<span class="sd">    shared by every tween in the shot — not the tween's own: "on twos" means</span>
-<span class="sd">    every character changes pose on the same frames, so a tween starting at</span>
-<span class="sd">    0.033 s updates at the next grid point, not 0.033 s later. (Shots compile</span>
-<span class="sd">    independently, so the grid restarts at each cut.) Local 0 (the tween's</span>
-<span class="sd">    start) and ``duration`` (where the end value lands) are always present, so</span>
-<span class="sd">    a tween shorter than one step is a single step to its end value.</span>
-
-<span class="sd">    ``step_hz`` must be positive: with a non-positive rate the walk below never</span>
-<span class="sd">    reaches ``duration`` — an infinite loop, not an error — so it is refused.</span>
-
-<span class="sd">    &gt;&gt;&gt; step_times(0.0, 0.3, 10)</span>
-<span class="sd">    [0.0, 0.1, 0.2, 0.3]</span>
-<span class="sd">    &gt;&gt;&gt; [round(t, 3) for t in step_times(0.05, 0.3, 10)]</span>
-<span class="sd">    [0.0, 0.05, 0.15, 0.25, 0.3]</span>
-<span class="sd">    &gt;&gt;&gt; step_times(0.0, 0.02, 10)</span>
-<span class="sd">    [0.0, 0.02]</span>
-<span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">step_hz</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"step_hz must be positive; got </span><span class="si">{</span><span class="n">step_hz</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">eps</span> <span class="o">=</span> <span class="n">STEP_GRID_EPS</span>
-    <span class="n">j</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">start</span> <span class="o">*</span> <span class="n">step_hz</span> <span class="o">-</span> <span class="n">eps</span><span class="p">)</span>
-    <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">j</span> <span class="o">/</span> <span class="n">step_hz</span> <span class="o">-</span> <span class="n">start</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">eps</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">eps</span><span class="p">:</span>
-            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">times</span></div>
 
 
 

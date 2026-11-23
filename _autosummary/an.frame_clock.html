@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -557,6 +557,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.grid.html">an.timing.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
@@ -663,7 +664,7 @@ frame was taken.</p>
 <p>It also owns the GRIDS a shot is laid onto, the pure rules every layer shares
 (the IR’s camera, the stage’s compiler and solve): <a class="reference internal" href="#an.frame_clock.frame_times" title="an.frame_clock.frame_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">frame_times()</span></code></a> (every
 frame, the end included), <a class="reference internal" href="#an.frame_clock.step_times" title="an.frame_clock.step_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">step_times()</span></code></a> (a stepped shot’s pose grid,
-an#89), <a class="reference internal" href="#an.frame_clock.grid_times" title="an.frame_clock.grid_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">grid_times()</span></code></a> (one or the other, the solve’s grid) and
+an#89; the rule lives in <a class="reference internal" href="an.timing.grid.html#module-an.timing.grid" title="an.timing.grid"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.grid</span></code></a>, an#784), <a class="reference internal" href="#an.frame_clock.grid_times" title="an.frame_clock.grid_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">grid_times()</span></code></a> (one or the other, the solve’s grid) and
 <a class="reference internal" href="#an.frame_clock.camera_grid" title="an.frame_clock.camera_grid"><code class="xref py py-func docutils literal notranslate"><span class="pre">camera_grid()</span></code></a> (an#626), the instants a camera the runtime cannot
 evaluate itself — a follow, a dolly — is keyed at so that every instant the
 render samples, a shutter’s sub-frame ones included, lands on an exact key.</p>
@@ -703,10 +704,7 @@ period, sampled at the midpoints of <code class="docutils literal notranslate"><
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.frame_clock.MAX_REPORT_NOISE_FRACTION" title="an.frame_clock.MAX_REPORT_NOISE_FRACTION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_REPORT_NOISE_FRACTION</span></code></a></p></td>
 <td><p>Report noise is clamped to this fraction of the frame period, each side, so two neighbouring reported timestamps can never cross on a regular grid.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.frame_clock.STEP_GRID_EPS" title="an.frame_clock.STEP_GRID_EPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEP_GRID_EPS</span></code></a></p></td>
-<td><p>A step instant this close to the end of a span is not a step of it (<code class="docutils literal notranslate"><span class="pre">0.25</span> <span class="pre">s</span> <span class="pre">×</span> <span class="pre">12</span> <span class="pre">Hz</span></code> is 3 steps, not 4, whatever the float product rounds to).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.frame_clock.SAMPLE_MERGE_EPS" title="an.frame_clock.SAMPLE_MERGE_EPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SAMPLE_MERGE_EPS</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.frame_clock.SAMPLE_MERGE_EPS" title="an.frame_clock.SAMPLE_MERGE_EPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SAMPLE_MERGE_EPS</span></code></a></p></td>
 <td><p>a shutter sample that IS a frame up to float noise adds no key beside it (two keys a femtosecond apart would only divide by that femtosecond).</p></td>
 </tr>
 </tbody>
@@ -915,13 +913,6 @@ femtosecond apart would only divide by that femtosecond).</p>
 </dl>
 </dd></dl>
 
-<dl class="py data">
-<dt class="sig sig-object py" id="an.frame_clock.STEP_GRID_EPS">
-<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">STEP_GRID_EPS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-09</span></span><a class="headerlink" href="#an.frame_clock.STEP_GRID_EPS" title="Link to this definition">#</a></dt>
-<dd><p>A step instant this close to the end of a span is not a step of it
-(<code class="docutils literal notranslate"><span class="pre">0.25</span> <span class="pre">s</span> <span class="pre">×</span> <span class="pre">12</span> <span class="pre">Hz</span></code> is 3 steps, not 4, whatever the float product rounds to).</p>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="an.frame_clock.camera_grid">
 <span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">camera_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-09</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/frame_clock.html#camera_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.frame_clock.camera_grid" title="Link to this definition">#</a></dt>
@@ -1020,7 +1011,7 @@ over <a class="reference internal" href="#an.frame_clock.grid_times" title="an.f
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.frame_clock.step_times">
-<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">step_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/frame_clock.html#step_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.frame_clock.step_times" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.frame_clock.</span></span><span class="sig-name descname"><span class="pre">step_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/grid.html#step_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.frame_clock.step_times" title="Link to this definition">#</a></dt>
 <dd><p>Clip-local times at which a stepped tween updates its pose (an#89).</p>
 <p>The grid is SHOT-wide — multiples of <code class="docutils literal notranslate"><span class="pre">1/step_hz</span></code> on the shot’s clock,
 shared by every tween in the shot — not the tween’s own: “on twos” means
@@ -1109,7 +1100,6 @@ reaches <code class="docutils literal notranslate"><span class="pre">duration</s
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.MAX_JITTER_FRACTION"><code class="docutils literal notranslate"><span class="pre">MAX_JITTER_FRACTION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.MAX_REPORT_NOISE_FRACTION"><code class="docutils literal notranslate"><span class="pre">MAX_REPORT_NOISE_FRACTION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.SAMPLE_MERGE_EPS"><code class="docutils literal notranslate"><span class="pre">SAMPLE_MERGE_EPS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.STEP_GRID_EPS"><code class="docutils literal notranslate"><span class="pre">STEP_GRID_EPS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.camera_grid"><code class="docutils literal notranslate"><span class="pre">camera_grid()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.frame_count"><code class="docutils literal notranslate"><span class="pre">frame_count()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.frame_clock.frame_times"><code class="docutils literal notranslate"><span class="pre">frame_times()</span></code></a></li>

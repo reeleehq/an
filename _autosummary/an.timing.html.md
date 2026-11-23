@@ -13,14 +13,15 @@ declared **field kind** ([`kinds`](an.timing.kinds.html.md#module-an.timing.kind
 and evaluated by `evaluate_timeline(timeline, t)` — sparse: a property nothing
 has started writing is absent, and the entity’s rest state supplies it.
 
-The kernel is a **cross-language contract** before it is code: five JSON files
+The kernel is a **cross-language contract** before it is code: six JSON files
 in `an/data/timing/` generated from these registries ([`contract`](an.timing.contract.html.md#module-an.timing.contract)),
 which a second implementation (TypeScript) asserts. `runtime.js` — the stage
 engine’s evaluator — is a bit-exact port of this package’s value-typed rule, and
 its parity tests hold it there.
 
 The frame clock is `an`’s: frame `k` at `k / fps`, `frame_count = max(1,
-round(duration * fps))` ([`an.frame_clock`](an.frame_clock.html.md#module-an.frame_clock)).
+round(duration * fps))` ([`an.frame_clock`](an.frame_clock.html.md#module-an.frame_clock)). A stepped shot’s pose grid is
+the kernel’s own rule, [`step_times()`](an.timing.grid.html.md#an.timing.grid.step_times).
 
 ```pycon
 >>> from an.timing import Channel, Keyframe, evaluate_channel, get_space
@@ -31,29 +32,30 @@ round(duration * fps))` ([`an.frame_clock`](an.frame_clock.html.md#module-an.fra
 
 ### Functions
 
-| [`format_address`](#an.timing.format_address)(target, prop)                       | The address string of a compiled `(target, property)` pair, unvalidated (the fast path for keying states; [`Address.of()`](#an.timing.Address.of) validates).   |
-|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`parse_address`](#an.timing.parse_address)(text)                                | `text` as an [`Address`](#an.timing.Address); raises [`AddressError`](#an.timing.AddressError) naming the fault.                         |
-| [`check_channel`](#an.timing.check_channel)(channel, kind)                       | Why `channel`'s keyframe values do not fit `kind` (empty if they do).                                                                                                                 |
-| [`evaluate_channel`](#an.timing.evaluate_channel)(channel, t, \*[, kind])           | Evaluate `channel` at time `t` (see the module docstring for `kind`).                                                                                                                 |
-| [`merge_poses`](#an.timing.merge_poses)(\*poses)                               | Merge multiple poses with **override semantics** (later wins per key).                                                                                                                |
-| [`wrap_time`](#an.timing.wrap_time)(t, duration, loop_mode)                  | The public name of the loop rule (the contract's; `_wrap_time` is kept for the callers and tests that already import it).                                                             |
-| [`evaluate_clip`](#an.timing.evaluate_clip)(clip, t, \*[, kind_of])              | Evaluate `clip` at time `t`, returning a `Pose`.                                                                                                                                      |
-| [`apply_easing`](#an.timing.apply_easing)(spec, t, \*[, names, calls])          | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.                                                                                                                       |
-| [`easing_entries`](#an.timing.easing_entries)(\*[, owner])                        | Every registered entry in registration order; only `owner`'s when given.                                                                                                              |
-| [`easing_entry`](#an.timing.easing_entry)(name)                                 | The registered entry called `name`.                                                                                                                                                   |
-| [`register_easing`](#an.timing.register_easing)(entry, \*[, replace, owner])       | Add `entry` to the registry (a genre's own curves register here).                                                                                                                     |
-| [`resolve_easing`](#an.timing.resolve_easing)(spec)                               | The curve an easing spec names.                                                                                                                                                       |
-| [`kind_from_spec`](#an.timing.kind_from_spec)(spec)                               | A kind instance from its contract spec (`{"kind": name, **params}`), a bare kind name, or an instance (returned as is).                                                               |
-| [`kind_names`](#an.timing.kind_names)(\*[, owner])                            | The registered kind names in registration order; only `owner`'s when given.                                                                                                           |
-| [`register_kind`](#an.timing.register_kind)(name, factory, \*[, replace, owner]) | Register a field kind under `name` (how a genre adds one).                                                                                                                            |
-| `get_space`(name)                                                                                   |                                                                                                                                                                                       |
-| [`register_space`](#an.timing.register_space)(space, \*[, replace, owner])        | Register `space` under its name (how an entity kind declares its properties).                                                                                                         |
-| [`space_from_json`](#an.timing.space_from_json)(doc)                               | A space from its JSON form (what `PropertySpace.to_json()` writes).                                                                                                                   |
-| [`space_names`](#an.timing.space_names)(\*[, owner])                           | The registered space names in registration order; only `owner`'s when given.                                                                                                          |
-| [`clip_from_json`](#an.timing.clip_from_json)(anim, \*[, name])                   | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](#an.timing.Clip).                                                             |
-| [`evaluate_timeline`](#an.timing.evaluate_timeline)(timeline, t, \*[, space])        | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                                                                                   |
-| [`timeline_from_compiled`](#an.timing.timeline_from_compiled)(doc)                        | The compiled document's `timeline`/`animations` as an evaluable `Timeline`.                                                                                                           |
+| [`step_times`](#an.timing.step_times)(start, duration, step_hz)               | Clip-local times at which a stepped tween updates its pose (an#89).                                                                                                                 |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_address`](#an.timing.format_address)(target, prop)                       | The address string of a compiled `(target, property)` pair, unvalidated (the fast path for keying states; [`Address.of()`](#an.timing.Address.of) validates). |
+| [`parse_address`](#an.timing.parse_address)(text)                                | `text` as an [`Address`](#an.timing.Address); raises [`AddressError`](#an.timing.AddressError) naming the fault.                       |
+| [`check_channel`](#an.timing.check_channel)(channel, kind)                       | Why `channel`'s keyframe values do not fit `kind` (empty if they do).                                                                                                               |
+| [`evaluate_channel`](#an.timing.evaluate_channel)(channel, t, \*[, kind])           | Evaluate `channel` at time `t` (see the module docstring for `kind`).                                                                                                               |
+| [`merge_poses`](#an.timing.merge_poses)(\*poses)                               | Merge multiple poses with **override semantics** (later wins per key).                                                                                                              |
+| [`wrap_time`](#an.timing.wrap_time)(t, duration, loop_mode)                  | The public name of the loop rule (the contract's; `_wrap_time` is kept for the callers and tests that already import it).                                                           |
+| [`evaluate_clip`](#an.timing.evaluate_clip)(clip, t, \*[, kind_of])              | Evaluate `clip` at time `t`, returning a `Pose`.                                                                                                                                    |
+| [`apply_easing`](#an.timing.apply_easing)(spec, t, \*[, names, calls])          | Apply an easing spec to a normalised parameter `t` in `[0, 1]`.                                                                                                                     |
+| [`easing_entries`](#an.timing.easing_entries)(\*[, owner])                        | Every registered entry in registration order; only `owner`'s when given.                                                                                                            |
+| [`easing_entry`](#an.timing.easing_entry)(name)                                 | The registered entry called `name`.                                                                                                                                                 |
+| [`register_easing`](#an.timing.register_easing)(entry, \*[, replace, owner])       | Add `entry` to the registry (a genre's own curves register here).                                                                                                                   |
+| [`resolve_easing`](#an.timing.resolve_easing)(spec)                               | The curve an easing spec names.                                                                                                                                                     |
+| [`kind_from_spec`](#an.timing.kind_from_spec)(spec)                               | A kind instance from its contract spec (`{"kind": name, **params}`), a bare kind name, or an instance (returned as is).                                                             |
+| [`kind_names`](#an.timing.kind_names)(\*[, owner])                            | The registered kind names in registration order; only `owner`'s when given.                                                                                                         |
+| [`register_kind`](#an.timing.register_kind)(name, factory, \*[, replace, owner]) | Register a field kind under `name` (how a genre adds one).                                                                                                                          |
+| `get_space`(name)                                                                                   |                                                                                                                                                                                     |
+| [`register_space`](#an.timing.register_space)(space, \*[, replace, owner])        | Register `space` under its name (how an entity kind declares its properties).                                                                                                       |
+| [`space_from_json`](#an.timing.space_from_json)(doc)                               | A space from its JSON form (what `PropertySpace.to_json()` writes).                                                                                                                 |
+| [`space_names`](#an.timing.space_names)(\*[, owner])                           | The registered space names in registration order; only `owner`'s when given.                                                                                                        |
+| [`clip_from_json`](#an.timing.clip_from_json)(anim, \*[, name])                   | One compiled animation (`compiled.schema.json`'s `animation`) as a [`Clip`](#an.timing.Clip).                                                           |
+| [`evaluate_timeline`](#an.timing.evaluate_timeline)(timeline, t, \*[, space])        | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                                                                                                 |
+| [`timeline_from_compiled`](#an.timing.timeline_from_compiled)(doc)                        | The compiled document's `timeline`/`animations` as an evaluable `Timeline`.                                                                                                         |
 
 ### Classes
 
@@ -777,6 +779,33 @@ The registered space names in registration order; only `owner`’s when given.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
 
+### an.timing.step_times(start, duration, step_hz)
+
+Clip-local times at which a stepped tween updates its pose (an#89).
+
+The grid is SHOT-wide — multiples of `1/step_hz` on the shot’s clock,
+shared by every tween in the shot — not the tween’s own: “on twos” means
+every character changes pose on the same frames, so a tween starting at
+0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
+independently, so the grid restarts at each cut.) Local 0 (the tween’s
+start) and `duration` (where the end value lands) are always present, so
+a tween shorter than one step is a single step to its end value.
+
+`step_hz` must be positive: with a non-positive rate the walk below never
+reaches `duration` — an infinite loop, not an error — so it is refused.
+
+```pycon
+>>> step_times(0.0, 0.3, 10)
+[0.0, 0.1, 0.2, 0.3]
+>>> [round(t, 3) for t in step_times(0.05, 0.3, 10)]
+[0.0, 0.05, 0.15, 0.25, 0.3]
+>>> step_times(0.0, 0.02, 10)
+[0.0, 0.02]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 ### an.timing.timeline_from_compiled(doc)
 
 The compiled document’s `timeline`/`animations` as an evaluable `Timeline`.
@@ -812,13 +841,14 @@ Apply the loop mode to `t`, returning a time within `[0, duration]`.
 
 ### Modules
 
-| [`address`](an.timing.address.html.md#module-an.timing.address)   | The address grammar: one way to name an animatable value, in every genre.                    |
-|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| [`channel`](an.timing.channel.html.md#module-an.timing.channel)   | Channel: keyframes for a single (target, property) pair, evaluated at time t.                |
-| [`clip`](an.timing.clip.html.md#module-an.timing.clip)         | Clip: a named bundle of channels with a duration and loop mode.                              |
-| [`contract`](an.timing.contract.html.md#module-an.timing.contract) | The timing kernel's cross-language contract: five JSON files, generated from the registries. |
-| [`easing`](an.timing.easing.html.md#module-an.timing.easing)     | The easing registry: every named timing curve, each with the solver that computes it.        |
-| [`flat`](an.timing.flat.html.md#module-an.timing.flat)         | The authored flat timeline: `(start, end, address, change)` rows.                            |
-| [`kinds`](an.timing.kinds.html.md#module-an.timing.kinds)       | Field kinds: the declared interpolator of each animatable property.                          |
-| [`spaces`](an.timing.spaces.html.md#module-an.timing.spaces)     | Property spaces: what an entity kind's properties ARE, declared once.                        |
-| [`timeline`](an.timing.timeline.html.md#module-an.timing.timeline) | Timeline: tracks of placed clips with absolute times — the compiled evaluation form.         |
+| [`address`](an.timing.address.html.md#module-an.timing.address)   | The address grammar: one way to name an animatable value, in every genre.                     |
+|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`channel`](an.timing.channel.html.md#module-an.timing.channel)   | Channel: keyframes for a single (target, property) pair, evaluated at time t.                 |
+| [`clip`](an.timing.clip.html.md#module-an.timing.clip)         | Clip: a named bundle of channels with a duration and loop mode.                               |
+| [`contract`](an.timing.contract.html.md#module-an.timing.contract) | The timing kernel's cross-language contract: five JSON files, generated from the registries.  |
+| [`easing`](an.timing.easing.html.md#module-an.timing.easing)     | The easing registry: every named timing curve, each with the solver that computes it.         |
+| [`flat`](an.timing.flat.html.md#module-an.timing.flat)         | The authored flat timeline: `(start, end, address, change)` rows.                             |
+| [`grid`](an.timing.grid.html.md#module-an.timing.grid)         | The step grid: the instants a stepped tween updates its pose, as a pure rule (an#89, an#784). |
+| [`kinds`](an.timing.kinds.html.md#module-an.timing.kinds)       | Field kinds: the declared interpolator of each animatable property.                           |
+| [`spaces`](an.timing.spaces.html.md#module-an.timing.spaces)     | Property spaces: what an entity kind's properties ARE, declared once.                         |
+| [`timeline`](an.timing.timeline.html.md#module-an.timing.timeline) | Timeline: tracks of placed clips with absolute times — the compiled evaluation form.          |

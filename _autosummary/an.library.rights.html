@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -557,6 +557,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.grid.html">an.timing.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
@@ -714,7 +715,7 @@ who and why — is the first statement (an#263); it relaxes nothing anyone said.
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.rights.roll_up" title="an.library.rights.roll_up"><code class="xref py py-obj docutils literal notranslate"><span class="pre">roll_up</span></code></a>(sources, *[, inherited])</p></td>
 <td><p>Roll labelled sources (and parents' rights) up to one <a class="reference internal" href="#an.library.rights.Rights" title="an.library.rights.Rights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rights</span></code></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.rights.sources_in" title="an.library.rights.sources_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources_in</span></code></a>(doc, *, store[, source, files])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.rights.sources_in" title="an.library.rights.sources_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources_in</span></code></a>(doc, *, store[, source, files, read])</p></td>
 <td><p>Every labelled source one version holds: the asset's, the descriptor's, each part's.</p></td>
 </tr>
 </tbody>
@@ -853,7 +854,7 @@ winning class, so a reader sees <em>why</em> a version is restricted.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.library.rights.sources_in">
-<span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">sources_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#sources_in"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.sources_in" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.library.rights.</span></span><span class="sig-name descname"><span class="pre">sources_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/rights.html#sources_in"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.rights.sources_in" title="Link to this definition">#</a></dt>
 <dd><p>Every labelled source one version holds: the asset’s, the descriptor’s, each part’s.</p>
 <dl class="simple">
 <dt>store: the project store this kind of document lives in (<code class="docutils literal notranslate"><span class="pre">characters</span></code>,</dt><dd><p><code class="docutils literal notranslate"><span class="pre">props</span></code>, <code class="docutils literal notranslate"><span class="pre">environments</span></code>, <code class="docutils literal notranslate"><span class="pre">sounds</span></code>) — its sources are read by
@@ -869,6 +870,8 @@ an explicit, recorded relicence (<a class="reference internal" href="an.library.
 <dt>files: <code class="docutils literal notranslate"><span class="pre">{path:</span> <span class="pre">sha256}</span></code> of the asset’s files. With them, a factory stamp</dt><dd><p>is checked against the bytes it pins (<code class="xref py py-func docutils literal notranslate"><span class="pre">an.credits._part_credits()</span></code>):
 a re-carved part under a stale stamp, or a file the factory’s
 descriptor stamp does not pin, is <code class="docutils literal notranslate"><span class="pre">unknown</span></code> unless a source covers it</p>
+</dd>
+<dt>read: <code class="docutils literal notranslate"><span class="pre">read(path)</span> <span class="pre">-&gt;</span> <span class="pre">bytes</span> <span class="pre">|</span> <span class="pre">None</span></code> for the asset’s files (see</dt><dd><p><code class="xref py py-func docutils literal notranslate"><span class="pre">_descriptor_sources()</span></code>); without it, nothing beside them is read</p>
 </dd>
 </dl>
 <p>With no source anywhere the asset contributes <code class="docutils literal notranslate"><span class="pre">None</span></code>: <code class="docutils literal notranslate"><span class="pre">unknown</span></code>.</p>

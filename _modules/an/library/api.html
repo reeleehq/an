@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../../../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -773,6 +773,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">is_clutter</span><span class="p">,</span>
     <span class="n">is_generated_source</span><span class="p">,</span>
     <span class="n">nobody_labelled</span><span class="p">,</span>
+    <span class="n">recorded_plate_source</span><span class="p">,</span>
     <span class="n">referenced_paths</span><span class="p">,</span>
     <span class="n">same_source</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1263,6 +1264,29 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">canonical_json</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_version_reader</span><span class="p">(</span>
+    <span class="n">holder</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``read(path) -&gt; bytes | None`` for one version's files, from the blobs of</span>
+<span class="sd">    the library holding it (``None`` when none is known): what the credits walk</span>
+<span class="sd">    reads beside a file, such as a generated plate's record (an#861)."""</span>
+    <span class="n">blobs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="s2">"blobs"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">blobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">blobs</span><span class="p">[</span><span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">read</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_file_hashes</span><span class="p">(</span><span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">path</span><span class="p">:</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">files</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
@@ -1452,12 +1476,21 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_part_contributions</span><span class="p">(</span>
-    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">read</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""The per-part sources pinned to the bytes a version holds, as contributors (an#357)."""</span>
+<span class="w">    </span><span class="sd">"""The per-part sources pinned to the bytes a version holds, as contributors (an#357).</span>
+
+<span class="sd">    read: the version's files (:func:`_version_reader`), so a generated plate's</span>
+<span class="sd">        record pinned to its bytes is one of them (an#861)</span>
+<span class="sd">    """</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-        <span class="n">part</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span><span class="p">)</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span>
+            <span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">read</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">part</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span>
@@ -1486,7 +1519,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">itemising_source</span><span class="p">(</span>
-    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">read</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The per-part source a version gives exactly these bytes at ``path``, if any.</span>
 
@@ -1497,6 +1534,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (:func:`an.credits.factory_recorded`): a stamp in a descriptor, typed or</span>
 <span class="sd">    written by the public stamping functions, proves nothing (review-288 B1). The descriptor's ``source_svg``</span>
 <span class="sd">    is itemised by a generator's descriptor-level stamp pinning its digest.</span>
+<span class="sd">    With ``read`` (the version's files), an environment's plate is itemised by</span>
+<span class="sd">    the record its generator wrote beside it, when that record pins its digest</span>
+<span class="sd">    (:func:`an.credits.recorded_plate_source`, an#861).</span>
 <span class="sd">    """</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="n">own</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
@@ -1540,6 +1580,15 @@ window.runMermaid = runMermaid;</script>
                         <span class="c1"># confirm labels nothing (review-288 B1).</span>
                         <span class="k">continue</span>
                     <span class="k">return</span> <span class="n">source</span>
+    <span class="k">if</span> <span class="n">read</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">recorded_plate_source</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">read</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">recorded</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">recorded</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">recorded</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_digest_of</span><span class="p">(</span><span class="n">recorded</span><span class="p">)</span> <span class="o">==</span> <span class="n">digest</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">recorded</span>
     <span class="k">return</span> <span class="kc">None</span>
 
 
@@ -1864,6 +1913,7 @@ window.runMermaid = runMermaid;</script>
                             <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span> <span class="k">if</span> <span class="n">kind</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="n">source</span><span class="o">=</span><span class="n">_source_model</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
                             <span class="n">files</span><span class="o">=</span><span class="n">hashes</span><span class="p">,</span>
+                            <span class="n">read</span><span class="o">=</span><span class="n">_version_reader</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">version</span><span class="p">),</span>
                         <span class="p">)</span>
                     <span class="p">)</span>
                 <span class="n">first</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1890,7 +1940,11 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># source pinned to the version's own bytes (an#357, probe T5).</span>
             <span class="k">if</span> <span class="n">per_file</span><span class="p">:</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_file_contributions</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_part_contributions</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="n">_part_contributions</span><span class="p">(</span>
+                        <span class="n">version</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">_version_reader</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">prefix</span><span class="p">:</span>
                     <span class="c1"># What the rule states about this relicensed parent's own</span>
                     <span class="c1"># bytes where stricter than its relicence: bytes it did not</span>
@@ -1944,6 +1998,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span> <span class="k">if</span> <span class="n">kind</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">source</span><span class="o">=</span><span class="n">_source_model</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
                 <span class="n">files</span><span class="o">=</span><span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+                <span class="n">read</span><span class="o">=</span><span class="n">_version_reader</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">version</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">per_file</span><span class="p">:</span>
@@ -2126,7 +2181,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="n">rule</span><span class="o">.</span><span class="n">applies</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
         <span class="n">digests</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">hashes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">digests</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">_claims</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span><span class="p">))}</span>
+        <span class="n">digests</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">d</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">_claims</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">owner</span><span class="p">))</span>
+        <span class="p">}</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">digest</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">digests</span><span class="p">):</span>
         <span class="bp">cls</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">statement</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
@@ -2203,9 +2260,25 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Memoised: build one per operation.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">pending</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""pending: ``(version, its files' bytes)`` for a version being</span>
+<span class="sd">        published, not yet in any library, so its own files can be read."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">readers</span> <span class="o">=</span> <span class="n">readers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="o">=</span> <span class="n">pending</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reader</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The version's files (a generated plate's record beside it: an#861)."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">version</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pending</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">get</span>
+        <span class="k">return</span> <span class="n">_version_reader</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cached</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">compute</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memo</span><span class="p">:</span>
@@ -2384,7 +2457,11 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">((</span><span class="s2">"statement"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_vid</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">),</span> <span class="n">digest</span><span class="p">),</span> <span class="n">compute</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_claims</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">_Said</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""``(per-file, per-part)``: what ``version`` itself says about the bytes at ``path``."""</span>
         <span class="n">entry</span> <span class="o">=</span> <span class="n">_file_entry</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
@@ -2393,7 +2470,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
-        <span class="n">part</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">itemising_source</span><span class="p">(</span>
+            <span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">part_said</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">license_class</span><span class="p">(</span><span class="n">part</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> itemised as </span><span class="si">{</span><span class="n">part</span><span class="o">.</span><span class="n">license</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'no licence'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -2418,7 +2497,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        to its bytes always labelled an unlabelled file (an#281); a stated</span>
 <span class="sd">        ``private``, ``attribution`` or ``noncommercial`` does (an#357).</span>
 <span class="sd">        """</span>
-        <span class="n">mine</span><span class="p">,</span> <span class="n">part_said</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+        <span class="n">mine</span><span class="p">,</span> <span class="n">part_said</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">holder</span><span class="p">)</span>
         <span class="n">claims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">mine</span><span class="p">,</span> <span class="n">part_said</span><span class="p">)</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">known</span><span class="p">(</span><span class="n">said</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Said</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Said</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
@@ -2467,7 +2546,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
                 <span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">):</span>
-                <span class="n">mine</span><span class="p">,</span> <span class="n">part_said</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
+                <span class="n">mine</span><span class="p">,</span> <span class="n">part_said</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">holder</span><span class="p">)</span>
                 <span class="n">claims</span> <span class="o">=</span> <span class="p">[</span><span class="n">mine</span><span class="p">,</span> <span class="n">part_said</span><span class="p">]</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span>
@@ -3423,7 +3502,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">relabel</span><span class="p">:</span>
         <span class="n">pending</span><span class="p">[</span><span class="n">RELABEL_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">relabel</span>
     <span class="n">entries</span><span class="p">,</span> <span class="n">dropped</span> <span class="o">=</span> <span class="n">_carried_file_sources</span><span class="p">(</span><span class="n">head_view</span><span class="p">,</span> <span class="n">parts_given</span><span class="p">,</span> <span class="n">hashes</span><span class="p">)</span>
-    <span class="n">rule</span> <span class="o">=</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">)</span>  <span class="c1"># one memo for this publish (an#357 review, finding 4)</span>
+    <span class="c1"># one memo for this publish (an#357 review, finding 4); the pending version's</span>
+    <span class="c1"># own files are readable before it is stored (an#861)</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="n">_PerFileRule</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">pending</span><span class="o">=</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="n">files</span> <span class="ow">or</span> <span class="p">{}))</span>
     <span class="k">if</span> <span class="n">entries</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rule</span><span class="o">.</span><span class="n">applies</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Under the rule through its lineage: recorded, so the version is</span>
         <span class="c1"># written at the schema an older reader refuses (review S1).</span>

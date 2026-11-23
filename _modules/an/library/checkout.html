@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../../../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1155,6 +1155,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">path</span><span class="p">:</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span>
                     <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                 <span class="p">},</span>
+                <span class="n">read</span><span class="o">=</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>  <span class="c1"># the bytes the project's walk will read (an#861)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="n">ASSET_SOURCE_LABEL</span>
         <span class="p">}</span>

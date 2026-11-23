@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1584,33 +1584,26 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    restrict it) is written there when the plate is made; a descriptor that does</span>
 <span class="sd">    not restate it would otherwise credit the plate under the environment's</span>
 <span class="sd">    source, or as unverified. A plane's own ``source`` still wins: it is the</span>
-<span class="sd">    author's statement. Read only from a store with files on disk</span>
-<span class="sd">    (``sidecar_path``); a ``src`` that is absolute or leaves the entry is skipped.</span>
+<span class="sd">    author's statement. Files are read through :func:`_entry_reader` (a store's</span>
+<span class="sd">    ``read_file``, or its files on disk); a ``src`` that is absolute or leaves</span>
+<span class="sd">    the entry is skipped.</span>
 <span class="sd">    """</span>
-    <span class="n">sidecar</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"sidecar_path"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">sidecar</span><span class="p">):</span>
+    <span class="n">read</span> <span class="o">=</span> <span class="n">_entry_reader</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">read</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{}</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">entry</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">sidecar</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">"."</span><span class="p">))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{}</span>
+    <span class="c1"># the files' digests when the store knows them (the library does): a pin is</span>
+    <span class="c1"># then checked without reading the plate's bytes</span>
+    <span class="n">provided</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"file_digests"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">digests</span> <span class="o">=</span> <span class="n">provided</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">provided</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">folders</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">inside</span><span class="p">(</span><span class="n">rel</span><span class="p">:</span> <span class="n">PurePosixPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""The file at ``rel`` under the entry, never one a symlink leads out to."""</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">sidecar</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">rel</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">path</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_relative_to</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">records_in</span><span class="p">(</span><span class="n">folder</span><span class="p">:</span> <span class="n">PurePosixPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">rel</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">rel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">:</span>
-            <span class="n">record</span> <span class="o">=</span> <span class="n">inside</span><span class="p">(</span><span class="n">folder</span> <span class="o">/</span> <span class="n">ART_SOURCES_FILE</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">read</span><span class="p">((</span><span class="n">folder</span> <span class="o">/</span> <span class="n">ART_SOURCES_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">loaded</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span> <span class="k">if</span> <span class="n">record</span> <span class="k">else</span> <span class="p">{}</span>
-            <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="n">loaded</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span> <span class="k">if</span> <span class="n">data</span> <span class="k">else</span> <span class="p">{}</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">UnicodeDecodeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
                 <span class="n">loaded</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">folders</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span> <span class="o">=</span> <span class="n">loaded</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loaded</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
         <span class="k">return</span> <span class="n">folders</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span>
@@ -1623,23 +1616,92 @@ window.runMermaid = runMermaid;</script>
         <span class="n">raw</span> <span class="o">=</span> <span class="n">records_in</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">raw</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pinned_or_unknown</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">inside</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">src</span><span class="p">)</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="n">digests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span> <span class="k">if</span> <span class="n">digests</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">plate</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">known</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">():</span> <span class="n">read</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pinned_or_unknown</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">plate</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">digest</span><span class="o">=</span><span class="n">known</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">recorded_plate_source</span><span class="p">(</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">read</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The record an image generator wrote for the file at ``path`` (an image</span>
+<span class="sd">    plane of ``descriptor`` with no source of its own; :data:`ART_SOURCES_FILE`</span>
+<span class="sd">    beside it), or ``None``. ``read(relative path) -&gt; bytes | None`` reads the</span>
+<span class="sd">    asset's files. Whether the record pins these very bytes is the caller's</span>
+<span class="sd">    check (its ``sha256``): the library itemises a part only on a matching pin</span>
+<span class="sd">    (an#861)."""</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="n">src</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">_unsourced_plate_names</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)}:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">rel</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rel</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">".."</span> <span class="ow">in</span> <span class="n">rel</span><span class="o">.</span><span class="n">parts</span> <span class="ow">or</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">read</span><span class="p">((</span><span class="n">rel</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">ART_SOURCES_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">loaded</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span> <span class="k">if</span> <span class="n">data</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">UnicodeDecodeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">loaded</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rel</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loaded</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">raw</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_entry_reader</span><span class="p">(</span><span class="n">store</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``read(relative path) -&gt; bytes | None`` for the files of ``store[key]``.</span>
+
+<span class="sd">    A store that answers ``read_file(key, path)`` is asked (the library, whose</span>
+<span class="sd">    versions are not on disk: an#861); else a store with files on disk</span>
+<span class="sd">    (``sidecar_path``) is read there, never through a symlink out of the entry;</span>
+<span class="sd">    else ``None``: nothing can be read.</span>
+<span class="sd">    """</span>
+    <span class="n">provided</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"read_file"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">provided</span><span class="p">):</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">from_store</span><span class="p">(</span><span class="n">rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">provided</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">from_store</span>
+    <span class="n">sidecar</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"sidecar_path"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">sidecar</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">sidecar</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">"."</span><span class="p">))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_disk</span><span class="p">(</span><span class="n">rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">sidecar</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">rel</span><span class="p">))</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_relative_to</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">from_disk</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_pinned_or_unknown</span><span class="p">(</span>
-    <span class="n">raw</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">plate</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">raw</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">plate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``raw`` when the bytes it pins (``sha256``, as the generator records it) are</span>
-<span class="sd">    the plate's, else an unknown source saying why: a record that speaks for other</span>
-<span class="sd">    bytes (the plate replaced by hand since) must not credit these."""</span>
-    <span class="n">pinned</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span>
+<span class="sd">    the plate's (``plate()`` reads them), else an unknown source saying why: a</span>
+<span class="sd">    record that speaks for other bytes (the plate replaced by hand since) must</span>
+<span class="sd">    not credit these."""</span>
+    <span class="n">pinned</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"sha256:"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">pinned</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">raw</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">actual</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">plate</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="k">if</span> <span class="n">plate</span> <span class="k">else</span> <span class="kc">None</span>
-    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-        <span class="n">actual</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">digest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># the plate's digest, known without reading it</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">digest</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">plate</span><span class="p">()</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">actual</span> <span class="o">==</span> <span class="n">pinned</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">raw</span>
     <span class="n">reason</span> <span class="o">=</span> <span class="p">(</span>

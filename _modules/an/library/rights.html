@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../../../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -752,7 +752,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -902,14 +902,25 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_OneEntry</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A one-entry project store for the credits walk, knowing its files' digests."""</span>
+<span class="w">    </span><span class="sd">"""A one-entry project store for the credits walk, knowing its files' digests</span>
+<span class="sd">    and, when given ``read``, their bytes (a record the walk reads beside a</span>
+<span class="sd">    plate, an#861)."""</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">read</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="s2">"_"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read</span> <span class="o">=</span> <span class="n">read</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">file_digests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_descriptor_sources</span><span class="p">(</span>
@@ -918,6 +929,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">covering</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">read</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""The descriptor's own source and each part's, as ``an credits`` reads them.</span>
 
@@ -928,6 +940,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        reconstructs), so the parts are walked as they will read there — the</span>
 <span class="sd">        library and the project's credits see the same document — but it is</span>
 <span class="sd">        reported under its own label, never as the descriptor's.</span>
+<span class="sd">    read: ``read(path) -&gt; bytes | None`` for the asset's files, so what the</span>
+<span class="sd">        credits walk reads beside them (a generated plate's ``art_sources.json``,</span>
+<span class="sd">        an#861) is read here too, and the library and a project agree</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_credits</span><span class="p">,</span> <span class="n">gives_way_to_a_label</span>
 
@@ -937,7 +952,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">document</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">store</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="n">collect_credits</span><span class="p">({</span><span class="n">store</span><span class="p">:</span> <span class="n">_OneEntry</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">files</span><span class="p">)})</span><span class="o">.</span><span class="n">entries</span>
+        <span class="k">return</span> <span class="n">collect_credits</span><span class="p">({</span><span class="n">store</span><span class="p">:</span> <span class="n">_OneEntry</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">read</span><span class="p">)})</span><span class="o">.</span><span class="n">entries</span>
 
     <span class="n">entries</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">own</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">e</span><span class="o">.</span><span class="n">source</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="o">==</span> <span class="n">prefix</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
@@ -971,6 +986,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">files</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">read</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Every labelled source one version holds: the asset's, the descriptor's, each part's.</span>
 
@@ -988,6 +1004,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        is checked against the bytes it pins (:func:`an.credits._part_credits`):</span>
 <span class="sd">        a re-carved part under a stale stamp, or a file the factory's</span>
 <span class="sd">        descriptor stamp does not pin, is ``unknown`` unless a source covers it</span>
+<span class="sd">    read: ``read(path) -&gt; bytes | None`` for the asset's files (see</span>
+<span class="sd">        :func:`_descriptor_sources`); without it, nothing beside them is read</span>
 
 <span class="sd">    With no source anywhere the asset contributes ``None``: ``unknown``.</span>
 
@@ -996,7 +1014,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...                                   source=AssetSource(provider="me", license="cc0-1.0"))]</span>
 <span class="sd">    ['asset', 'descriptor']</span>
 <span class="sd">    """</span>
-    <span class="n">found</span> <span class="o">=</span> <span class="n">_descriptor_sources</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">covering</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="n">_descriptor_sources</span><span class="p">(</span>
+        <span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">covering</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">read</span>
+    <span class="p">)</span>
     <span class="n">own</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">found</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DESCRIPTOR_SOURCE_LABEL</span><span class="p">)</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="n">DESCRIPTOR_SOURCE_LABEL</span><span class="p">]</span>
     <span class="n">top</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -557,6 +557,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.grid.html">an.timing.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
@@ -657,13 +658,14 @@ declared <strong>field kind</strong> (<a class="reference internal" href="an.tim
 (<a class="reference internal" href="an.timing.channel.html#module-an.timing.channel" title="an.timing.channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">channel</span></code></a>, <a class="reference internal" href="an.timing.clip.html#module-an.timing.clip" title="an.timing.clip"><code class="xref py py-mod docutils literal notranslate"><span class="pre">clip</span></code></a>, <a class="reference internal" href="an.timing.timeline.html#module-an.timing.timeline" title="an.timing.timeline"><code class="xref py py-mod docutils literal notranslate"><span class="pre">timeline</span></code></a>)
 and evaluated by <code class="docutils literal notranslate"><span class="pre">evaluate_timeline(timeline,</span> <span class="pre">t)</span></code> — sparse: a property nothing
 has started writing is absent, and the entity’s rest state supplies it.</p>
-<p>The kernel is a <strong>cross-language contract</strong> before it is code: five JSON files
+<p>The kernel is a <strong>cross-language contract</strong> before it is code: six JSON files
 in <code class="docutils literal notranslate"><span class="pre">an/data/timing/</span></code> generated from these registries (<a class="reference internal" href="an.timing.contract.html#module-an.timing.contract" title="an.timing.contract"><code class="xref py py-mod docutils literal notranslate"><span class="pre">contract</span></code></a>),
 which a second implementation (TypeScript) asserts. <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> — the stage
 engine’s evaluator — is a bit-exact port of this package’s value-typed rule, and
 its parity tests hold it there.</p>
 <p>The frame clock is <code class="code docutils literal notranslate"><span class="pre">an</span></code>’s: frame <code class="docutils literal notranslate"><span class="pre">k</span></code> at <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">fps</span></code>, <code class="docutils literal notranslate"><span class="pre">frame_count</span> <span class="pre">=</span> <span class="pre">max(1,</span>
-<span class="pre">round(duration</span> <span class="pre">*</span> <span class="pre">fps))</span></code> (<a class="reference internal" href="an.frame_clock.html#module-an.frame_clock" title="an.frame_clock"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.frame_clock</span></code></a>).</p>
+<span class="pre">round(duration</span> <span class="pre">*</span> <span class="pre">fps))</span></code> (<a class="reference internal" href="an.frame_clock.html#module-an.frame_clock" title="an.frame_clock"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.frame_clock</span></code></a>). A stepped shot’s pose grid is
+the kernel’s own rule, <a class="reference internal" href="an.timing.grid.html#an.timing.grid.step_times" title="an.timing.grid.step_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">step_times()</span></code></a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.timing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span><span class="p">,</span> <span class="n">evaluate_channel</span><span class="p">,</span> <span class="n">get_space</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ch</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"ease_in_out"</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">get_space</span><span class="p">(</span><span class="s2">"stage.node"</span><span class="p">)</span><span class="o">.</span><span class="n">kind_of</span><span class="p">(</span><span class="s2">"x"</span><span class="p">))</span>
@@ -673,70 +675,73 @@ its parity tests hold it there.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.format_address" title="an.timing.format_address"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_address</span></code></a>(target, prop)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.step_times" title="an.timing.step_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">step_times</span></code></a>(start, duration, step_hz)</p></td>
+<td><p>Clip-local times at which a stepped tween updates its pose (an#89).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.format_address" title="an.timing.format_address"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_address</span></code></a>(target, prop)</p></td>
 <td><p>The address string of a compiled <code class="docutils literal notranslate"><span class="pre">(target,</span> <span class="pre">property)</span></code> pair, unvalidated (the fast path for keying states; <a class="reference internal" href="#an.timing.Address.of" title="an.timing.Address.of"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Address.of()</span></code></a> validates).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.parse_address" title="an.timing.parse_address"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_address</span></code></a>(text)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.parse_address" title="an.timing.parse_address"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_address</span></code></a>(text)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">text</span></code> as an <a class="reference internal" href="#an.timing.Address" title="an.timing.Address"><code class="xref py py-class docutils literal notranslate"><span class="pre">Address</span></code></a>; raises <a class="reference internal" href="#an.timing.AddressError" title="an.timing.AddressError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AddressError</span></code></a> naming the fault.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.check_channel" title="an.timing.check_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_channel</span></code></a>(channel, kind)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.check_channel" title="an.timing.check_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_channel</span></code></a>(channel, kind)</p></td>
 <td><p>Why <code class="docutils literal notranslate"><span class="pre">channel</span></code>'s keyframe values do not fit <code class="docutils literal notranslate"><span class="pre">kind</span></code> (empty if they do).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.evaluate_channel" title="an.timing.evaluate_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_channel</span></code></a>(channel, t, *[, kind])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.evaluate_channel" title="an.timing.evaluate_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_channel</span></code></a>(channel, t, *[, kind])</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">channel</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code> (see the module docstring for <code class="docutils literal notranslate"><span class="pre">kind</span></code>).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.merge_poses" title="an.timing.merge_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_poses</span></code></a>(*poses)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.merge_poses" title="an.timing.merge_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_poses</span></code></a>(*poses)</p></td>
 <td><p>Merge multiple poses with <strong>override semantics</strong> (later wins per key).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.wrap_time" title="an.timing.wrap_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wrap_time</span></code></a>(t, duration, loop_mode)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.wrap_time" title="an.timing.wrap_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wrap_time</span></code></a>(t, duration, loop_mode)</p></td>
 <td><p>The public name of the loop rule (the contract's; <code class="docutils literal notranslate"><span class="pre">_wrap_time</span></code> is kept for the callers and tests that already import it).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.evaluate_clip" title="an.timing.evaluate_clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_clip</span></code></a>(clip, t, *[, kind_of])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.evaluate_clip" title="an.timing.evaluate_clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_clip</span></code></a>(clip, t, *[, kind_of])</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">clip</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, returning a <code class="code docutils literal notranslate"><span class="pre">Pose</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.apply_easing" title="an.timing.apply_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_easing</span></code></a>(spec, t, *[, names, calls])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.apply_easing" title="an.timing.apply_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_easing</span></code></a>(spec, t, *[, names, calls])</p></td>
 <td><p>Apply an easing spec to a normalised parameter <code class="docutils literal notranslate"><span class="pre">t</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.easing_entries" title="an.timing.easing_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing_entries</span></code></a>(*[, owner])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.easing_entries" title="an.timing.easing_entries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing_entries</span></code></a>(*[, owner])</p></td>
 <td><p>Every registered entry in registration order; only <code class="docutils literal notranslate"><span class="pre">owner</span></code>'s when given.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.easing_entry" title="an.timing.easing_entry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing_entry</span></code></a>(name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.easing_entry" title="an.timing.easing_entry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">easing_entry</span></code></a>(name)</p></td>
 <td><p>The registered entry called <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.register_easing" title="an.timing.register_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_easing</span></code></a>(entry, *[, replace, owner])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.register_easing" title="an.timing.register_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_easing</span></code></a>(entry, *[, replace, owner])</p></td>
 <td><p>Add <code class="docutils literal notranslate"><span class="pre">entry</span></code> to the registry (a genre's own curves register here).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.resolve_easing" title="an.timing.resolve_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_easing</span></code></a>(spec)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.resolve_easing" title="an.timing.resolve_easing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_easing</span></code></a>(spec)</p></td>
 <td><p>The curve an easing spec names.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.kind_from_spec" title="an.timing.kind_from_spec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_from_spec</span></code></a>(spec)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.kind_from_spec" title="an.timing.kind_from_spec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_from_spec</span></code></a>(spec)</p></td>
 <td><p>A kind instance from its contract spec (<code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">name,</span> <span class="pre">**params}</span></code>), a bare kind name, or an instance (returned as is).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.kind_names" title="an.timing.kind_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_names</span></code></a>(*[, owner])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.kind_names" title="an.timing.kind_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_names</span></code></a>(*[, owner])</p></td>
 <td><p>The registered kind names in registration order; only <code class="docutils literal notranslate"><span class="pre">owner</span></code>'s when given.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.register_kind" title="an.timing.register_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_kind</span></code></a>(name, factory, *[, replace, owner])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.register_kind" title="an.timing.register_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_kind</span></code></a>(name, factory, *[, replace, owner])</p></td>
 <td><p>Register a field kind under <code class="docutils literal notranslate"><span class="pre">name</span></code> (how a genre adds one).</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_space</span></code>(name)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_space</span></code>(name)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.register_space" title="an.timing.register_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_space</span></code></a>(space, *[, replace, owner])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.register_space" title="an.timing.register_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_space</span></code></a>(space, *[, replace, owner])</p></td>
 <td><p>Register <code class="docutils literal notranslate"><span class="pre">space</span></code> under its name (how an entity kind declares its properties).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.space_from_json" title="an.timing.space_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_from_json</span></code></a>(doc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.space_from_json" title="an.timing.space_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_from_json</span></code></a>(doc)</p></td>
 <td><p>A space from its JSON form (what <code class="xref py py-meth docutils literal notranslate"><span class="pre">PropertySpace.to_json()</span></code> writes).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.space_names" title="an.timing.space_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_names</span></code></a>(*[, owner])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.space_names" title="an.timing.space_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space_names</span></code></a>(*[, owner])</p></td>
 <td><p>The registered space names in registration order; only <code class="docutils literal notranslate"><span class="pre">owner</span></code>'s when given.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.clip_from_json" title="an.timing.clip_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_from_json</span></code></a>(anim, *[, name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.clip_from_json" title="an.timing.clip_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_from_json</span></code></a>(anim, *[, name])</p></td>
 <td><p>One compiled animation (<code class="docutils literal notranslate"><span class="pre">compiled.schema.json</span></code>'s <code class="docutils literal notranslate"><span class="pre">animation</span></code>) as a <a class="reference internal" href="#an.timing.Clip" title="an.timing.Clip"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code></a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.evaluate_timeline" title="an.timing.evaluate_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_timeline</span></code></a>(timeline, t, *[, space])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.evaluate_timeline" title="an.timing.evaluate_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_timeline</span></code></a>(timeline, t, *[, space])</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.timeline_from_compiled" title="an.timing.timeline_from_compiled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline_from_compiled</span></code></a>(doc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.timeline_from_compiled" title="an.timing.timeline_from_compiled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline_from_compiled</span></code></a>(doc)</p></td>
 <td><p>The compiled document's <code class="docutils literal notranslate"><span class="pre">timeline</span></code>/<code class="docutils literal notranslate"><span class="pre">animations</span></code> as an evaluable <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>.</p></td>
 </tr>
 </tbody>
@@ -1748,6 +1753,34 @@ a malformed sequence, <code class="docutils literal notranslate"><span class="pr
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.timing.step_times">
+<span class="sig-prename descclassname"><span class="pre">an.timing.</span></span><span class="sig-name descname"><span class="pre">step_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_hz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/grid.html#step_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.step_times" title="Link to this definition">#</a></dt>
+<dd><p>Clip-local times at which a stepped tween updates its pose (an#89).</p>
+<p>The grid is SHOT-wide — multiples of <code class="docutils literal notranslate"><span class="pre">1/step_hz</span></code> on the shot’s clock,
+shared by every tween in the shot — not the tween’s own: “on twos” means
+every character changes pose on the same frames, so a tween starting at
+0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
+independently, so the grid restarts at each cut.) Local 0 (the tween’s
+start) and <code class="docutils literal notranslate"><span class="pre">duration</span></code> (where the end value lands) are always present, so
+a tween shorter than one step is a single step to its end value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">step_hz</span></code> must be positive: with a non-positive rate the walk below never
+reaches <code class="docutils literal notranslate"><span class="pre">duration</span></code> — an infinite loop, not an error — so it is refused.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">step_times</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[0.0, 0.1, 0.2, 0.3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">step_times</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+<span class="go">[0.0, 0.05, 0.15, 0.25, 0.3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">step_times</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[0.0, 0.02]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.timing.timeline_from_compiled">
 <span class="sig-prename descclassname"><span class="pre">an.timing.</span></span><span class="sig-name descname"><span class="pre">timeline_from_compiled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/timeline.html#timeline_from_compiled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.timeline_from_compiled" title="Link to this definition">#</a></dt>
 <dd><p>The compiled document’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code>/<code class="docutils literal notranslate"><span class="pre">animations</span></code> as an evaluable <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>.</p>
@@ -1806,13 +1839,16 @@ the evaluable form”.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.timing.flat.html#module-an.timing.flat" title="an.timing.flat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flat</span></code></a></p></td>
 <td><p>The authored flat timeline: <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">end,</span> <span class="pre">address,</span> <span class="pre">change)</span></code> rows.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.timing.kinds.html#module-an.timing.kinds" title="an.timing.kinds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kinds</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.timing.grid.html#module-an.timing.grid" title="an.timing.grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grid</span></code></a></p></td>
+<td><p>The step grid: the instants a stepped tween updates its pose, as a pure rule (an#89, an#784).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.timing.kinds.html#module-an.timing.kinds" title="an.timing.kinds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kinds</span></code></a></p></td>
 <td><p>Field kinds: the declared interpolator of each animatable property.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spaces</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spaces</span></code></a></p></td>
 <td><p>Property spaces: what an entity kind's properties ARE, declared once.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.timing.timeline.html#module-an.timing.timeline" title="an.timing.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.timing.timeline.html#module-an.timing.timeline" title="an.timing.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
 <td><p>Timeline: tracks of placed clips with absolute times — the compiled evaluation form.</p></td>
 </tr>
 </tbody>
@@ -1972,6 +2008,7 @@ the evaluable form”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.resolve_easing"><code class="docutils literal notranslate"><span class="pre">resolve_easing()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.space_from_json"><code class="docutils literal notranslate"><span class="pre">space_from_json()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.space_names"><code class="docutils literal notranslate"><span class="pre">space_names()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.step_times"><code class="docutils literal notranslate"><span class="pre">step_times()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.timeline_from_compiled"><code class="docutils literal notranslate"><span class="pre">timeline_from_compiled()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.wrap_time"><code class="docutils literal notranslate"><span class="pre">wrap_time()</span></code></a></li>
 </ul>

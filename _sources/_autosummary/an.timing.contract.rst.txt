@@ -15,6 +15,7 @@ an.timing.contract
       PARAMETRIC_EXAMPLES
       CSS_IMPORT_ALIASES
       ADDRESS_PATTERN
+      STEP_GRID_CASES
    
    .. rubric:: Functions
 
@@ -24,8 +25,10 @@ an.timing.contract
       build_contract
       build_easing
       build_kinds
+      build_step_grid
       build_timeline_schema
       build_vectors
+      check_step_grid
       check_vectors
       contract_drift
       dumps

@@ -1,0 +1,18 @@
+an.timing.grid
+==============
+
+.. automodule:: an.timing.grid
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      STEP_GRID_EPS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      step_times
+   

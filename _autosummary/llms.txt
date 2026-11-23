@@ -227,6 +227,7 @@
 - [an.timing.contract](an.timing.contract.html.md): The timing kernel’s cross-language contract: five JSON files, generated from the registries.
 - [an.timing.easing](an.timing.easing.html.md): The easing registry: every named timing curve, each with the solver that computes it.
 - [an.timing.flat](an.timing.flat.html.md): The authored flat timeline: &#96;(start, end, address, change)&#96; rows.
+- [an.timing.grid](an.timing.grid.html.md): The step grid: the instants a stepped tween updates its pose, as a pure rule (an#89, an#784).
 - [an.timing.kinds](an.timing.kinds.html.md): Field kinds: the declared interpolator of each animatable property.
 - [an.timing.spaces](an.timing.spaces.html.md): Property spaces: what an entity kind’s properties ARE, declared once.
 - [an.timing.timeline](an.timing.timeline.html.md): Timeline: tracks of placed clips with absolute times — the compiled evaluation form.

@@ -6,12 +6,13 @@ The contract lives in `an/data/timing/` (shipped in the wheel) and is what any
 other implementation of the kernel — the TypeScript one, a package that copies
 `an`’s track format — copies and asserts:
 
-| `easing.json`          | every registered easing (name, version, family,<br/>solver) with sample values, plus parametrised examples   |
-|------------------------|--------------------------------------------------------------------------------------------------------------|
-| `kinds.json`           | every field kind with sample interpolations, and the<br/>seeded property spaces                              |
-| `timeline.schema.json` | the authored flat timeline `(start, end, address, change)`                                                   |
-| `compiled.schema.json` | tracks, placed clips, loop modes, channels — the<br/>compiled form `runtime.js` consumes                     |
-| `timing_vectors.json`  | compiled documents and the state at listed times                                                             |
+| `easing.json`          | every registered easing (name, version, family,<br/>solver) with sample values, plus parametrised examples                                                           |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `kinds.json`           | every field kind with sample interpolations, and the<br/>seeded property spaces                                                                                      |
+| `timeline.schema.json` | the authored flat timeline `(start, end, address, change)`                                                                                                           |
+| `compiled.schema.json` | tracks, placed clips, loop modes, channels — the<br/>compiled form `runtime.js` consumes                                                                             |
+| `timing_vectors.json`  | compiled documents and the state at listed times                                                                                                                     |
+| `step_grid.json`       | a stepped shot’s pose instants ([`step_times()`](an.timing.grid.html.md#an.timing.grid.step_times))<br/>for listed `(start, duration, step_hz)` |
 
 **Numbers agree within** `1e-9 * max(1, |x|, |y|)`; strings, booleans,
 `null`, list lengths and object keys agree exactly. A state is SPARSE: an
@@ -42,25 +43,28 @@ is a deliberate act: a change to a committed sample is a change of the contract.
 | [`PARAMETRIC_EXAMPLES`](#an.timing.contract.PARAMETRIC_EXAMPLES)    | Parametrised specs the easing file samples, beside the named entries.                                                                                                                                                                                                |
 | [`CSS_IMPORT_ALIASES`](#an.timing.contract.CSS_IMPORT_ALIASES)     | How a CSS-named document's names map onto this registry where the name means something else here.                                                                                                                                                                    |
 | [`ADDRESS_PATTERN`](#an.timing.contract.ADDRESS_PATTERN)        | The address grammar as a regular expression (the parser is `an.timing.address`).                                                                                                                                                                                     |
+| [`STEP_GRID_CASES`](#an.timing.contract.STEP_GRID_CASES)        | `(name, start, duration, step_hz)`.                                                                                                                                                                                                                                  |
 
 ### Functions
 
-| `build_compiled_schema`()                                                                      |                                                                                                                |
-|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| [`build_contract`](#an.timing.contract.build_contract)()                              | Every contract file's content, by file name, generated from the registries.                                    |
-| `build_easing`()                                                                               |                                                                                                                |
-| `build_kinds`()                                                                                |                                                                                                                |
-| `build_timeline_schema`()                                                                      |                                                                                                                |
-| `build_vectors`()                                                                              |                                                                                                                |
-| [`check_vectors`](#an.timing.contract.check_vectors)([vectors])                      | Every sample of `vectors` (default: the committed file) that `an.timing` does not reproduce, as one line each. |
-| [`contract_drift`](#an.timing.contract.contract_drift)([directory])                   | How the committed files differ from what the registries generate today.                                        |
-| [`dumps`](#an.timing.contract.dumps)(obj)                                    | The committed text of a contract file (stable, diffable).                                                      |
-| `load_contract_file`(name, \*[, directory])                                                    |                                                                                                                |
-| [`main`](#an.timing.contract.main)([argv])                                  | `python -m an.timing.contract [write|check]`.                                                                  |
-| [`resolve_space`](#an.timing.contract.resolve_space)(space)                          | A vector case's `space`: a registered space's name, or its JSON form.                                          |
-| [`state_at`](#an.timing.contract.state_at)(doc, t, \*, space)                   | The sparse state of compiled document `doc` at `t`, keyed by address.                                          |
-| [`values_close`](#an.timing.contract.values_close)(expected, actual, \*[, rel_tol]) | The contract's comparison (see the module docstring).                                                          |
-| [`write_contract`](#an.timing.contract.write_contract)([directory])                   | Regenerate every contract file under `directory`.                                                              |
+| `build_compiled_schema`()                                                                      |                                                                                                                                              |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`build_contract`](#an.timing.contract.build_contract)()                              | Every contract file's content, by file name, generated from the registries.                                                                  |
+| `build_easing`()                                                                               |                                                                                                                                              |
+| `build_kinds`()                                                                                |                                                                                                                                              |
+| `build_step_grid`()                                                                            |                                                                                                                                              |
+| `build_timeline_schema`()                                                                      |                                                                                                                                              |
+| `build_vectors`()                                                                              |                                                                                                                                              |
+| [`check_step_grid`](#an.timing.contract.check_step_grid)([grid])                       | Where [`step_times()`](an.timing.grid.html.md#an.timing.grid.step_times) disagrees with `step_grid.json` (empty: none). |
+| [`check_vectors`](#an.timing.contract.check_vectors)([vectors])                      | Every sample of `vectors` (default: the committed file) that `an.timing` does not reproduce, as one line each.                               |
+| [`contract_drift`](#an.timing.contract.contract_drift)([directory])                   | How the committed files differ from what the registries generate today.                                                                      |
+| [`dumps`](#an.timing.contract.dumps)(obj)                                    | The committed text of a contract file (stable, diffable).                                                                                    |
+| `load_contract_file`(name, \*[, directory])                                                    |                                                                                                                                              |
+| [`main`](#an.timing.contract.main)([argv])                                  | `python -m an.timing.contract [write|check]`.                                                                                                |
+| [`resolve_space`](#an.timing.contract.resolve_space)(space)                          | A vector case's `space`: a registered space's name, or its JSON form.                                                                        |
+| [`state_at`](#an.timing.contract.state_at)(doc, t, \*, space)                   | The sparse state of compiled document `doc` at `t`, keyed by address.                                                                        |
+| [`values_close`](#an.timing.contract.values_close)(expected, actual, \*[, rel_tol]) | The contract's comparison (see the module docstring).                                                                                        |
+| [`write_contract`](#an.timing.contract.write_contract)([directory])                   | Regenerate every contract file under `directory`.                                                                                            |
 
 ### an.timing.contract.ADDRESS_PATTERN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '^[^:/@\\\\s](?:[^:/@]\*[^:/@\\\\s])?(?:/[^:/@\\\\s](?:[^:/@]\*[^:/@\\\\s])?)\*:[^:/@.\\\\s](?:[^:/@.]\*[^:/@.\\\\s])?(?:\\\\.[^:/@.\\\\s](?:[^:/@.]\*[^:/@.\\\\s])?)\*(?:@[^:/@\\\\s](?:[^:/@]\*[^:/@\\\\s])?)?$'*
 
@@ -112,6 +116,15 @@ slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).
 * **Type:**
   Where every easing is sampled
 
+### an.timing.contract.STEP_GRID_CASES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)], ...]* *= (('on-the-grid', 0.0, 0.3, 10.0), ('off-the-grid-start', 0.05, 0.3, 10.0), ('shorter-than-a-step', 0.0, 0.02, 10.0), ('product-rounds', 0.0, 0.25, 12.0), ('late-start-on-twos', 0.041666666666666664, 0.5, 12.0), ('start-just-past-a-step', 0.1000000001, 0.25, 10.0), ('ntsc-on-twos', 0.0, 1.0, 14.985014985014985))*
+
+`(name, start, duration, step_hz)`. A tween’s start
+off the grid, on it, a span shorter than one step, a rate whose product rounds
+(0.25 s x 12 Hz), a late start, and the NTSC-ish rate.
+
+* **Type:**
+  The step-grid cases
+
 ### an.timing.contract.VALUE_TYPED_CASE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The cases whose space is the value-typed rule’s write-group space are ALSO
@@ -125,6 +138,13 @@ Every contract file’s content, by file name, generated from the registries.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.timing.contract.check_step_grid(grid=None)
+
+Where [`step_times()`](an.timing.grid.html.md#an.timing.grid.step_times) disagrees with `step_grid.json` (empty: none).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.timing.contract.check_vectors(vectors=None)
 

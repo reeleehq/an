@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../../../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -727,6 +727,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">``compiled.schema.json``   tracks, placed clips, loop modes, channels — the</span>
 <span class="sd">                           compiled form ``runtime.js`` consumes</span>
 <span class="sd">``timing_vectors.json``    compiled documents and the state at listed times</span>
+<span class="sd">``step_grid.json``         a stepped shot's pose instants (:func:`~an.timing.grid.step_times`)</span>
+<span class="sd">                           for listed ``(start, duration, step_hz)``</span>
 <span class="sd">=========================  ====================================================</span>
 
 <span class="sd">**Numbers agree within** ``1e-9 * max(1, |x|, |y|)``; strings, booleans,</span>
@@ -768,6 +770,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">easing_entries</span><span class="p">,</span>
     <span class="n">solvers</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.grid</span><span class="w"> </span><span class="kn">import</span> <span class="n">STEP_GRID_EPS</span><span class="p">,</span> <span class="n">step_times</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.flat</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHANGE_KINDS</span><span class="p">,</span> <span class="n">FLAT_TIMELINE_FORMAT</span><span class="p">,</span> <span class="n">FLAT_TIMELINE_VERSION</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.kinds</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AngleKind</span><span class="p">,</span>
@@ -805,12 +808,14 @@ window.runMermaid = runMermaid;</script>
 <span class="n">TIMELINE_SCHEMA_FILE</span> <span class="o">=</span> <span class="s2">"timeline.schema.json"</span>
 <span class="n">COMPILED_SCHEMA_FILE</span> <span class="o">=</span> <span class="s2">"compiled.schema.json"</span>
 <span class="n">VECTORS_FILE</span> <span class="o">=</span> <span class="s2">"timing_vectors.json"</span>
+<span class="n">STEP_GRID_FILE</span> <span class="o">=</span> <span class="s2">"step_grid.json"</span>
 <span class="n">CONTRACT_FILES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">EASING_FILE</span><span class="p">,</span>
     <span class="n">KINDS_FILE</span><span class="p">,</span>
     <span class="n">TIMELINE_SCHEMA_FILE</span><span class="p">,</span>
     <span class="n">COMPILED_SCHEMA_FILE</span><span class="p">,</span>
     <span class="n">VECTORS_FILE</span><span class="p">,</span>
+    <span class="n">STEP_GRID_FILE</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -1390,6 +1395,60 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
 
 
+<span class="c1">#: The step-grid cases: ``(name, start, duration, step_hz)``. A tween's start</span>
+<span class="c1">#: off the grid, on it, a span shorter than one step, a rate whose product rounds</span>
+<span class="c1">#: (0.25 s x 12 Hz), a late start, and the NTSC-ish rate.</span>
+<span class="n">STEP_GRID_CASES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">"on-the-grid"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"off-the-grid-start"</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"shorter-than-a-step"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"product-rounds"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"late-start-on-twos"</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"start-just-past-a-step"</span><span class="p">,</span> <span class="mf">0.1000000001</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"ntsc-on-twos"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">30000.0</span> <span class="o">/</span> <span class="mf">1001.0</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_step_grid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"format"</span><span class="p">:</span> <span class="s2">"an.timing.step_grid"</span><span class="p">,</span>
+        <span class="s2">"version"</span><span class="p">:</span> <span class="n">CONTRACT_VERSION</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"The instants, local to a stepped tween (0 = its start), at which it updates "</span>
+            <span class="s2">"its pose. The grid is shot-wide: multiples of 1/step_hz on the shot's clock, "</span>
+            <span class="s2">"so a tween starting at `start` updates at the next multiple, not `start` "</span>
+            <span class="s2">"plus a step. 0 and `duration` are always present; an instant within "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">STEP_GRID_EPS</span><span class="si">}</span><span class="s2"> of either is not a step of its own. Numbers agree within "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">REL_TOL</span><span class="si">}</span><span class="s2"> * max(1, |x|, |y|)."</span>
+        <span class="p">),</span>
+        <span class="s2">"eps"</span><span class="p">:</span> <span class="n">STEP_GRID_EPS</span><span class="p">,</span>
+        <span class="s2">"cases"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"name"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                <span class="s2">"start"</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+                <span class="s2">"duration"</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                <span class="s2">"step_hz"</span><span class="p">:</span> <span class="n">step_hz</span><span class="p">,</span>
+                <span class="s2">"times"</span><span class="p">:</span> <span class="n">step_times</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">),</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">step_hz</span> <span class="ow">in</span> <span class="n">STEP_GRID_CASES</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+
+
+<div class="viewcode-block" id="check_step_grid">
+<a class="viewcode-back" href="../../../_autosummary/an.timing.contract.html#an.timing.contract.check_step_grid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_step_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Where :func:`~an.timing.grid.step_times` disagrees with ``step_grid.json`` (empty: none)."""</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">load_contract_file</span><span class="p">(</span><span class="n">STEP_GRID_FILE</span><span class="p">)</span> <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">grid</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">[</span><span class="s2">"cases"</span><span class="p">]:</span>
+        <span class="n">got</span> <span class="o">=</span> <span class="n">step_times</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s2">"start"</span><span class="p">],</span> <span class="n">case</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">],</span> <span class="n">case</span><span class="p">[</span><span class="s2">"step_hz"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">values_close</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s2">"times"</span><span class="p">],</span> <span class="n">got</span><span class="p">):</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">case</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">: expected </span><span class="si">{</span><span class="n">case</span><span class="p">[</span><span class="s1">'times'</span><span class="p">]</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">got</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">problems</span></div>
+
+
+
 <div class="viewcode-block" id="build_contract">
 <a class="viewcode-back" href="../../../_autosummary/an.timing.contract.html#an.timing.contract.build_contract">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_contract</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -1400,6 +1459,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">TIMELINE_SCHEMA_FILE</span><span class="p">:</span> <span class="n">build_timeline_schema</span><span class="p">(),</span>
         <span class="n">COMPILED_SCHEMA_FILE</span><span class="p">:</span> <span class="n">build_compiled_schema</span><span class="p">(),</span>
         <span class="n">VECTORS_FILE</span><span class="p">:</span> <span class="n">build_vectors</span><span class="p">(),</span>
+        <span class="n">STEP_GRID_FILE</span><span class="p">:</span> <span class="n">build_step_grid</span><span class="p">(),</span>
     <span class="p">}</span></div>
 
 
@@ -1468,7 +1528,7 @@ window.runMermaid = runMermaid;</script>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"wrote </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">0</span>
     <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s2">"check"</span><span class="p">:</span>
-        <span class="n">problems</span> <span class="o">=</span> <span class="n">contract_drift</span><span class="p">()</span> <span class="o">+</span> <span class="n">check_vectors</span><span class="p">()</span>
+        <span class="n">problems</span> <span class="o">=</span> <span class="n">contract_drift</span><span class="p">()</span> <span class="o">+</span> <span class="n">check_vectors</span><span class="p">()</span> <span class="o">+</span> <span class="n">check_step_grid</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">problems</span> <span class="k">else</span> <span class="mi">0</span>

@@ -20,7 +20,7 @@ frame was taken.
 It also owns the GRIDS a shot is laid onto, the pure rules every layer shares
 (the IR’s camera, the stage’s compiler and solve): [`frame_times()`](#an.frame_clock.frame_times) (every
 frame, the end included), [`step_times()`](#an.frame_clock.step_times) (a stepped shot’s pose grid,
-an#89), [`grid_times()`](#an.frame_clock.grid_times) (one or the other, the solve’s grid) and
+an#89; the rule lives in [`an.timing.grid`](an.timing.grid.html.md#module-an.timing.grid), an#784), [`grid_times()`](#an.frame_clock.grid_times) (one or the other, the solve’s grid) and
 [`camera_grid()`](#an.frame_clock.camera_grid) (an#626), the instants a camera the runtime cannot
 evaluate itself — a follow, a dolly — is keyed at so that every instant the
 render samples, a shutter’s sub-frame ones included, lands on an exact key.
@@ -61,7 +61,6 @@ True
 |-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`MAX_JITTER_FRACTION`](#an.frame_clock.MAX_JITTER_FRACTION)        | A frame's capture offset is clamped to this fraction of the slack between one exposure closing and the next opening, on each side.                  |
 | [`MAX_REPORT_NOISE_FRACTION`](#an.frame_clock.MAX_REPORT_NOISE_FRACTION)  | Report noise is clamped to this fraction of the frame period, each side, so two neighbouring reported timestamps can never cross on a regular grid. |
-| [`STEP_GRID_EPS`](#an.frame_clock.STEP_GRID_EPS)              | A step instant this close to the end of a span is not a step of it (`0.25 s × 12 Hz` is 3 steps, not 4, whatever the float product rounds to).      |
 | [`SAMPLE_MERGE_EPS`](#an.frame_clock.SAMPLE_MERGE_EPS)           | a shutter sample that IS a frame up to float noise adds no key beside it (two keys a femtosecond apart would only divide by that femtosecond).      |
 
 ### Functions
@@ -214,11 +213,6 @@ femtosecond apart would only divide by that femtosecond).
 
 * **Type:**
   Two camera key instants closer than this (s) are one key
-
-### an.frame_clock.STEP_GRID_EPS *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1e-09*
-
-A step instant this close to the end of a span is not a step of it
-(`0.25 s × 12 Hz` is 3 steps, not 4, whatever the float product rounds to).
 
 ### an.frame_clock.camera_grid(duration, , fps, step_hz=None, frame_samples=None, sample_fps=None, merge_eps=1e-09)
 

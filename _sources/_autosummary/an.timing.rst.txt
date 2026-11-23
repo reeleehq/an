@@ -8,6 +8,7 @@ an.timing
 
    .. autosummary::
    
+      step_times
       format_address
       parse_address
       check_channel
@@ -77,6 +78,7 @@ an.timing
    contract
    easing
    flat
+   grid
    kinds
    spaces
    timeline

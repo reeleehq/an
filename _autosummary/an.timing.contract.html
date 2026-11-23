@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=0e7c99ec"></script>
+    <script src="../_static/documentation_options.js?v=aa041df5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.432" />
+  <meta name="docsearch:version" content="0.1.433" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -557,6 +557,7 @@
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.timing.contract</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.grid.html">an.timing.grid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
@@ -673,6 +674,10 @@ compiled form <code class="docutils literal notranslate"><span class="pre">runti
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timing_vectors.json</span></code></p></td>
 <td><p>compiled documents and the state at listed times</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">step_grid.json</span></code></p></td>
+<td><p>a stepped shot’s pose instants (<a class="reference internal" href="an.timing.grid.html#an.timing.grid.step_times" title="an.timing.grid.step_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">step_times()</span></code></a>)
+for listed <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">duration,</span> <span class="pre">step_hz)</span></code></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -716,6 +721,9 @@ is a deliberate act: a change to a committed sample is a change of the contract.
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.contract.ADDRESS_PATTERN" title="an.timing.contract.ADDRESS_PATTERN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ADDRESS_PATTERN</span></code></a></p></td>
 <td><p>The address grammar as a regular expression (the parser is <code class="docutils literal notranslate"><span class="pre">an.timing.address</span></code>).</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.contract.STEP_GRID_CASES" title="an.timing.contract.STEP_GRID_CASES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEP_GRID_CASES</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">start,</span> <span class="pre">duration,</span> <span class="pre">step_hz)</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -734,11 +742,17 @@ is a deliberate act: a change to a committed sample is a change of the contract.
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_kinds</span></code>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_timeline_schema</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_step_grid</span></code>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_vectors</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_timeline_schema</span></code>()</p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_vectors</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.contract.check_step_grid" title="an.timing.contract.check_step_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_step_grid</span></code></a>([grid])</p></td>
+<td><p>Where <a class="reference internal" href="an.timing.grid.html#an.timing.grid.step_times" title="an.timing.grid.step_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">step_times()</span></code></a> disagrees with <code class="docutils literal notranslate"><span class="pre">step_grid.json</span></code> (empty: none).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.contract.check_vectors" title="an.timing.contract.check_vectors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_vectors</span></code></a>([vectors])</p></td>
 <td><p>Every sample of <code class="docutils literal notranslate"><span class="pre">vectors</span></code> (default: the committed file) that <code class="docutils literal notranslate"><span class="pre">an.timing</span></code> does not reproduce, as one line each.</p></td>
@@ -821,6 +835,19 @@ slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.timing.contract.STEP_GRID_CASES">
+<span class="sig-prename descclassname"><span class="pre">an.timing.contract.</span></span><span class="sig-name descname"><span class="pre">STEP_GRID_CASES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('on-the-grid',</span> <span class="pre">0.0,</span> <span class="pre">0.3,</span> <span class="pre">10.0),</span> <span class="pre">('off-the-grid-start',</span> <span class="pre">0.05,</span> <span class="pre">0.3,</span> <span class="pre">10.0),</span> <span class="pre">('shorter-than-a-step',</span> <span class="pre">0.0,</span> <span class="pre">0.02,</span> <span class="pre">10.0),</span> <span class="pre">('product-rounds',</span> <span class="pre">0.0,</span> <span class="pre">0.25,</span> <span class="pre">12.0),</span> <span class="pre">('late-start-on-twos',</span> <span class="pre">0.041666666666666664,</span> <span class="pre">0.5,</span> <span class="pre">12.0),</span> <span class="pre">('start-just-past-a-step',</span> <span class="pre">0.1000000001,</span> <span class="pre">0.25,</span> <span class="pre">10.0),</span> <span class="pre">('ntsc-on-twos',</span> <span class="pre">0.0,</span> <span class="pre">1.0,</span> <span class="pre">14.985014985014985))</span></span><a class="headerlink" href="#an.timing.contract.STEP_GRID_CASES" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">start,</span> <span class="pre">duration,</span> <span class="pre">step_hz)</span></code>. A tween’s start
+off the grid, on it, a span shorter than one step, a rate whose product rounds
+(0.25 s x 12 Hz), a late start, and the NTSC-ish rate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The step-grid cases</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.timing.contract.VALUE_TYPED_CASE_SPACE">
 <span class="sig-prename descclassname"><span class="pre">an.timing.contract.</span></span><span class="sig-name descname"><span class="pre">VALUE_TYPED_CASE_SPACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage.node'</span></span><a class="headerlink" href="#an.timing.contract.VALUE_TYPED_CASE_SPACE" title="Link to this definition">#</a></dt>
 <dd><p>The cases whose space is the value-typed rule’s write-group space are ALSO
@@ -836,6 +863,17 @@ the declared rule since an#239 item 2).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.timing.contract.check_step_grid">
+<span class="sig-prename descclassname"><span class="pre">an.timing.contract.</span></span><span class="sig-name descname"><span class="pre">check_step_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/contract.html#check_step_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.contract.check_step_grid" title="Link to this definition">#</a></dt>
+<dd><p>Where <a class="reference internal" href="an.timing.grid.html#an.timing.grid.step_times" title="an.timing.grid.step_times"><code class="xref py py-func docutils literal notranslate"><span class="pre">step_times()</span></code></a> disagrees with <code class="docutils literal notranslate"><span class="pre">step_grid.json</span></code> (empty: none).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -993,8 +1031,10 @@ platforms’ maths libraries; anything else must match exactly.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.PARAMETRIC_EXAMPLES"><code class="docutils literal notranslate"><span class="pre">PARAMETRIC_EXAMPLES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.REL_TOL"><code class="docutils literal notranslate"><span class="pre">REL_TOL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.SOLVER_PROBE_U"><code class="docutils literal notranslate"><span class="pre">SOLVER_PROBE_U</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.STEP_GRID_CASES"><code class="docutils literal notranslate"><span class="pre">STEP_GRID_CASES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.VALUE_TYPED_CASE_SPACE"><code class="docutils literal notranslate"><span class="pre">VALUE_TYPED_CASE_SPACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.build_contract"><code class="docutils literal notranslate"><span class="pre">build_contract()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.check_step_grid"><code class="docutils literal notranslate"><span class="pre">check_step_grid()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.check_vectors"><code class="docutils literal notranslate"><span class="pre">check_vectors()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.contract_drift"><code class="docutils literal notranslate"><span class="pre">contract_drift()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.contract.dumps"><code class="docutils literal notranslate"><span class="pre">dumps()</span></code></a></li>
