@@ -8,6 +8,7 @@ an.verify.media
 
    .. autosummary::
    
+      adjacent_ssims
       audio_volume
       detect_silence
       extract_frames

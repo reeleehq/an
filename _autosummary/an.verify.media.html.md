@@ -12,8 +12,9 @@ loading frames). No scikit-image, no opencv.
 
 ### Functions
 
-| [`audio_volume`](#an.verify.media.audio_volume)(media_path)                        | Return dict with mean_db and max_db of the media's audio stream.               |
+| [`adjacent_ssims`](#an.verify.media.adjacent_ssims)(paths)                           | SSIM of each adjacent pair of image files, decoding every file once.           |
 |--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`audio_volume`](#an.verify.media.audio_volume)(media_path)                        | Return dict with mean_db and max_db of the media's audio stream.               |
 | [`detect_silence`](#an.verify.media.detect_silence)(media_path, \*[, noise_db, ...]) | Return `SilenceSpan``s in the audio of ``media_path` via ffmpeg.               |
 | [`extract_frames`](#an.verify.media.extract_frames)(media_path, out_dir, \*[, ...])  | Extract frames from `media_path` at `fps` to `out_dir`.                        |
 | [`ssim`](#an.verify.media.ssim)(a, b)                                      | A global-moment structural-similarity score between two single-channel images. |
@@ -30,6 +31,23 @@ loading frames). No scikit-image, no opencv.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A contiguous run of near-silence inside an audio stream.
+
+### an.verify.media.adjacent_ssims(paths)
+
+SSIM of each adjacent pair of image files, decoding every file once.
+
+The same numbers as `[ssim_image_files(a, b) for a, b in zip(paths, paths[1:])]`,
+at half the decoding: that form decodes every interior frame twice, once on each
+side of a pair, and decoding costs more than the SSIM it feeds (an#855). Only two
+frames are held in memory at a time. Fewer than two paths give an empty list.
+
+```pycon
+>>> adjacent_ssims([])
+[]
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
 ### an.verify.media.audio_volume(media_path)
 

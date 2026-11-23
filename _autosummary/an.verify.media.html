@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=9dfc979f"></script>
+    <script src="../_static/documentation_options.js?v=39841386"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.430" />
+  <meta name="docsearch:version" content="0.1.431" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -659,22 +659,25 @@ loading frames). No scikit-image, no opencv.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.audio_volume" title="an.verify.media.audio_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">audio_volume</span></code></a>(media_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.adjacent_ssims" title="an.verify.media.adjacent_ssims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjacent_ssims</span></code></a>(paths)</p></td>
+<td><p>SSIM of each adjacent pair of image files, decoding every file once.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.media.audio_volume" title="an.verify.media.audio_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">audio_volume</span></code></a>(media_path)</p></td>
 <td><p>Return dict with mean_db and max_db of the media's audio stream.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.media.detect_silence" title="an.verify.media.detect_silence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_silence</span></code></a>(media_path, *[, noise_db, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.detect_silence" title="an.verify.media.detect_silence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_silence</span></code></a>(media_path, *[, noise_db, ...])</p></td>
 <td><p>Return <code class="docutils literal notranslate"><span class="pre">SilenceSpan``s</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">audio</span> <span class="pre">of</span> <span class="pre">``media_path</span></code> via ffmpeg.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.extract_frames" title="an.verify.media.extract_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_frames</span></code></a>(media_path, out_dir, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.media.extract_frames" title="an.verify.media.extract_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_frames</span></code></a>(media_path, out_dir, *[, ...])</p></td>
 <td><p>Extract frames from <code class="docutils literal notranslate"><span class="pre">media_path</span></code> at <code class="docutils literal notranslate"><span class="pre">fps</span></code> to <code class="docutils literal notranslate"><span class="pre">out_dir</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.media.ssim" title="an.verify.media.ssim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssim</span></code></a>(a, b)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.ssim" title="an.verify.media.ssim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssim</span></code></a>(a, b)</p></td>
 <td><p>A global-moment structural-similarity score between two single-channel images.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.ssim_image_files" title="an.verify.media.ssim_image_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssim_image_files</span></code></a>(path_a, path_b)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.media.ssim_image_files" title="an.verify.media.ssim_image_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssim_image_files</span></code></a>(path_a, path_b)</p></td>
 <td><p>SSIM between two image files (any format Pillow can read).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.media.transcribe" title="an.verify.media.transcribe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcribe</span></code></a>(media_path, *[, model_size])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.media.transcribe" title="an.verify.media.transcribe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transcribe</span></code></a>(media_path, *[, model_size])</p></td>
 <td><p>Return the transcribed speech in <code class="docutils literal notranslate"><span class="pre">media_path</span></code>.</p></td>
 </tr>
 </tbody>
@@ -695,6 +698,25 @@ loading frames). No scikit-image, no opencv.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A contiguous run of near-silence inside an audio stream.</p>
 <dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.verify.media.adjacent_ssims">
+<span class="sig-prename descclassname"><span class="pre">an.verify.media.</span></span><span class="sig-name descname"><span class="pre">adjacent_ssims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/media.html#adjacent_ssims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.media.adjacent_ssims" title="Link to this definition">#</a></dt>
+<dd><p>SSIM of each adjacent pair of image files, decoding every file once.</p>
+<p>The same numbers as <code class="docutils literal notranslate"><span class="pre">[ssim_image_files(a,</span> <span class="pre">b)</span> <span class="pre">for</span> <span class="pre">a,</span> <span class="pre">b</span> <span class="pre">in</span> <span class="pre">zip(paths,</span> <span class="pre">paths[1:])]</span></code>,
+at half the decoding: that form decodes every interior frame twice, once on each
+side of a pair, and decoding costs more than the SSIM it feeds (an#855). Only two
+frames are held in memory at a time. Fewer than two paths give an empty list.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">adjacent_ssims</span><span class="p">([])</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -840,6 +862,7 @@ message when the package isn’t installed.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.media.SilenceSpan"><code class="docutils literal notranslate"><span class="pre">SilenceSpan</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.media.adjacent_ssims"><code class="docutils literal notranslate"><span class="pre">adjacent_ssims()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.media.audio_volume"><code class="docutils literal notranslate"><span class="pre">audio_volume()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.media.detect_silence"><code class="docutils literal notranslate"><span class="pre">detect_silence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.media.extract_frames"><code class="docutils literal notranslate"><span class="pre">extract_frames()</span></code></a></li>
