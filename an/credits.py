@@ -865,6 +865,10 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
     read = _entry_reader(store, key)
     if read is None:
         return {}
+    # the files' digests when the store knows them (the library does): a pin is
+    # then checked without reading the plate's bytes
+    provided = getattr(store, "file_digests", None)
+    digests = provided(key) if callable(provided) else None
     folders: dict[str, Mapping[str, Any]] = {}
 
     def records_in(folder: PurePosixPath) -> Mapping[str, Any]:
@@ -886,8 +890,37 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
         raw = records_in(path.parent).get(path.name)
         if not (isinstance(raw, Mapping) and raw):
             continue
-        out[name] = _pinned_or_unknown(dict(raw), lambda: read(path.as_posix()), src)
+        known = digests.get(path.as_posix()) if digests else None
+        plate = (
+            (lambda: None)
+            if known is not None
+            else (lambda p=path.as_posix(): read(p))
+        )
+        out[name] = _pinned_or_unknown(dict(raw), plate, src, digest=known)
     return out
+
+
+def recorded_plate_source(
+    descriptor: Any, path: str, read: Callable[[str], bytes | None]
+) -> dict[str, Any] | None:
+    """The record an image generator wrote for the file at ``path`` (an image
+    plane of ``descriptor`` with no source of its own; :data:`ART_SOURCES_FILE`
+    beside it), or ``None``. ``read(relative path) -> bytes | None`` reads the
+    asset's files. Whether the record pins these very bytes is the caller's
+    check (its ``sha256``): the library itemises a part only on a matching pin
+    (an#861)."""
+    if path not in {src for _, src in _unsourced_plate_names(descriptor)}:
+        return None
+    rel = PurePosixPath(path)
+    if rel.is_absolute() or ".." in rel.parts or "\\" in path:
+        return None
+    data = read((rel.parent / ART_SOURCES_FILE).as_posix())
+    try:
+        loaded = json.loads(data.decode("utf-8")) if data else {}
+    except (UnicodeDecodeError, ValueError):
+        return None
+    raw = loaded.get(rel.name) if isinstance(loaded, Mapping) else None
+    return dict(raw) if isinstance(raw, Mapping) and raw else None
 
 
 def _entry_reader(store: Any, key: str) -> Callable[[str], bytes | None] | None:
@@ -927,17 +960,24 @@ def _entry_reader(store: Any, key: str) -> Callable[[str], bytes | None] | None:
 
 
 def _pinned_or_unknown(
-    raw: dict[str, Any], plate: Callable[[], bytes | None], src: str
+    raw: dict[str, Any],
+    plate: Callable[[], bytes | None],
+    src: str,
+    *,
+    digest: str | None = None,
 ) -> dict[str, Any]:
     """``raw`` when the bytes it pins (``sha256``, as the generator records it) are
     the plate's (``plate()`` reads them), else an unknown source saying why: a
     record that speaks for other bytes (the plate replaced by hand since) must
     not credit these."""
-    pinned = raw.get("sha256")
+    pinned = str(raw.get("sha256") or "").strip().lower().removeprefix("sha256:")
     if not pinned:
         return raw
-    data = plate()
-    actual = hashlib.sha256(data).hexdigest() if data is not None else None
+    if digest is not None:  # the plate's digest, known without reading it
+        actual = digest
+    else:
+        data = plate()
+        actual = hashlib.sha256(data).hexdigest() if data is not None else None
     if actual == pinned:
         return raw
     reason = (

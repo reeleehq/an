@@ -521,3 +521,22 @@ def test_the_library_reads_a_generated_plates_record_as_a_project_does():
 
     recorded = publish(lib, "environment.yard", doc, files(plate, plate), source=CC0)
     assert recorded.rights.license_class == "private"
+
+
+def test_a_generated_plates_record_binds_its_bytes_on_the_floor():
+    """The record also binds the plate's bytes per file (an#861 review): a
+    per-file statement freer than the record is a recorded conflict, and the
+    plate's bytes carry the record's class to any other asset holding them."""
+    plate = b"\x89PNG a generated dusk"
+    record = {"sky.png": {"provider": "a-model", "license": "all-rights-reserved",
+                          "sha256": _sha(plate)}}
+    doc = {"name": "yard", "planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}}]}
+    lib = _memory()
+    with pytest.warns(RightsConflictWarning):
+        r = publish(
+            lib, "environment.yard", doc,
+            {"sky.png": plate, "art_sources.json": json.dumps(record).encode("utf-8")},
+            source=CC0, license_parts={"sky.png": CC0},
+        )
+    assert [c.path for c in r.conflicts] == ["sky.png"]
+    assert _floor(lib, plate) == {"cutan:environment.yard": "private"}
