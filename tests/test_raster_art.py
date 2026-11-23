@@ -930,3 +930,54 @@ def test_a_recorded_plate_in_an_unsourced_environment_is_not_unverified(tmp_path
     assert by_asset["environments/yard/planes/sky"].source.provider == "openai"
     # a src that leaves the entry is never looked up: still unverified
     assert by_asset["environments/yard/planes/out"].source.provider == "unknown"
+
+
+def test_a_record_credits_only_the_bytes_it_pins(tmp_path):
+    """A generator's record pins the plate's sha256. A plate replaced by hand
+    since (the record left in place), or one whose file is gone, is not credited
+    from the record: it reads unverified, with the reason."""
+    import hashlib
+
+    from an.credits import ART_SOURCES_FILE, collect_credits
+    from an.stores.environments import EnvironmentsStore
+
+    envs = EnvironmentsStore(tmp_path / "envs")
+    envs["yard"] = json.loads(EnvironmentDescriptor(
+        name="yard",
+        planes=[Plane(name=n, art=PlaneArt(kind="image", src=f"{n}.png"))
+                for n in ("kept", "swapped", "gone")],
+    ).model_dump_json())
+    for n in ("kept", "swapped"):
+        envs.write_sidecar("yard", f"{n}.png", b"generated " + n.encode())
+    pin = {n: hashlib.sha256(b"generated " + n.encode()).hexdigest()
+           for n in ("kept", "swapped", "gone")}
+    envs.write_sidecar("yard", "swapped.png", b"a stock photo")  # replaced by hand
+    record = {f"{n}.png": {"provider": "openai", "license": "cc0-1.0", "sha256": pin[n]}
+              for n in pin}
+    envs.write_sidecar("yard", ART_SOURCES_FILE, json.dumps(record).encode())
+
+    by_asset = {e.asset: e.source
+                for e in collect_credits({"environments": envs}).entries}
+    assert by_asset["environments/yard/planes/kept"].provider == "openai"
+    swapped = by_asset["environments/yard/planes/swapped"]
+    assert swapped.provider == "unknown" and "changed" in swapped.extra["reason"]
+    assert "missing" in by_asset["environments/yard/planes/gone"].extra["reason"]
+
+
+def test_a_record_behind_a_symlink_out_of_the_entry_is_not_read(tmp_path):
+    from an.credits import ART_SOURCES_FILE, collect_credits
+    from an.stores.environments import EnvironmentsStore
+
+    outside = tmp_path / "elsewhere"
+    outside.mkdir()
+    (outside / ART_SOURCES_FILE).write_text(
+        json.dumps({"sky.png": {"provider": "openai", "license": "cc0-1.0"}}))
+    envs = EnvironmentsStore(tmp_path / "envs")
+    envs["yard"] = json.loads(EnvironmentDescriptor(
+        name="yard", planes=[Plane(name="sky", art=PlaneArt(kind="image", src="link/sky.png"))],
+    ).model_dump_json())
+    (tmp_path / "envs" / "yard" / "link").symlink_to(outside)
+
+    by_asset = {e.asset: e.source
+                for e in collect_credits({"environments": envs}).entries}
+    assert by_asset["environments/yard/planes/sky"].provider == "unknown"

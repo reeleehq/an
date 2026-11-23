@@ -864,15 +864,27 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
     sidecar = getattr(store, "sidecar_path", None)
     if not callable(sidecar):
         return {}
+    try:
+        entry = Path(sidecar(key, ".")).resolve()
+    except (OSError, ValueError, KeyError):
+        return {}
     folders: dict[str, Mapping[str, Any]] = {}
+
+    def inside(rel: PurePosixPath) -> Path | None:
+        """The file at ``rel`` under the entry, never one a symlink leads out to."""
+        try:
+            path = Path(sidecar(key, rel.as_posix())).resolve()
+        except (OSError, ValueError, KeyError):
+            return None
+        return path if path.is_relative_to(entry) else None
 
     def records_in(folder: PurePosixPath) -> Mapping[str, Any]:
         rel = folder.as_posix()
         if rel not in folders:
-            name = (folder / ART_SOURCES_FILE).as_posix()
+            record = inside(folder / ART_SOURCES_FILE)
             try:
-                loaded = json.loads(Path(sidecar(key, name)).read_text("utf-8"))
-            except (OSError, ValueError, KeyError):
+                loaded = json.loads(record.read_text("utf-8")) if record else {}
+            except (OSError, ValueError):
                 loaded = {}
             folders[rel] = loaded if isinstance(loaded, Mapping) else {}
         return folders[rel]
@@ -883,9 +895,34 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
         if path.is_absolute() or ".." in path.parts or "\\" in src:
             continue
         raw = records_in(path.parent).get(path.name)
-        if isinstance(raw, Mapping) and raw:
-            out[name] = dict(raw)
+        if not (isinstance(raw, Mapping) and raw):
+            continue
+        out[name] = _pinned_or_unknown(dict(raw), inside(path), src)
     return out
+
+
+def _pinned_or_unknown(raw: dict[str, Any], plate: Path | None, src: str) -> dict[str, Any]:
+    """``raw`` when the bytes it pins (``sha256``, as the generator records it) are
+    the plate's, else an unknown source saying why: a record that speaks for other
+    bytes (the plate replaced by hand since) must not credit these."""
+    pinned = raw.get("sha256")
+    if not pinned:
+        return raw
+    try:
+        actual = hashlib.sha256(plate.read_bytes()).hexdigest() if plate else None
+    except OSError:
+        actual = None
+    if actual == pinned:
+        return raw
+    reason = (
+        "the plate's file is missing"
+        if actual is None
+        else "the plate changed since it was generated"
+    )
+    return {
+        "provider": "unknown",
+        "extra": {"reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes", "file": src},
+    }
 
 
 def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
