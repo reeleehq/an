@@ -1064,6 +1064,42 @@ def viseme_key(audio_key_: str, lipsync_name: str, transcript: str) -> str:
     )
 
 
+def speech_quote(
+    scene: SceneIR,
+    mall: Mapping[str, Any] | None,
+    *,
+    tts: TTSProvider | str | None = None,
+) -> float | None:
+    """What speaking ``scene``'s dialogue would bill in dollars: ``0.0`` when every
+    line is spoken by a provider that declares ``billed = False`` (offline,
+    ``mac_say``, recorded takes), else ``None``: unknown, never free.
+
+    Each line's provider is chosen as the render chooses it (:func:`tts_chooser`:
+    ``tts`` overrides every voice, else each voice's own document), so a voice the
+    scene never speaks does not count. A provider that does not declare
+    ``billed`` counts as billed. A billed provider is ``None`` even when its lines
+    are cached: an counts billed characters (:func:`takes_cost_message`) but
+    prices none in dollars yet; that rate is what turns ``None`` into a figure.
+
+    >>> from types import SimpleNamespace as NS
+    >>> shot = NS(entities=(), dialogue=[NS(voice_ref="bob", speaker="bob", text="Hi")])
+    >>> scene = NS(timeline=[shot])
+    >>> speech_quote(scene, {"voices": {"bob": {"provider": "offline"}}})
+    0.0
+    >>> speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}) is None
+    True
+    >>> speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}, tts="offline")
+    0.0
+    """
+    choose = tts_chooser(tts, mall)
+    for shot in scene.timeline:
+        for line in shot.dialogue:
+            provider = choose(line_voice_id(line, shot, mall))
+            if getattr(provider, "billed", True) is not False:
+                return None
+    return 0.0
+
+
 def takes_cost_message(
     lines: list[tuple[str, "_LineRequest"]],
     tts: TTSProvider,
