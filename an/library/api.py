@@ -59,6 +59,7 @@ from an.credits import (
     is_clutter,
     is_generated_source,
     nobody_labelled,
+    recorded_plate_source,
     referenced_paths,
     same_source,
 )
@@ -534,6 +535,29 @@ def _manifest(
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
 
 
+def _version_reader(
+    holder: Any, version: Mapping[str, Any]
+) -> Callable[[str], bytes | None] | None:
+    """``read(path) -> bytes | None`` for one version's files, from the blobs of
+    the library holding it (``None`` when none is known): what the credits walk
+    reads beside a file, such as a generated plate's record (an#861)."""
+    blobs = getattr(holder, "blobs", None)
+    if blobs is None:
+        return None
+    files = version.get("files") or {}
+
+    def read(path: str) -> bytes | None:
+        raw = files.get(path)
+        if raw is None:
+            return None
+        try:
+            return blobs[ContentRef.from_json(raw).item_id]
+        except (KeyError, ValueError, TypeError, OSError):
+            return None
+
+    return read
+
+
 def _file_hashes(files: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
     return {path: ContentRef.from_json(ref).item_id for path, ref in files.items()}
 
@@ -723,12 +747,21 @@ def _file_contributions(
 
 
 def _part_contributions(
-    version: Mapping[str, Any], prefix: str = ""
+    version: Mapping[str, Any],
+    prefix: str = "",
+    *,
+    read: Callable[[str], bytes | None] | None = None,
 ) -> list[tuple[str, AssetSource]]:
-    """The per-part sources pinned to the bytes a version holds, as contributors (an#357)."""
+    """The per-part sources pinned to the bytes a version holds, as contributors (an#357).
+
+    read: the version's files (:func:`_version_reader`), so a generated plate's
+        record pinned to its bytes is one of them (an#861)
+    """
     out: list[tuple[str, AssetSource]] = []
     for path, raw in sorted((version.get("files") or {}).items()):
-        part = itemising_source(version, path, ContentRef.from_json(raw).item_id)
+        part = itemising_source(
+            version, path, ContentRef.from_json(raw).item_id, read=read
+        )
         if part is not None:
             out.append((f"{prefix}{path}", part))
     return out
@@ -757,7 +790,11 @@ def _digest_of(source: AssetSource) -> str | None:
 
 
 def itemising_source(
-    version: Mapping[str, Any], path: str, digest: str
+    version: Mapping[str, Any],
+    path: str,
+    digest: str,
+    *,
+    read: Callable[[str], bytes | None] | None = None,
 ) -> AssetSource | None:
     """The per-part source a version gives exactly these bytes at ``path``, if any.
 
@@ -768,6 +805,9 @@ def itemising_source(
     (:func:`an.credits.factory_recorded`): a stamp in a descriptor, typed or
     written by the public stamping functions, proves nothing (review-288 B1). The descriptor's ``source_svg``
     is itemised by a generator's descriptor-level stamp pinning its digest.
+    With ``read`` (the version's files), an environment's plate is itemised by
+    the record its generator wrote beside it, when that record pins its digest
+    (:func:`an.credits.recorded_plate_source`, an#861).
     """
     doc = version.get("doc") or {}
     own = doc.get("source")
@@ -811,6 +851,15 @@ def itemising_source(
                         # confirm labels nothing (review-288 B1).
                         continue
                     return source
+    if read is not None:
+        raw = recorded_plate_source(doc, path, read)
+        if raw is not None:
+            try:
+                recorded = AssetSource.model_validate(raw)
+            except ValueError:
+                recorded = None
+            if recorded is not None and _digest_of(recorded) == digest:
+                return recorded
     return None
 
 
@@ -1130,6 +1179,7 @@ def version_sources(
                             store=kind.credits_store if kind else None,
                             source=_source_model(label.get("source")),
                             files=hashes,
+                            read=_version_reader(holder, version),
                         )
                     )
                 first = labels[0]
@@ -1156,7 +1206,11 @@ def version_sources(
             # source pinned to the version's own bytes (an#357, probe T5).
             if per_file:
                 out.extend(_file_contributions(version, prefix))
-                out.extend(_part_contributions(version, prefix))
+                out.extend(
+                    _part_contributions(
+                        version, prefix, read=_version_reader(holder, version)
+                    )
+                )
                 if prefix:
                     # What the rule states about this relicensed parent's own
                     # bytes where stricter than its relicence: bytes it did not
@@ -1210,6 +1264,7 @@ def version_sources(
                 store=kind.credits_store if kind else None,
                 source=_source_model(version.get("source")),
                 files=_file_hashes(version.get("files") or {}),
+                read=_version_reader(holder, version),
             )
         )
         if per_file:
@@ -1391,7 +1446,9 @@ def _rule_contributions(
     if version.get(RELICENSE_FIELD) or rule.applies(version, owner):
         digests = set(hashes.values())
     else:
-        digests = {d for p, d in hashes.items() if any(rule._claims(version, p, d))}
+        digests = {
+            d for p, d in hashes.items() if any(rule._claims(version, p, d, owner))
+        }
     out: list[tuple[str, AssetSource]] = []
     for digest in sorted(digests):
         cls, why = rule.statement(version, owner, digest)
@@ -1468,9 +1525,25 @@ class _PerFileRule:
     Memoised: build one per operation.
     """
 
-    def __init__(self, readers: Libraries) -> None:
+    def __init__(
+        self,
+        readers: Libraries,
+        *,
+        pending: tuple[Mapping[str, Any], Mapping[str, bytes]] | None = None,
+    ) -> None:
+        """pending: ``(version, its files' bytes)`` for a version being
+        published, not yet in any library, so its own files can be read."""
         self.readers = readers
+        self._pending = pending
         self._memo: dict[tuple[Any, ...], Any] = {}
+
+    def _reader(
+        self, version: Mapping[str, Any], holder: Library | None
+    ) -> Callable[[str], bytes | None] | None:
+        """The version's files (a generated plate's record beside it: an#861)."""
+        if self._pending is not None and version is self._pending[0]:
+            return dict(self._pending[1]).get
+        return _version_reader(holder, version)
 
     def _cached(self, key: tuple[Any, ...], compute: Callable[[], Any]) -> Any:
         if key not in self._memo:
@@ -1649,7 +1722,11 @@ class _PerFileRule:
         return self._cached(("statement", *self._vid(version, holder), digest), compute)
 
     def _claims(
-        self, version: Mapping[str, Any], path: str, digest: str
+        self,
+        version: Mapping[str, Any],
+        path: str,
+        digest: str,
+        holder: Library | None = None,
     ) -> tuple[_Said | None, _Said | None]:
         """``(per-file, per-part)``: what ``version`` itself says about the bytes at ``path``."""
         entry = _file_entry(version, path, digest)
@@ -1658,7 +1735,9 @@ class _PerFileRule:
             if entry is not None
             else None
         )
-        part = itemising_source(version, path, digest)
+        part = itemising_source(
+            version, path, digest, read=self._reader(version, holder)
+        )
         part_said = (
             (license_class(part), f"{path} itemised as {part.license or 'no licence'}")
             if part is not None
@@ -1683,7 +1762,7 @@ class _PerFileRule:
         to its bytes always labelled an unlabelled file (an#281); a stated
         ``private``, ``attribution`` or ``noncommercial`` does (an#357).
         """
-        mine, part_said = self._claims(version, path, digest)
+        mine, part_said = self._claims(version, path, digest, holder)
         claims = tuple(c for c in (mine, part_said) if c is not None)
 
         def known(said: tuple[_Said, ...]) -> tuple[_Said, ...]:
@@ -1732,7 +1811,7 @@ class _PerFileRule:
             for path, digest in sorted(
                 _file_hashes(version.get("files") or {}).items()
             ):
-                mine, part_said = self._claims(version, path, digest)
+                mine, part_said = self._claims(version, path, digest, holder)
                 claims = [mine, part_said]
                 if (
                     version.get(RELICENSE_FIELD)
@@ -2674,7 +2753,9 @@ def publish(
     if relabel:
         pending[RELABEL_FIELD] = relabel
     entries, dropped = _carried_file_sources(head_view, parts_given, hashes)
-    rule = _PerFileRule(readers)  # one memo for this publish (an#357 review, finding 4)
+    # one memo for this publish (an#357 review, finding 4); the pending version's
+    # own files are readable before it is stored (an#861)
+    rule = _PerFileRule(readers, pending=(pending, files or {}))
     if entries is None and rule.applies(pending, None):
         # Under the rule through its lineage: recorded, so the version is
         # written at the schema an older reader refuses (review S1).
