@@ -4,7 +4,8 @@ The package is ``@thorwhalen/an-contract`` (a working name the maintainer may
 change in ``package.json`` before the first publish). It carries nothing but the
 contract data ``an`` generates from its registries into ``an/data/timing/``
 (``easing.json``, ``kinds.json``, ``timeline.schema.json``,
-``compiled.schema.json``, ``timing_vectors.json``, ``vocabulary.json``), plus
+``compiled.schema.json``, ``timing_vectors.json``, ``step_grid.json``,
+``vocabulary.json``), plus
 this folder's ``package.json`` and ``README.md`` and the repository's licence.
 Standard library only, so the publish workflow needs nothing but Python and npm.
 

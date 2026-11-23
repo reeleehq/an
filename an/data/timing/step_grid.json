@@ -1,0 +1,107 @@
+{
+ "format": "an.timing.step_grid",
+ "version": 1,
+ "description": "The instants, local to a stepped tween (0 = its start), at which it updates its pose. The grid is shot-wide: multiples of 1/step_hz on the shot's clock, so a tween starting at `start` updates at the next multiple, not `start` plus a step. 0 and `duration` are always present; an instant within 1e-09 of either is not a step of its own. Numbers agree within 1e-09 * max(1, |x|, |y|).",
+ "eps": 1e-09,
+ "cases": [
+  {
+   "name": "on-the-grid",
+   "start": 0.0,
+   "duration": 0.3,
+   "step_hz": 10.0,
+   "times": [
+    0.0,
+    0.1,
+    0.2,
+    0.3
+   ]
+  },
+  {
+   "name": "off-the-grid-start",
+   "start": 0.05,
+   "duration": 0.3,
+   "step_hz": 10.0,
+   "times": [
+    0.0,
+    0.05,
+    0.15000000000000002,
+    0.25,
+    0.3
+   ]
+  },
+  {
+   "name": "shorter-than-a-step",
+   "start": 0.0,
+   "duration": 0.02,
+   "step_hz": 10.0,
+   "times": [
+    0.0,
+    0.02
+   ]
+  },
+  {
+   "name": "product-rounds",
+   "start": 0.0,
+   "duration": 0.25,
+   "step_hz": 12.0,
+   "times": [
+    0.0,
+    0.08333333333333333,
+    0.16666666666666666,
+    0.25
+   ]
+  },
+  {
+   "name": "late-start-on-twos",
+   "start": 0.041666666666666664,
+   "duration": 0.5,
+   "step_hz": 12.0,
+   "times": [
+    0.0,
+    0.041666666666666664,
+    0.125,
+    0.20833333333333334,
+    0.29166666666666663,
+    0.375,
+    0.4583333333333333,
+    0.5
+   ]
+  },
+  {
+   "name": "start-just-past-a-step",
+   "start": 0.1000000001,
+   "duration": 0.25,
+   "step_hz": 10.0,
+   "times": [
+    0.0,
+    0.09999999990000001,
+    0.1999999999,
+    0.25
+   ]
+  },
+  {
+   "name": "ntsc-on-twos",
+   "start": 0.0,
+   "duration": 1.0,
+   "step_hz": 14.985014985014985,
+   "times": [
+    0.0,
+    0.06673333333333334,
+    0.13346666666666668,
+    0.20020000000000002,
+    0.26693333333333336,
+    0.33366666666666667,
+    0.40040000000000003,
+    0.46713333333333334,
+    0.5338666666666667,
+    0.6006,
+    0.6673333333333333,
+    0.7340666666666666,
+    0.8008000000000001,
+    0.8675333333333334,
+    0.9342666666666667,
+    1.0
+   ]
+  }
+ ]
+}

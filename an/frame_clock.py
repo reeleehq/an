@@ -18,7 +18,7 @@ frame was taken.
 It also owns the GRIDS a shot is laid onto, the pure rules every layer shares
 (the IR's camera, the stage's compiler and solve): :func:`frame_times` (every
 frame, the end included), :func:`step_times` (a stepped shot's pose grid,
-an#89), :func:`grid_times` (one or the other, the solve's grid) and
+an#89; the rule lives in :mod:`an.timing.grid`, an#784), :func:`grid_times` (one or the other, the solve's grid) and
 :func:`camera_grid` (an#626), the instants a camera the runtime cannot
 evaluate itself — a follow, a dolly — is keyed at so that every instant the
 render samples, a shutter's sub-frame ones included, lands on an exact key.
@@ -55,6 +55,10 @@ import math
 from dataclasses import asdict, dataclass
 from typing import Literal, Sequence
 
+# The step grid is a timing policy the kernel's other implementations honour, so it
+# lives in an.timing (an#784); it is re-exported here, where the grids are built.
+from an.timing.grid import STEP_GRID_EPS, step_times
+
 __all__ = [
     "DEFAULT_EXPOSURE_SAMPLES",
     "MAX_JITTER_FRACTION",
@@ -88,9 +92,6 @@ MAX_JITTER_FRACTION: float = 0.49
 #: two neighbouring reported timestamps can never cross on a regular grid.
 MAX_REPORT_NOISE_FRACTION: float = 0.24
 
-#: A step instant this close to the end of a span is not a step of it
-#: (``0.25 s × 12 Hz`` is 3 steps, not 4, whatever the float product rounds to).
-STEP_GRID_EPS: float = 1e-9
 
 #: Two camera key instants closer than this (s) are one key: a shutter sample
 #: that IS a frame up to float noise adds no key beside it (two keys a
@@ -126,43 +127,6 @@ def frame_times(duration: float, *, fps: float) -> list[float]:
     [0.0, 0.25, 0.5]
     """
     return [min(duration, n / fps) for n in range(frame_count(duration, fps) + 1)]
-
-
-def step_times(start: float, duration: float, step_hz: float) -> list[float]:
-    """Clip-local times at which a stepped tween updates its pose (an#89).
-
-    The grid is SHOT-wide — multiples of ``1/step_hz`` on the shot's clock,
-    shared by every tween in the shot — not the tween's own: "on twos" means
-    every character changes pose on the same frames, so a tween starting at
-    0.033 s updates at the next grid point, not 0.033 s later. (Shots compile
-    independently, so the grid restarts at each cut.) Local 0 (the tween's
-    start) and ``duration`` (where the end value lands) are always present, so
-    a tween shorter than one step is a single step to its end value.
-
-    ``step_hz`` must be positive: with a non-positive rate the walk below never
-    reaches ``duration`` — an infinite loop, not an error — so it is refused.
-
-    >>> step_times(0.0, 0.3, 10)
-    [0.0, 0.1, 0.2, 0.3]
-    >>> [round(t, 3) for t in step_times(0.05, 0.3, 10)]
-    [0.0, 0.05, 0.15, 0.25, 0.3]
-    >>> step_times(0.0, 0.02, 10)
-    [0.0, 0.02]
-    """
-    if not step_hz > 0:
-        raise ValueError(f"step_hz must be positive; got {step_hz!r}")
-    eps = STEP_GRID_EPS
-    j = math.ceil(start * step_hz - eps)
-    times = [0.0]
-    while True:
-        t = j / step_hz - start
-        if t >= duration - eps:
-            break
-        if t > eps:
-            times.append(t)
-        j += 1
-    times.append(float(duration))
-    return times
 
 
 def grid_times(

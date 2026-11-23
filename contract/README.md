@@ -14,6 +14,7 @@ import vocabulary from "@thorwhalen/an-contract/vocabulary.json" with { type: "j
 | file | what it is |
 | --- | --- |
 | `timing_vectors.json` | compiled documents and the state at listed times: what a kernel implementation must reproduce |
+| `step_grid.json` | a stepped shot's pose instants: for each `(start, duration, step_hz)`, the tween-local times its pose updates on the shot-wide `1/step_hz` grid |
 | `easing.json` | every registered easing (name, version, family, solver) with sample values |
 | `kinds.json` | every field kind with sample interpolations, and the seeded property spaces |
 | `timeline.schema.json` | JSON Schema of the authored flat timeline `(start, end, address, change)` |

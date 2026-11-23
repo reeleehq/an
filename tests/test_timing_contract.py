@@ -2,7 +2,7 @@
 
 Four claims, each checked here rather than asserted in a doc:
 
-1. the five committed contract files are what the registries generate today
+1. the six committed contract files are what the registries generate today
    (a drift test: regenerating is a deliberate act);
 2. ``an.timing`` reproduces every golden vector;
 3. ``runtime.js`` — a time-driven engine — reproduces every ``stage.node``
@@ -631,3 +631,33 @@ def test_every_transform_property_has_its_own_write_group_in_the_runtime():
         )
     )
     assert runtime == set(TRANSFORM_PROPERTIES) == cases
+
+
+# --- the step grid (an#784) ----------------------------------------------------
+
+
+def test_an_timing_reproduces_every_step_grid_case():
+    assert contract.check_step_grid() == []
+
+
+def test_a_wrong_step_grid_case_is_reported():
+    grid = contract.load_contract_file(contract.STEP_GRID_FILE)
+    grid["cases"][1]["times"][2] += 0.01
+    (problem,) = contract.check_step_grid(grid)
+    assert problem.startswith(grid["cases"][1]["name"])
+
+
+def test_the_step_grid_rule_lives_in_the_kernel_and_the_frame_clock_re_exports_it():
+    import ast
+
+    import an.frame_clock
+    import an.timing
+    import an.timing.grid
+
+    assert an.frame_clock.step_times is an.timing.step_times is an.timing.grid.step_times
+    assert an.frame_clock.STEP_GRID_EPS == an.timing.grid.STEP_GRID_EPS
+    tree = ast.parse(Path(an.timing.grid.__file__).read_text(encoding="utf-8"))
+    imported = {
+        alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names
+    } | {node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
+    assert imported <= {"__future__", "math"}, imported  # the kernel imports nothing of an's
