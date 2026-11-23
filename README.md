@@ -63,17 +63,13 @@ Authoring happens in `scene.md`:
 # Park Bench
 
 ```yaml meta
-title: Park Bench
-duration: 12
-fps: 24
-resolution: { width: 640, height: 360 }
+title: Park Bench duration: 12 fps: 24 resolution: { width: 640, height: 360 }
 ```
 
 ## Shot s1 (cutout)
 
 ```yaml shot
-duration: 6
-camera: { move: push_in }
+duration: 6 camera: { move: push_in }
 ```
 
 ```yaml entities
@@ -83,8 +79,7 @@ camera: { move: push_in }
 ```
 
 ```dialogue
-charlie [thinking]: Did you ever wonder why we always meet here?
-maya [amused]: Because the pigeons trust us.
+charlie [thinking]: Did you ever wonder why we always meet here? maya [amused]: Because the pigeons trust us.
 ```
 ````
 
@@ -183,9 +178,7 @@ For a deeper as-built reference (module-by-module map, control flows, key invari
 
 ### Injecting word timings (no whisper redundancy)
 
-When the caller already has authoritative word-level alignment data
-(e.g. from a separate lyric-alignment pipeline), `an` can skip its
-own transcription pass entirely:
+When the caller already has authoritative word-level alignment data (e.g. from a separate lyric-alignment pipeline), `an` can skip its own transcription pass entirely:
 
 ```python
 from an.audio import StaticWordTimings, WordTimingsLipSync
@@ -197,12 +190,7 @@ lipsync = WordTimingsLipSync(StaticWordTimings(timings, label="my-aligner"))
 orchestrate("my-scene", lipsync=lipsync)
 ```
 
-`orchestrate(..., tts=, lipsync=, parallel=)` accepts either provider
-name strings or instances. Plug in any `WordTimingProvider`
-(structural protocol with `name: str` and `words_for(audio,
-transcript=)` returning `(text, start, end)` tuples). `muvid` uses
-this hook to feed `lacing` alignment-store timings straight into the
-cutout pipeline.
+`orchestrate(..., tts=, lipsync=, parallel=)` accepts either provider name strings or instances. Plug in any `WordTimingProvider` (structural protocol with `name: str` and `words_for(audio, transcript=)` returning `(text, start, end)` tuples). `muvid` uses this hook to feed `lacing` alignment-store timings straight into the cutout pipeline.
 
 ### Synthetic impact clips (`cutan.impacts`)
 
@@ -240,30 +228,17 @@ The clips are ordinary `an` scenes (two props, one tween per stroke segment), an
 
 - 3D animation, generative video, interactive output, SaaS hosting, music/sound-effect generation, in-house GUI, or editing of pre-existing video footage. `an` synthesizes; it does not cut.
 - The Manim backend works for placeholder title cards but isn't doing real shot-to-Manim translation; Remotion + whiteboard are skeleton implementations that respond correctly to `can_render` but can't produce video yet.
-- Lip-sync for face-baked characters. Characters whose descriptor declares
-  `face_overlay: false` (DiceBear avatars, or any hand-declared baked face)
-  carry their face inside the head SVG, so the
-  compiler suppresses both the overlay mouth and the viseme channel — they speak
-  without moving their mouths. Hand-rigged characters lip-sync normally; see
-  `examples/promote_demo/`.
+- Lip-sync for face-baked characters. Characters whose descriptor declares `face_overlay: false` (DiceBear avatars, or any hand-declared baked face) carry their face inside the head SVG, so the compiler suppresses both the overlay mouth and the viseme channel — they speak without moving their mouths. Hand-rigged characters lip-sync normally; see `examples/promote_demo/`.
 - Multi-scene projects — `"main"` is the only scene key supported today.
 
-SVG character art *has* shipped — descriptors drive real sprites through
-`svg_sprite` visuals, not the placeholder geometry an earlier version of this
-list described.
+SVG character art *has* shipped — descriptors drive real sprites through `svg_sprite` visuals, not the placeholder geometry an earlier version of this list described.
 
 ---
 
 ## Reference
 
 - [`misc/docs/architecture_as_built.md`](misc/docs/architecture_as_built.md) — module map, control flows, invariants, caching strategy.
-- [`misc/docs/`](misc/docs/) — the design-space research reports, plus
-  [`wave1_verification.md`](misc/docs/wave1_verification.md), which is *verified current
-  fact* rather than design space: licences with the URLs they were read at, and the
-  silent-discard inventory.
+- [`misc/docs/`](misc/docs/) — the design-space research reports, plus [`wave1_verification.md`](misc/docs/wave1_verification.md), which is *verified current fact* rather than design space: licences with the URLs they were read at, and the silent-discard inventory.
 - [`misc/CHANGELOG.md`](misc/CHANGELOG.md) — phase-by-phase what shipped when.
-- [`.claude/skills/`](.claude/skills/) — the skills the agent uses to drive the package
-  (`an` to use it, `an-spec` to interview a director, `an-dev` to work on it, plus
-  `an-dev-licensing` and `an-dev-runtime-assets` for the two things that fail silently).
-- [`examples/`](examples/) — the canonical demo scenes. `single_character/` is the smallest
-  thing that renders; `character_gallery/build.py` goes end to end from character creation.
+- [`.claude/skills/`](.claude/skills/) — the skills the agent uses to drive the package (`an` to use it, `an-spec` to interview a director, `an-dev` to work on it, plus `an-dev-licensing` and `an-dev-runtime-assets` for the two things that fail silently).
+- [`examples/`](examples/) — the canonical demo scenes. `single_character/` is the smallest thing that renders; `character_gallery/build.py` goes end to end from character creation.
