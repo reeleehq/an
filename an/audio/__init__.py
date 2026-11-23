@@ -46,6 +46,7 @@ from an.audio.pipeline import (
     default_lipsync,
     produce_audio_for_dialogue,
     produce_audio_for_scene,
+    speech_quote,
 )
 from an.audio.providers import (
     make_tts,
@@ -83,6 +84,7 @@ __all__ = [
     "default_lipsync",
     "produce_audio_for_dialogue",
     "produce_audio_for_scene",
+    "speech_quote",
     "make_tts",
     "make_lipsync",
     "known_tts_names",
