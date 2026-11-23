@@ -13,6 +13,8 @@ other implementation of the kernel — the TypeScript one, a package that copies
 ``compiled.schema.json``   tracks, placed clips, loop modes, channels — the
                            compiled form ``runtime.js`` consumes
 ``timing_vectors.json``    compiled documents and the state at listed times
+``step_grid.json``         a stepped shot's pose instants (:func:`~an.timing.grid.step_times`)
+                           for listed ``(start, duration, step_hz)``
 =========================  ====================================================
 
 **Numbers agree within** ``1e-9 * max(1, |x|, |y|)``; strings, booleans,
@@ -54,6 +56,7 @@ from an.timing.easing import (
     easing_entries,
     solvers,
 )
+from an.timing.grid import STEP_GRID_EPS, step_times
 from an.timing.flat import CHANGE_KINDS, FLAT_TIMELINE_FORMAT, FLAT_TIMELINE_VERSION
 from an.timing.kinds import (
     AngleKind,
@@ -91,12 +94,14 @@ KINDS_FILE = "kinds.json"
 TIMELINE_SCHEMA_FILE = "timeline.schema.json"
 COMPILED_SCHEMA_FILE = "compiled.schema.json"
 VECTORS_FILE = "timing_vectors.json"
+STEP_GRID_FILE = "step_grid.json"
 CONTRACT_FILES: tuple[str, ...] = (
     EASING_FILE,
     KINDS_FILE,
     TIMELINE_SCHEMA_FILE,
     COMPILED_SCHEMA_FILE,
     VECTORS_FILE,
+    STEP_GRID_FILE,
 )
 
 
@@ -664,6 +669,57 @@ def build_vectors() -> dict[str, Any]:
     }
 
 
+#: The step-grid cases: ``(name, start, duration, step_hz)``. A tween's start
+#: off the grid, on it, a span shorter than one step, a rate whose product rounds
+#: (0.25 s x 12 Hz), a late start, and the NTSC-ish rate.
+STEP_GRID_CASES: tuple[tuple[str, float, float, float], ...] = (
+    ("on-the-grid", 0.0, 0.3, 10.0),
+    ("off-the-grid-start", 0.05, 0.3, 10.0),
+    ("shorter-than-a-step", 0.0, 0.02, 10.0),
+    ("product-rounds", 0.0, 0.25, 12.0),
+    ("late-start-on-twos", 1.0 / 24.0, 0.5, 12.0),
+    ("start-just-past-a-step", 0.1000000001, 0.25, 10.0),
+    ("ntsc-on-twos", 0.0, 1.0, 30000.0 / 1001.0 / 2.0),
+)
+
+
+def build_step_grid() -> dict[str, Any]:
+    return {
+        "format": "an.timing.step_grid",
+        "version": CONTRACT_VERSION,
+        "description": (
+            "The instants, local to a stepped tween (0 = its start), at which it updates "
+            "its pose. The grid is shot-wide: multiples of 1/step_hz on the shot's clock, "
+            "so a tween starting at `start` updates at the next multiple, not `start` "
+            "plus a step. 0 and `duration` are always present; an instant within "
+            f"{STEP_GRID_EPS} of either is not a step of its own. Numbers agree within "
+            f"{REL_TOL} * max(1, |x|, |y|)."
+        ),
+        "eps": STEP_GRID_EPS,
+        "cases": [
+            {
+                "name": name,
+                "start": start,
+                "duration": duration,
+                "step_hz": step_hz,
+                "times": step_times(start, duration, step_hz),
+            }
+            for name, start, duration, step_hz in STEP_GRID_CASES
+        ],
+    }
+
+
+def check_step_grid(grid: Mapping[str, Any] | None = None) -> list[str]:
+    """Where :func:`~an.timing.grid.step_times` disagrees with ``step_grid.json`` (empty: none)."""
+    grid = load_contract_file(STEP_GRID_FILE) if grid is None else grid
+    problems = []
+    for case in grid["cases"]:
+        got = step_times(case["start"], case["duration"], case["step_hz"])
+        if not values_close(case["times"], got):
+            problems.append(f"{case['name']}: expected {case['times']}, got {got}")
+    return problems
+
+
 def build_contract() -> dict[str, Any]:
     """Every contract file's content, by file name, generated from the registries."""
     return {
@@ -672,6 +728,7 @@ def build_contract() -> dict[str, Any]:
         TIMELINE_SCHEMA_FILE: build_timeline_schema(),
         COMPILED_SCHEMA_FILE: build_compiled_schema(),
         VECTORS_FILE: build_vectors(),
+        STEP_GRID_FILE: build_step_grid(),
     }
 
 
@@ -728,7 +785,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"wrote {path.name}")
         return 0
     if command == "check":
-        problems = contract_drift() + check_vectors()
+        problems = contract_drift() + check_vectors() + check_step_grid()
         for line in problems:
             print(line)
         return 1 if problems else 0

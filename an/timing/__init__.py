@@ -11,14 +11,15 @@ declared **field kind** (:mod:`~an.timing.kinds`) chosen by its entity kind's
 and evaluated by ``evaluate_timeline(timeline, t)`` — sparse: a property nothing
 has started writing is absent, and the entity's rest state supplies it.
 
-The kernel is a **cross-language contract** before it is code: five JSON files
+The kernel is a **cross-language contract** before it is code: six JSON files
 in ``an/data/timing/`` generated from these registries (:mod:`~an.timing.contract`),
 which a second implementation (TypeScript) asserts. ``runtime.js`` — the stage
 engine's evaluator — is a bit-exact port of this package's value-typed rule, and
 its parity tests hold it there.
 
 The frame clock is `an`'s: frame ``k`` at ``k / fps``, ``frame_count = max(1,
-round(duration * fps))`` (:mod:`an.frame_clock`).
+round(duration * fps))`` (:mod:`an.frame_clock`). A stepped shot's pose grid is
+the kernel's own rule, :func:`~an.timing.grid.step_times`.
 
 >>> from an.timing import Channel, Keyframe, evaluate_channel, get_space
 >>> ch = Channel("charlie", "x", [Keyframe(0.0, 0.0, "ease_in_out"), Keyframe(1.0, 10.0)])
@@ -68,6 +69,7 @@ from an.timing.spaces import (
     space_from_json,
     space_names,
 )
+from an.timing.grid import STEP_GRID_EPS, step_times
 from an.timing.timeline import (
     PlacedClip,
     Timeline,
@@ -78,6 +80,8 @@ from an.timing.timeline import (
 )
 
 __all__ = [
+    "STEP_GRID_EPS",
+    "step_times",
     "Address",
     "AddressError",
     "format_address",
