@@ -868,3 +868,65 @@ def test_in_pixels_an_exif_rotated_jpeg_part_is_drawn_upright_in_its_box(tmp_pat
     top = rgb[rows[0] + 10, (cols[0] + cols[-1]) // 2]
     bottom = rgb[rows[-1] - 10, (cols[0] + cols[-1]) // 2]
     assert _near(tuple(top), green, tol=40) and _near(tuple(bottom), blue, tol=40)
+
+
+def test_a_generated_plates_recorded_source_reaches_credits(tmp_path):
+    """an#772: ``cutan art generate`` writes a plate's provenance into
+    ``art_sources.json`` beside it. A plane with no source of its own is credited
+    from that record, not swallowed by the environment's source (here a cc0
+    line that would have covered a model's output) and not left unverified; a
+    plane's own ``source`` still wins, and a record for another file, or a
+    ``src`` outside the entry, is not read."""
+    from an.credits import ART_SOURCES_FILE, collect_credits
+    from an.stores.environments import EnvironmentsStore
+
+    envs = EnvironmentsStore(tmp_path / "envs")
+    envs["yard"] = json.loads(EnvironmentDescriptor(
+        name="yard",
+        planes=[
+            Plane(name="sky", art=PlaneArt(kind="image", src="plates/sky.png")),
+            Plane(name="wall", art=PlaneArt(kind="image", src="plates/wall.png"),
+                  source={"provider": "openclipart", "license": "cc0-1.0"}),
+            Plane(name="fence", art=PlaneArt(kind="image", src="plates/fence.png")),
+        ],
+        source={"provider": "me", "license": "cc0-1.0"},
+    ).model_dump_json())
+    generated = {
+        "provider": "openai",
+        "id": "gpt-image-1",
+        "license": "openai-terms",
+        "extra": {"prompt": "a dusk sky", "image_model": "gpt-image-1"},
+    }
+    envs.write_sidecar("yard", f"plates/{ART_SOURCES_FILE}", json.dumps({
+        "sky.png": generated,
+        "wall.png": {"provider": "openai", "license": "openai-terms"},
+    }).encode())
+
+    report = collect_credits({"environments": envs})
+    by_asset = {e.asset: e for e in report.entries}
+    sky = by_asset["environments/yard/planes/sky"].source
+    assert (sky.provider, sky.license) == ("openai", "openai-terms")
+    assert by_asset["environments/yard/planes/wall"].source.provider == "openclipart"
+    # the environment's own source now speaks only for the plate nobody recorded
+    assert by_asset["environments/yard"].covers == ("plates/fence.png",)
+    assert "environments/yard/planes/fence" not in by_asset
+
+
+def test_a_recorded_plate_in_an_unsourced_environment_is_not_unverified(tmp_path):
+    from an.credits import ART_SOURCES_FILE, collect_credits
+    from an.stores.environments import EnvironmentsStore
+
+    envs = EnvironmentsStore(tmp_path / "envs")
+    envs["yard"] = json.loads(EnvironmentDescriptor(
+        name="yard",
+        planes=[Plane(name="sky", art=PlaneArt(kind="image", src="sky.png")),
+                Plane(name="out", art=PlaneArt(kind="image", src="../sky.png"))],
+    ).model_dump_json())
+    envs.write_sidecar("yard", ART_SOURCES_FILE, json.dumps(
+        {"sky.png": {"provider": "openai", "license": "cc0-1.0"}}).encode())
+
+    report = collect_credits({"environments": envs})
+    by_asset = {e.asset: e for e in report.entries}
+    assert by_asset["environments/yard/planes/sky"].source.provider == "openai"
+    # a src that leaves the entry is never looked up: still unverified
+    assert by_asset["environments/yard/planes/out"].source.provider == "unknown"
