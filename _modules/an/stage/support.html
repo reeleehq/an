@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=5d4bc3c2"></script>
+    <script src="../../../_static/documentation_options.js?v=6ab349a8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.421" />
+  <meta name="docsearch:version" content="0.1.422" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1037,7 +1037,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="p">(</span>
         <span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="ow">and</span> <span class="n">declared_origin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="ow">and</span> <span class="p">(</span><span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_origin_touched</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">origin_stands</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
     <span class="p">):</span>
         <span class="k">return</span> <span class="n">Contacts</span><span class="p">(</span><span class="s2">"origin"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"origin"</span><span class="p">:</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="kc">None</span><span class="p">)},</span> <span class="n">note</span><span class="p">)</span>
     <span class="n">source</span> <span class="o">=</span> <span class="s2">"ink"</span> <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_ink_read</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">rig</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"box"</span>
@@ -1083,9 +1083,17 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_origin_touched</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Whether a root part's painted bottom rests on the entity's origin, at rest</span>
-<span class="sd">    (an#601: a stick's middle or a wheel's hub is where it is held)."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">origin_stands</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rig</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``entity`` stands on its rig's ``origin``: a root part's painted</span>
+<span class="sd">    bottom rests on it (within :data:`ORIGIN_TOUCH_PX`), in the rig's rest pose</span>
+<span class="sd">    and in the entity's own frame (an#601: a stick's middle or a wheel's hub is</span>
+<span class="sd">    where it is held, not where it stands).</span>
+
+<span class="sd">    The one definition of "stands on its origin" (an#795): :func:`contacts_of`</span>
+<span class="sd">    takes the origin as a contact by it, and the hold layer</span>
+<span class="sd">    (:func:`an.stage.hold._standing_entities`) places an entity's floor by it.</span>
+<span class="sd">    A property of the rig, not of a shot's pose: an entity that opens a shot</span>
+<span class="sd">    mid-stride stands on its origin all the same."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.hold</span><span class="w"> </span><span class="kn">import</span> <span class="n">ink_points</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_apply</span><span class="p">,</span> <span class="n">_compose</span><span class="p">,</span> <span class="n">_invert</span><span class="p">,</span> <span class="n">_node_index</span><span class="p">,</span> <span class="n">_world_matrices</span>
 

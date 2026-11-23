@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=5d4bc3c2"></script>
+    <script src="../../../_static/documentation_options.js?v=6ab349a8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.421" />
+  <meta name="docsearch:version" content="0.1.422" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -2057,39 +2057,31 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_standing_entities</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The shot's entities placed by the point they stand on (an#601): a</span>
-<span class="sd">    declared ``origin`` (an#338) that one of their parts' painted bottom</span>
-<span class="sd">    touches in the gesture-free solve as the shot opens (a figure's feet, a</span>
-<span class="sd">    stand's foot: within :data:`SUPPORT_TOLERANCE_PX`). An ``origin`` no part</span>
-<span class="sd">    rests on (a wheel's hub, a stick's middle, a stand placed by its middle)</span>
-<span class="sd">    is where the rig is held, not where it stands, and its floor stays the</span>
-<span class="sd">    bottom of its parts. The stance is the AUTHORED placement: a carrier a</span>
-<span class="sd">    shot joint moves (welded to a cart) keeps its floor at its ``stage.at``."""</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_descriptor</span><span class="p">,</span> <span class="n">_field</span>
+<span class="w">    </span><span class="sd">"""The shot's entities placed by the point they stand on (an#601): those whose</span>
+<span class="sd">    rig declares an ``origin`` (an#338) that they stand on, by the one rule</span>
+<span class="sd">    :func:`an.stage.support.origin_stands` (an#795), the rule :func:`~an.stage.support.contacts_of`</span>
+<span class="sd">    and the ``support`` check use: one of their root parts' painted bottom rests on it</span>
+<span class="sd">    at rest (a figure's feet, a stand's foot). An ``origin`` no part rests on (a wheel's</span>
+<span class="sd">    hub, a stick's middle, a stand placed by its middle) is where the rig is held, not</span>
+<span class="sd">    where it stands, and its floor stays the bottom of its parts. The stance is the</span>
+<span class="sd">    AUTHORED placement: a carrier a shot joint moves (welded to a cart) keeps its floor</span>
+<span class="sd">    at its ``stage.at``."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.solve</span><span class="w"> </span><span class="kn">import</span> <span class="n">_descriptor</span><span class="p">,</span> <span class="n">_field</span><span class="p">,</span> <span class="n">_node_index</span><span class="p">,</span> <span class="n">_rig_of</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.support</span><span class="w"> </span><span class="kn">import</span> <span class="n">origin_stands</span>
 
     <span class="n">puppet</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">puppet</span>
-    <span class="n">parts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">parent_body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">parts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">rooted</span> <span class="o">=</span> <span class="p">{</span><span class="n">b</span><span class="o">.</span><span class="n">entity</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">puppet</span><span class="o">.</span><span class="n">bodies</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">parent_body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">_node_index</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">doc</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parts</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">base</span><span class="o">.</span><span class="n">evaluated</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rooted</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">base</span><span class="o">.</span><span class="n">evaluated</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="s2">"descriptors"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_descriptor</span><span class="p">(</span>
             <span class="n">e</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">mall</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">_field</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"origin"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">stands_at</span> <span class="o">=</span> <span class="n">_apply</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">evaluated</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">bottoms</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">_lowest</span><span class="p">(</span>
-                <span class="n">_body_world</span><span class="p">(</span><span class="n">puppet</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span>
-                <span class="n">ink_points</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span> <span class="n">puppet</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">),</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">stands_at</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">SUPPORT_TOLERANCE_PX</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">bottoms</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">origin_stands</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_rig_of</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">nodes</span><span class="p">),</span> <span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">):</span>
             <span class="n">out</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 
