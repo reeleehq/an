@@ -35,6 +35,9 @@ rig_chain  a desk-lamp arm in ``nesting: bones`` (an#340): base, upper arm,
            forearm and a shade nested on it, posed by three tweens
 rig_interleave the same arm passing behind an unrelated panel and in front of it:
            a global part order (an#430)
+floor_stand a floor (``solve.ground``) with a rig standing on its ``origin`` and a
+           cup naming its ``base`` contact, sliding along it: the one corpus shot
+           the ``support`` check's inferred path runs on (an#796), clean
 ========== ===================================================================
 
 They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the
@@ -54,7 +57,7 @@ knobs, the throwaway copy and the browser-free contract hash moved here from
 them. Nothing here imports the stage at module level.
 
 >>> sorted(CORE_FIXTURES)
-['after_plane', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']
+['after_plane', 'floor_stand', 'front_plane', 'path_boil', 'path_draw', 'path_shape', 'path_taper', 'path_wobble', 'rig_chain', 'rig_interleave', 'rig_order', 'rig_origin', 'rig_rest', 'stage_pan', 'text_card', 'text_counter', 'text_halo', 'text_outline', 'text_swap', 'transitions']
 """
 
 from __future__ import annotations
@@ -371,6 +374,21 @@ CORE_FIXTURES: dict[str, Fixture] = {
             "that ignored `origin` (both posts at one height), placed parts "
             "about the wrong point, or broke the shared rig builder moves a "
             "golden."
+        ),
+    ),
+    "floor_stand": Fixture(
+        path=f"{CORPUS_DIRNAME}/floor_stand",
+        expect_visual_kinds=frozenset({"svg_sprite"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "a floor at y 80 (`solve: {ground: 80}`, an#796): the signpost of "
+            "`rig_origin` stands on its declared `origin`, the foot of its base, "
+            "and a cup naming its `base` in `metadata.contacts` slides right "
+            "along the floor (x 20 -> 90). Between the goldens the cup moves and "
+            "its base stays on the floor line; the post does not move. A "
+            "regression that lifted or sank a standing entity, or placed either "
+            "by its box instead of the point it stands on, moves a golden; the "
+            "`support` check passes it clean (tests/test_support.py)."
         ),
     ),
     "rig_rest": Fixture(

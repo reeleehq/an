@@ -1,0 +1,57 @@
+{
+  "kind": "PropDescriptor",
+  "schema_version": "0.2.0",
+  "name": "cup",
+  "display_name": "A cup naming its base",
+  "view_box": [
+    0,
+    0,
+    400,
+    400
+  ],
+  "origin": [
+    200.0,
+    400.0
+  ],
+  "bones": [
+    {
+      "name": "root",
+      "x": 200.0,
+      "y": 400.0
+    }
+  ],
+  "slots": [
+    {
+      "name": "body",
+      "bone": "root",
+      "draw_order": 0,
+      "attachment": "body"
+    }
+  ],
+  "skins": {
+    "default": {
+      "name": "default",
+      "slots": {
+        "body": {
+          "body": {
+            "path": "parts/body.svg",
+            "anchor": [
+              0.5,
+              1.0
+            ],
+            "width": 120,
+            "height": 100
+          }
+        }
+      }
+    }
+  },
+  "metadata": {
+    "contacts": {
+      "base": [
+        0.5,
+        1.0
+      ]
+    }
+  }
+}

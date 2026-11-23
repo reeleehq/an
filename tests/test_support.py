@@ -537,7 +537,9 @@ def test_no_floor_is_said_once(tmp_path):
     assert message.startswith("no floor declared") and "`fig`, `stand`" in message
 
 
-def test_a_join_after_a_natural_length_play_is_read_where_the_compile_placed_it(tmp_path):
+def test_a_join_after_a_natural_length_play_is_read_where_the_compile_placed_it(
+    tmp_path,
+):
     """an#794: a ``join`` placed after a duration-less ``play`` in a ``sequence``
     is timed by the play's natural length (the lowering's extent resolver). The
     support check read it at 0, so a stand that lands at 0.5 s was held joined
@@ -564,7 +566,10 @@ def test_a_join_after_a_natural_length_play_is_read_where_the_compile_placed_it(
         clip = None
 
     kind = ActionKind(
-        "demo_beat", Beat, duration=lambda a, extent: extent(a) if extent else 0.0, lowering=Lowering()
+        "demo_beat",
+        Beat,
+        duration=lambda a, extent: extent(a) if extent else 0.0,
+        lowering=Lowering(),
     )
     own = ", joints: [{type: support, a: '@', b: ground}]"
     hop = """- {kind: unjoin, joint: stand, at: 0.0}
@@ -574,7 +579,10 @@ def test_a_join_after_a_natural_length_play_is_read_where_the_compile_placed_it(
     with without_genres():
         register_genre(Genre("demo_extent", action_kinds=(kind,)))
         project = _project(
-            tmp_path, entities=_entity("stand", "stand", 160, GROUND, own), shot=_shot(), actions=hop
+            tmp_path,
+            entities=_entity("stand", "stand", 160, GROUND, own),
+            shot=_shot(),
+            actions=hop,
         )
         shot = project.scene.timeline[0]
         doc = _compile(project)
@@ -595,3 +603,71 @@ def test_a_support_beside_joints_leaves_the_shot_cache_key_alone():
     joints_only = solve_knobs(Shot(id="s", joints=[pin]))
     assert solve_knobs(Shot(id="s", joints=[pin, support])) == joints_only
     assert solve_knobs(Shot(id="s", joints=[support])) == solve_knobs(Shot(id="s"))
+
+
+# -- the corpus floor shot (an#796) ------------------------------------------------
+
+
+def _corpus_floor(tmp_path, *, cup_y: float = 80.0, declared: bool = False):
+    """A copy of ``misc/bench/corpus/floor_stand`` with the cup at ``cup_y`` (and, with
+    ``declared``, a ``support`` joint saying its base rests on the floor)."""
+    import shutil
+
+    src = (
+        Path(__file__).resolve().parents[1]
+        / "misc"
+        / "bench"
+        / "corpus"
+        / "floor_stand"
+    )
+    dst = tmp_path / f"floor_{cup_y:g}_{int(declared)}"
+    shutil.copytree(src, dst)
+    md = dst / "scene.md"
+    text = md.read_text(encoding="utf-8")
+    head, cup = text.split("  id: cup\n", 1)
+    text = head + "  id: cup\n" + cup.replace("- 80.0", f"- {cup_y:g}", 1)
+    if declared:
+        text = text.replace(
+            "  ground: 80.0\n",
+            "  ground: 80.0\njoints:\n- {type: support, a: cup@base, b: ground}\n",
+            1,
+        )
+    md.write_text(text, encoding="utf-8")
+    return load(dst)
+
+
+def test_the_corpus_floor_shot_passes_support_clean_and_its_tolerance_bites(tmp_path):
+    """an#796: the one corpus shot with a floor. As committed, the post (on its
+    ``origin``) and the cup (on its ``metadata`` base) stand exactly on it: 0 px
+    compiled, and 0 px in the blessed goldens (their lowest drawn row is the one
+    above the floor line). The defaults (2% of height, 2 px floor) pass it. A cup
+    1 px up is still taken to stand (within the floor); 3 px up it is not taken to
+    stand at all, and a declared support then reports it floating."""
+
+    def standing(project):
+        states, problems = supports_at(
+            _compile(project), project.scene.timeline[0], project.mall
+        )
+        assert problems == []
+        return states
+
+    clean = _corpus_floor(tmp_path)
+    assert _lint(clean, only={"support"}) == []
+    states = standing(clean)
+    assert {s.entity for s in states} == {"post", "cup"}
+    assert {s.source for s in states} == {"origin", "metadata"}
+    assert max(abs(c.above) for s in states for c in s.contacts) == pytest.approx(
+        0.0, abs=1e-6
+    )
+
+    near = _corpus_floor(tmp_path, cup_y=79.0)
+    assert _lint(near, only={"support"}) == []
+    assert "cup" in {s.entity for s in standing(near)}
+
+    lifted = _corpus_floor(tmp_path, cup_y=77.0)
+    assert "cup" not in {s.entity for s in standing(lifted)}
+    declared = _corpus_floor(tmp_path, cup_y=77.0, declared=True)
+    findings = _lint(declared, only={"support"})
+    assert findings and all(
+        "cup" in where or "joints" in where for _, where, _ in findings
+    )
