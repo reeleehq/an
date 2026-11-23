@@ -600,106 +600,48 @@ def parse_mfa_json(obj: Mapping[str, Any]) -> list[TranscriptSegment]:
     return segments_from_tiers(tiers)
 
 
-_TG_TIER_RE = re.compile(
-    r'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P<name>(?:[^"]|"")*)"', re.S
-)
-_TG_INTERVAL_RE = re.compile(
-    r'xmin\s*=\s*(?P<a>[\d.]+)\s*\n\s*xmax\s*=\s*(?P<b>[\d.]+)\s*\n\s*text\s*=\s*"(?P<t>(?:[^"]|"")*)"'
-)
-_TG_SHORT_TIER_RE = re.compile(r'"IntervalTier"\s*\n\s*"(?P<name>(?:[^"]|"")*)"\s*\n')
-#: Decimals :func:`textgrid_text` writes a time with (fixed-point, as the TextGrid
-#: interval patterns read no exponent): a microsecond.
-_TG_DECIMALS: int = 6
-_TG_SHORT_INTERVAL_RE = re.compile(
-    r'(?P<a>\d+(?:\.\d+)?)\s*\n\s*(?P<b>\d+(?:\.\d+)?)\s*\n\s*"(?P<t>(?:[^"]|"")*)"'
-)
-#: Tier names whose intervals are the LINES (one segment each), by preference.
-_TG_LINE_TIERS: tuple[str, ...] = (
-    "utterances",
-    "utterance",
-    "lines",
-    "line",
-    "sentences",
-    "sentence",
-    "segments",
-)
-#: Tier names whose intervals are the WORDS, by preference.
-_TG_WORD_TIERS: tuple[str, ...] = ("words", "word", "ortho", "orthography")
-#: The names a forced aligner gives its phone tier (Montreal Forced Aligner:
-#: ``phones``; others ``phonemes``), read beside the words (an#491).
-_TG_PHONE_TIERS: tuple[str, ...] = ("phones", "phone", "phonemes", "phoneme", "mau")
-#: Every tier name read above (lower case): MFA's ``"<speaker> - <tier>"``
-#: names a speaker only when ``<tier>`` is one of these (an#721), so a tier
-#: called ``"notes - draft"`` is not a speaker's.
-_TG_KNOWN_TIERS: frozenset[str] = frozenset(
-    _TG_LINE_TIERS + _TG_WORD_TIERS + _TG_PHONE_TIERS
-)
-#: MFA's separator between a speaker and its tier's name (``"carl - words"``).
-_TG_SPEAKER_SEP: str = " - "
 #: How far (seconds) a timing may stick out of a span and still be inside it:
 #: an aligner's float times for one boundary differ in the last digits.
 _SPAN_EPS_S: float = 1e-6
-#: Interval labels that are silence, not speech (compared lower-case): dropped
-#: from words and phones, as is any label in ``<…>``, ``[…]`` or ``+…+``
-#: (WebMAUS's ``<p:>``, a ``+breath+``, a ``[noise]``). ``spn`` is MFA's
-#: unknown word, ``oov`` Gentle's (an#715).
-_TG_SILENCE: frozenset[str] = frozenset({"sil", "sp", "spn", "oov", ""})
-_TG_BRACKETS: tuple[tuple[str, str], ...] = (("<", ">"), ("[", "]"), ("+", "+"))
+
+
+def _tg():
+    """:mod:`scribed.textgrid`, the fleet's one home for the TextGrid format and
+    its tier conventions (thorwhalen/scribed#14): the reader and writer, which
+    tier names hold lines, words and phones, MFA's ``"<speaker> - <tier>"``
+    names, and which labels are speech. Imported on first use, as
+    ``import scribed`` costs about half a second.
+    """
+    from scribed import textgrid
+
+    return textgrid
 
 
 def _is_speech(label: str) -> bool:
-    """Whether a TextGrid interval label is speech (not silence or a marker).
+    """Whether a TextGrid interval label is speech (not silence or a marker):
+    :func:`scribed.textgrid.is_speech`.
 
     >>> [_is_speech(x) for x in ("hello", "SIL", "<p:>", "+breath+", "[noise]", "AH0")]
     [True, False, False, False, False, True]
     """
-    text = label.strip()
-    if text.lower() in _TG_SILENCE:
-        return False
-    return not any(text.startswith(a) and text.endswith(b) for a, b in _TG_BRACKETS)
+    return _tg().is_speech(label)
 
 
 def _tier_named(tiers: Mapping[str, Any], names: Sequence[str]) -> str | None:
     """The tier whose name, or whose name after a speaker's prefix (MFA's
-    ``"<speaker> - phones"``, :func:`_speaker_and_tier`), is one of ``names``
-    (case-insensitive), by the order of ``names``.
+    ``"<speaker> - phones"``), is one of ``names`` (case-insensitive), by the
+    order of ``names``: :func:`scribed.textgrid.tier_named`.
 
     >>> _tier_named({"notes - draft": [], "carl - Words": []}, ("words",))
     'carl - Words'
     """
-    for want in names:
-        for name in tiers:
-            if _speaker_and_tier(name)[1].strip().lower() == want:
-                return name
-    return None
+    return _tg().tier_named(tiers, names)
 
 
 def _textgrid_tiers(text: str) -> dict[str, list[tuple[float, float, str]]]:
-    """``{tier name: [(xmin, xmax, text), ...]}`` for every interval tier, long or short format."""
-    tiers: dict[str, list[tuple[float, float, str]]] = {}
-    long_form = list(_TG_TIER_RE.finditer(text))
-    heads = long_form if long_form else list(_TG_SHORT_TIER_RE.finditer(text))
-    interval_re = _TG_INTERVAL_RE if long_form else _TG_SHORT_INTERVAL_RE
-    for i, head in enumerate(heads):
-        chunk = text[
-            head.end() : heads[i + 1].start() if i + 1 < len(heads) else len(text)
-        ]
-        intervals = [
-            (
-                float(m.group("a")),
-                float(m.group("b")),
-                m.group("t").replace('""', '"').strip(),
-            )
-            for m in interval_re.finditer(chunk)
-        ]
-        if not long_form:
-            intervals = (
-                intervals[1:]
-                if intervals and intervals[0][2] == "" and len(intervals) > 1
-                else intervals
-            )
-        tiers[head.group("name").replace('""', '"')] = intervals
-    return tiers
+    """``{tier name: [(xmin, xmax, text), ...]}`` for every interval tier, long or
+    short format: :func:`scribed.textgrid.read_tiers`."""
+    return _tg().read_tiers(text)
 
 
 def parse_textgrid(text: str) -> list[TranscriptSegment]:
@@ -727,16 +669,13 @@ def parse_textgrid(text: str) -> list[TranscriptSegment]:
 
 def _speaker_and_tier(name: str) -> tuple[str | None, str]:
     """MFA's ``"<speaker> - words"`` → ``("<speaker>", "words")``. Only a known
-    tier name after the separator (:data:`_TG_KNOWN_TIERS`) makes a speaker;
-    any other name → ``(None, name)``.
+    tier name after the separator makes a speaker; any other name →
+    ``(None, name)``: :func:`scribed.textgrid.speaker_and_tier`.
 
     >>> _speaker_and_tier("carl - words"), _speaker_and_tier("notes - draft")
     (('carl', 'words'), (None, 'notes - draft'))
     """
-    speaker, sep, bare = name.rpartition(_TG_SPEAKER_SEP)
-    if sep and speaker.strip() and bare.strip().lower() in _TG_KNOWN_TIERS:
-        return speaker.strip(), bare
-    return None, name
+    return _tg().speaker_and_tier(name)
 
 
 Tiers = Mapping[str, Sequence[tuple[float, float, str]]]
@@ -790,9 +729,10 @@ def textgrid_text(
     """A long-form Praat TextGrid of interval ``tiers`` (``{name: [(start, end,
     label), ...]}``) spanning ``0..xmax``: what :func:`parse_textgrid` reads
     back, and what a forced aligner takes as a transcript of timed lines
-    (an#716). The gaps between intervals are filled with empty ones, as Praat
-    requires a tier to cover its span; a ``"`` in a label or a tier name is
-    doubled. Nothing is clamped: an interval outside ``0..xmax``, empty, or
+    (an#716): :func:`scribed.textgrid.write_tiers`. The gaps between intervals
+    are filled with empty ones, as Praat requires a tier to cover its span; a
+    ``"`` in a label or a tier name is doubled; times are rounded to a
+    microsecond. Nothing is clamped: an interval outside ``0..xmax``, empty, or
     overlapping another is a ``ValueError`` (clamp before, where the reason is
     known).
 
@@ -805,44 +745,7 @@ def textgrid_text(
     ValueError: tier 'take': interval (1.0, 1.5, 'b') overlaps the one before, which ends at 1.2
     """
 
-    def quoted(text: str) -> str:
-        return text.replace('"', '""')
-
-    def num(x: float) -> str:  # fixed-point: the reader takes no exponent
-        return f"{x:.{_TG_DECIMALS}f}".rstrip("0").rstrip(".") or "0"
-
-    def tiled(
-        name: str, intervals: Sequence[tuple[float, float, str]]
-    ) -> list[tuple[float, float, str]]:
-        out, t = [], 0.0
-        for a, b, label in sorted(intervals):
-            if not 0.0 <= a < b <= xmax:
-                raise ValueError(
-                    f"tier {name!r}: interval {(a, b, label)!r} is empty or outside 0..{xmax}"
-                )
-            if a < t:
-                raise ValueError(
-                    f"tier {name!r}: interval {(a, b, label)!r} overlaps the one "
-                    f"before, which ends at {t}"
-                )
-            if a > t:
-                out.append((t, a, ""))
-            out.append((a, b, label))
-            t = b
-        return out + ([(t, xmax, "")] if t < xmax else [])
-
-    lines = ['File type = "ooTextFile"', 'Object class = "TextGrid"', "",
-             "xmin = 0", f"xmax = {num(xmax)}", "tiers? <exists>", f"size = {len(tiers)}",
-             "item []:"]  # fmt: skip
-    for i, (name, intervals) in enumerate(tiers.items(), start=1):
-        cells = tiled(name, intervals)
-        lines += [f"    item [{i}]:", '        class = "IntervalTier"',
-                  f'        name = "{quoted(name)}"', "        xmin = 0",
-                  f"        xmax = {num(xmax)}", f"        intervals: size = {len(cells)}"]  # fmt: skip
-        for j, (a, b, label) in enumerate(cells, start=1):
-            lines += [f"        intervals [{j}]:", f"            xmin = {num(a)}",
-                      f"            xmax = {num(b)}", f'            text = "{quoted(label)}"']  # fmt: skip
-    return "\n".join(lines) + "\n"
+    return _tg().write_tiers(tiers, xmax=xmax)
 
 
 def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
@@ -854,7 +757,7 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     tier, one segment per interval of a lines tier when there is one.
 
     MFA names a speaker's tiers ``"<speaker> - words"`` (a known tier name
-    after the separator, :data:`_TG_KNOWN_TIERS`). With two speakers or more
+    after the separator, :data:`scribed.textgrid.KNOWN_TIERS`). With two speakers or more
     the conversation is cut into TURNS (an#721): every speaker's words in one
     time-ordered stream, a new segment at each change of speaker, its phones
     that speaker's within the turn (:func:`_turn_segments`). There, a tier
@@ -888,7 +791,7 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
     # stream they only cut the others' words into turns, and their own turns
     # are dropped.
     lines = {
-        w: _lines(groups[w], _tier_named(groups[w], _TG_LINE_TIERS)) for w in speakers
+        w: _lines(groups[w], _tier_named(groups[w], _tg().LINE_TIERS)) for w in speakers
     }
     lined = {w for w in speakers if lines[w]}
     turns = _turn_segments(
@@ -896,8 +799,8 @@ def segments_from_tiers(tiers: Tiers) -> list[TranscriptSegment]:
             who: (lines[who], [])
             if who in lined
             else (
-                _speech(groups[who], _tier_named(groups[who], _TG_WORD_TIERS)),
-                _speech(groups[who], _tier_named(groups[who], _TG_PHONE_TIERS)),
+                _speech(groups[who], _tier_named(groups[who], _tg().WORD_TIERS)),
+                _speech(groups[who], _tier_named(groups[who], _tg().PHONE_TIERS)),
             )
             for who in speakers
         }
@@ -968,13 +871,13 @@ def _speaker_segments(tiers: Tiers, *, speaker: str | None) -> list[TranscriptSe
     """
     if not tiers:
         return []
-    phone_tier = _tier_named(tiers, _TG_PHONE_TIERS)
-    line_tier = _tier_named(tiers, _TG_LINE_TIERS)
+    phone_tier = _tier_named(tiers, _tg().PHONE_TIERS)
+    line_tier = _tier_named(tiers, _tg().LINE_TIERS)
     lines = _lines(tiers, line_tier)
     # Without a tier named for words, the first tier that is neither the
     # phones nor the lines (a phones tier read as words would put "HH AH0" in
     # the captions, an#491).
-    word_tier = _tier_named(tiers, _TG_WORD_TIERS) or next(
+    word_tier = _tier_named(tiers, _tg().WORD_TIERS) or next(
         (n for n in tiers if n not in (phone_tier, line_tier)), next(iter(tiers))
     )
     words = _speech(tiers, word_tier)
