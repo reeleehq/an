@@ -199,8 +199,13 @@ class EntityKind:
     #: human. A size it does not give, or ``None`` here, is
     #: :data:`an.ir.schema.SHOT_SIZES`'; the frame's ``fill`` is always the
     #: table's (composition, not anatomy). Since ``an.genres.API_LEVEL`` 14.
+    #: A band may also give its own columns, ``(top, bottom, left, right)``, as
+    #: fractions of ``box``'s width from its left (a close-up as wide as the
+    #: head, centred on it, an#769): the framing then fits the band's true width
+    #: and crops the sides only to keep a size step from the next wider size.
+    #: Since ``an.genres.API_LEVEL`` 19.
     shot_sizes: (
-        Callable[[Any, Any, Any], Mapping[str, tuple[float, float]] | None] | None
+        Callable[[Any, Any, Any], Mapping[str, tuple[float, ...]] | None] | None
     ) = None
     #: ``(descriptor) -> {name: (slot, point)}``: the named points of this
     #: kind's rigs that touch what the rig stands on (catalogue A1, an#519): a

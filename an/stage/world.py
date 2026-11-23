@@ -111,15 +111,17 @@ def member_shot_sizes(
     *,
     extents: Mapping[str, Box | None],
     problems: dict[str, dict[str, str]] | None = None,
-) -> dict[str, dict[str, tuple[float, float]]]:
-    """``{member id: {shot size: (top, bottom)}}`` for every positioned member
+) -> dict[str, dict[str, tuple[float, ...]]]:
+    """``{member id: {shot size: band}}`` for every positioned member
     whose kind gives its own (:attr:`an.genres.EntityKind.shot_sizes`,
     reeleehq/cutan#106): what :func:`an.ir.world.resolve_viewpoint` frames a
     size by instead of :data:`an.ir.schema.SHOT_SIZES`. The hook is handed the
     member's measured box (``extents``, :func:`member_extents`), the one its
-    fractions are of. A hook that raises, a band not ``0 <= top < bottom <=
-    1``, or a size :data:`SHOT_SIZES` does not name is not used (the table's
-    applies) and ``problems`` (an out-parameter, ``{member id: {size: why}}``,
+    fractions are of. A band is ``(top, bottom)``, or ``(top, bottom, left,
+    right)`` when the kind also measured the band's columns (fractions of the
+    box's width from its left, an#769). A hook that raises, a band not ``0 <=
+    top < bottom <= 1`` (and ``0 <= left < right <= 1``), or a size
+    :data:`SHOT_SIZES` does not name is not used (the table's applies) and ``problems`` (an out-parameter, ``{member id: {size: why}}``,
     ``"*"`` for every size when the hook itself failed) records why, which the
     lowering reports on each shot that frames the member at that size.
 
@@ -129,7 +131,7 @@ def member_shot_sizes(
     from an.genres.registry import entity_kind
     from an.ir.schema import SHOT_SIZES
 
-    out: dict[str, dict[str, tuple[float, float]]] = {}
+    out: dict[str, dict[str, tuple[float, ...]]] = {}
     if world is None:
         return out
     for member in world.members:
@@ -138,7 +140,7 @@ def member_shot_sizes(
         box = extents.get(member.id)
         if hook is None or member.at is None or box is None:
             continue
-        sane: dict[str, tuple[float, float]] = {}
+        sane: dict[str, tuple[float, ...]] = {}
         dropped: dict[str, str] = {}
         try:
             given = dict(hook(member, mall, box) or {})
@@ -147,12 +149,15 @@ def member_shot_sizes(
             given = {}
         for size, band in given.items():
             try:
-                if isinstance(band, (str, bytes)) or len(band) != 2:
+                if isinstance(band, (str, bytes)) or len(band) not in (2, 4):
                     raise TypeError(band)
-                top, bottom = (float(v) for v in band)
+                cut = tuple(float(v) for v in band)
             except (TypeError, ValueError):
-                dropped[str(size)] = f"{size!r}: {band!r} is not (top, bottom)"
+                dropped[str(size)] = (
+                    f"{size!r}: {band!r} is not (top, bottom) or (top, bottom, left, right)"
+                )
                 continue
+            top, bottom = cut[:2]
             if size not in SHOT_SIZES:
                 dropped[str(size)] = (
                     f"{size!r} is not a shot size ({sorted(SHOT_SIZES)})"
@@ -161,8 +166,13 @@ def member_shot_sizes(
                 dropped[size] = (
                     f"{size!r}: ({top:g}, {bottom:g}) is not 0 <= top < bottom <= 1"
                 )
+            elif len(cut) == 4 and not 0.0 <= cut[2] < cut[3] <= 1.0:
+                dropped[size] = (
+                    f"{size!r}: columns ({cut[2]:g}, {cut[3]:g}) are not "
+                    "0 <= left < right <= 1"
+                )
             else:
-                sane[size] = (top, bottom)
+                sane[size] = cut
         if sane:
             out[member.id] = sane
         if dropped and problems is not None:
