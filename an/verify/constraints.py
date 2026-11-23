@@ -97,6 +97,7 @@ from functools import lru_cache
 from typing import Any, Callable, Iterator, Mapping
 
 from an.base import STREAM_OVERRIDE, UNSEEN_ALPHA, Z_INDEX_PROPERTY
+from an.ir.schema import JUMP_CUT_SIZE_RATIO
 from an.genres.registry import (
     CORE_OWNER,
     CheckStage,
@@ -1069,9 +1070,8 @@ DRAW_ORDER = Constraint(
 #: Two views of one subject that differ by less than this in look direction are
 #: close enough to be a jump cut when the size does not change either (degrees).
 JUMP_CUT_ANGLE_DEG: float = 30.0
-#: ... and by less than this ratio in the subject's apparent size (larger / smaller):
-#: about one shot-size step (a close-up fills 1.57 times a medium).
-JUMP_CUT_SIZE_RATIO: float = 1.3
+# ... and by less than JUMP_CUT_SIZE_RATIO in the subject's apparent size: defined
+# with the shot sizes in an.ir.schema, whose framing keeps it (an#769).
 
 
 def _centroid(points: list[tuple[float, float, float]]) -> tuple[float, float, float]:

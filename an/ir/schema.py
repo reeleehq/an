@@ -468,6 +468,13 @@ DFLT_FOV_DEG: float = 50.0
 #: the frame's height that band fills. These are human proportions; a genre
 #: gives a kind's own bands from its rig (``EntityKind.shot_sizes``,
 #: reeleehq/cutan#106), and ``fill`` is always this table's.
+#: Two views of one subject whose apparent sizes differ by less than this ratio
+#: (larger / smaller), from directions less than 30 degrees apart, are a jump cut
+#: (catalogue C4): about one shot-size step (a close-up fills 1.57 times a
+#: medium). The jump-cut check (:mod:`an.verify.constraints`) and the framing's
+#: crop policy (:func:`an.ir.world.resolve_viewpoint`) both read it.
+JUMP_CUT_SIZE_RATIO: float = 1.3
+
 SHOT_SIZES: dict[str, tuple[float, float, float]] = {
     "wide": (0.0, 1.0, 0.5),
     "full": (0.0, 1.0, 0.9),

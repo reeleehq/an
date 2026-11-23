@@ -163,7 +163,10 @@ class GenreError(RegistryError):
 #:     environments)`` and its record ``PlaneAtInfinity``, for a genre's far-plate critic.
 #: 18 = where a rig touches what it stands on (an#519): ``EntityKind.contacts`` (a character's
 #:     feet for the ``support`` joint and check), read by ``an.stage.support.contacts_of``.
-API_LEVEL: int = 18
+#: 19 = a shot size's own columns (an#769): ``EntityKind.shot_sizes`` may give a band as
+#:     ``(top, bottom, left, right)``, framed at its true width under the partial-size
+#:     crop policy (``an.ir.world.resolve_viewpoint``).
+API_LEVEL: int = 19
 
 
 class GenreAPILevelError(GenreError, ImportError):

@@ -84,6 +84,7 @@ from an.ir.schema import (
     DFLT_TRAVEL_TOLERANCE_PX,
     FAR_COUPLING,
     FAR_PLATE_ROLE,
+    JUMP_CUT_SIZE_RATIO,
     SHOT_SIZES,
     AssetRef,
     FrameSway,
@@ -141,10 +142,21 @@ Box = tuple[float, float, float, float]
 #: ``{member or stream id: Box | None}``, measured by the stage
 #: (:func:`an.stage.world.member_extents`); the IR layer only reads it.
 Extents = Mapping[str, "Box | None"]
-#: ``{member id: {shot size: (top, bottom)}}``: where a member's own rig puts
-#: each shot size's band, as fractions of its box's height from the top
-#: (reeleehq/cutan#106); a size it does not give is :data:`SHOT_SIZES`'.
-Bands = Mapping[str, Mapping[str, tuple[float, float]]]
+#: ``{member id: {shot size: band}}``: where a member's own rig puts each shot
+#: size's band (reeleehq/cutan#106). A band is ``(top, bottom)``, fractions of its
+#: box's height from the top, or ``(top, bottom, left, right)`` with the band's
+#: own horizontal extent as fractions of the box's width from its left (an#769);
+#: a size it does not give is :data:`SHOT_SIZES`'.
+Bands = Mapping[str, Mapping[str, "tuple[float, ...]"]]
+
+#: The next wider shot size of each partial size: the one a partial size must
+#: stay a size step nearer than (an#769's crop policy, :func:`resolve_viewpoint`).
+_NEXT_WIDER_SIZE: dict[str, str] = {"medium": "full", "close_up": "medium"}
+#: How far past the jump-cut rule's size ratio
+#: (:data:`an.ir.schema.JUMP_CUT_SIZE_RATIO`) the crop policy keeps a
+#: partial size nearer than the next wider one, so float noise in the check's
+#: own measure never reads the step as a jump cut.
+_SIZE_STEP_MARGIN: float = 1.01
 Point3 = tuple[float, float, float]
 
 #: A hand ``stage.at`` this far from the world's placement is "the same"
@@ -424,27 +436,39 @@ def _world_box(at: Point3, box: Box, m: float) -> tuple[float, float, float, flo
 
 
 def _band_box(
-    box: tuple[float, float, float, float], top: float, bottom: float
+    box: tuple[float, float, float, float],
+    top: float,
+    bottom: float,
+    left: float | None = None,
+    right: float | None = None,
 ) -> tuple[float, float, float, float]:
     """``box`` cut to a shot size's band: rows ``top``..``bottom`` (fractions of
-    its height), at the box's own aspect, about its centre column (an#732).
+    its height) and, when the kind measured them, columns ``left``..``right``
+    (fractions of its width, an#769).
 
-    A band is a cut of the subject's height; its width is not measured, so it
-    keeps the box's proportions. Fitting the whole box's width instead let a
-    tall frame's width limit every size alike, and a medium and a close-up got
-    one distance. The price: a partial size may crop the subject's sides (a
-    head as wide as the body, an arm reaching out of the box's centre), which
-    a kind's own band extents would fix (see the follow-up of an#732).
+    Without ``left``/``right`` the band's width is not known, so it keeps the
+    box's proportions about the box's centre column (an#732). Fitting the whole
+    box's width instead let a tall frame's width limit every size alike, and a
+    medium and a close-up got one distance. The price is that a partial size
+    may crop the subject's sides (a head as wide as the body, an arm reaching
+    out of the box's centre), which a kind's own extents fix.
 
     >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 0.5)
     (-0.5, 0.0, 0.5, 5.0)
     >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 1.0)
     (-1.0, 0.0, 1.0, 10.0)
+    >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 0.5, 0.25, 0.75)   # the head's own columns
+    (-0.5, 0.0, 0.5, 5.0)
+    >>> _band_box((-1.0, 0.0, 1.0, 10.0), 0.0, 0.5, 0.5, 1.0)     # a head right of centre
+    (0.0, 0.0, 1.0, 5.0)
     """
     x0, y0, x1, y1 = box
+    rows = (y0 + top * (y1 - y0), y0 + bottom * (y1 - y0))
+    if left is not None and right is not None:
+        return (x0 + left * (x1 - x0), rows[0], x0 + right * (x1 - x0), rows[1])
     frac = bottom - top
     half, cx = (x1 - x0) * frac / 2.0, (x0 + x1) / 2.0
-    return (cx - half, y0 + top * (y1 - y0), cx + half, y0 + bottom * (y1 - y0))
+    return (cx - half, rows[0], cx + half, rows[1])
 
 
 def resolve_viewpoint(
@@ -462,6 +486,16 @@ def resolve_viewpoint(
     the VIEWPOINT's frame (a subject in another frame, at the shot's start).
     ``bands`` gives a subject's own band for a size (its rig's landmarks,
     :attr:`an.genres.EntityKind.shot_sizes`); otherwise :data:`SHOT_SIZES`'.
+    A band that names its own columns (``(top, bottom, left, right)``, an#769)
+    is framed at its true width and centred on it.
+
+    **Crop policy for a partial size** (``medium``, ``close_up``; an#769). When
+    a band's true width is known and fitting it would put the camera so far
+    back that the size is not a jump-cut step
+    (:data:`an.ir.schema.JUMP_CUT_SIZE_RATIO`) nearer than the next
+    wider size, the camera comes in to that step, but never nearer than the
+    band's height needs: the sides are cropped rather than the cut becoming a
+    jump cut. A band without columns is fitted at its box's aspect, as before.
 
     A viewpoint with ``at`` is that camera. One with a ``subject`` is computed:
     on the look direction, at the distance that fills ``fill`` of the frame
@@ -494,9 +528,7 @@ def resolve_viewpoint(
     subjects = [vp.subject] if isinstance(vp.subject, str) else list(vp.subject)
     forward, right, down = _basis(yaw, pitch, roll)
     size = vp.size or "full"
-    top, bottom, fill = SHOT_SIZES[size]
     boxes: list[tuple[float, float, float, float]] = []
-    cuts: list[tuple[float, float]] = []
     positions: list[Point3] = []
     for sid in subjects:
         member = _member(world, sid, where="viewpoint `subject`")
@@ -518,26 +550,54 @@ def resolve_viewpoint(
         )
         boxes.append(_world_box(position, box, m))
         positions.append(position)
-        cuts.append(((bands or {}).get(sid) or {}).get(size, (top, bottom)))
-    bands_at = [_band_box(b, t, u) for b, (t, u) in zip(boxes, cuts)]
-    x0, x1 = min(b[0] for b in bands_at), max(b[2] for b in bands_at)
-    y0, y1 = min(b[1] for b in bands_at), max(b[3] for b in bands_at)
-    n = float(len(positions))
-    centre: Point3 = (
-        (x0 + x1) / 2.0,
-        (y0 + y1) / 2.0,
-        sum(p[2] for p in positions) / n,
-    )
-    if vp.distance is not None:
-        distance = float(vp.distance)
-    else:
+
+    def fit(size: str) -> tuple[Point3, float, float, bool, float]:
+        """``(aim point, distance, distance its height alone needs, whether a
+        band named its own columns, how far the first subject stands beyond the
+        aim point)`` for ``size``: the subjects' band union, aimed at their mean
+        depth, from what the NEAREST subject needs."""
+        top, bottom, fill = SHOT_SIZES[size]
+        cuts = [((bands or {}).get(sid) or {}).get(size, (top, bottom)) for sid in subjects]
+        bands_at = [_band_box(b, *cut) for b, cut in zip(boxes, cuts)]
+        x0, x1 = min(b[0] for b in bands_at), max(b[2] for b in bands_at)
+        y0, y1 = min(b[1] for b in bands_at), max(b[3] for b in bands_at)
+        centre: Point3 = (
+            (x0 + x1) / 2.0,
+            (y0 + y1) / 2.0,
+            sum(p[2] for p in positions) / float(len(positions)),
+        )
         # What each subject needs from ITS depth, the union's span on each axis.
         needed_h = focal * (y1 - y0) / (fill * float(height))
         needed_w = focal * (x1 - x0) / (fill * float(width))
-        distance = _MIN_DEPTH
+        both = tall = _MIN_DEPTH
         for p in positions:
             ahead = _dot(_sub(p, centre), forward)  # how far beyond the aim point
-            distance = max(distance, max(needed_h, needed_w) - ahead)
+            both = max(both, max(needed_h, needed_w) - ahead)
+            tall = max(tall, needed_h - ahead)
+        first_ahead = _dot(_sub(positions[0], centre), forward)
+        return centre, both, tall, any(len(c) == 4 for c in cuts), first_ahead
+
+    def distance_for(size: str) -> tuple[Point3, float, bool, float]:
+        """``(aim point, distance, whether a band named columns, the subject's
+        depth from the camera)``, with the crop policy applied (one subject only:
+        a group's union already spans the gap between them, and cropping its
+        sides crops the subjects themselves)."""
+        centre, both, tall, own_width, ahead = fit(size)
+        wider = _NEXT_WIDER_SIZE.get(size)
+        if wider is not None and len(positions) == 1:
+            _, _, wider_width, wider_depth = distance_for(wider)
+            if own_width or wider_width:
+                # The jump-cut check's own measure: the subject's depth, which is
+                # the distance plus how far it stands beyond this size's aim point.
+                step = wider_depth / (JUMP_CUT_SIZE_RATIO * _SIZE_STEP_MARGIN) - ahead
+                if both > step:  # its framing would make the cut a jump cut
+                    both = max(tall, step)  # crop the sides, never the band's height
+            own_width = own_width or wider_width
+        return centre, both, own_width, both + ahead
+
+    centre, distance, _, _ = distance_for(size)
+    if vp.distance is not None:
+        distance = float(vp.distance)
     sx, sy = (float(a) for a in vp.subject_at)
     at = _sub(
         _sub(
