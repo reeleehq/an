@@ -66,6 +66,15 @@ dependencies = [
     # and `intervaltree` (Apache-2.0) with `sortedcontainers` (Apache-2.0),
     # ~0.05 s of import on top of `an`'s own.
     "lacing",
+    # TextGrids (thorwhalen/scribed#14): `scribed.textgrid` is the fleet's one
+    # reader and writer of Praat TextGrids and of the aligners' tier
+    # conventions; `an.audio.transcripts` delegates to it. A sibling package
+    # (MIT) whose base install is `ocracy` (MIT, no dependencies) and
+    # `packaging` (Apache-2.0 / BSD-2). `import scribed` costs about half a
+    # second, so it is imported when a TextGrid is read or written, never by
+    # `import an`. Needs scribed >= 0.0.23 (`tier_named` and the tier tables,
+    # names stripped); unversioned per the local-package convention.
+    "scribed",
     # The voice-effect chain (an#611): `an.audio.effects.filter_chain` builds
     # its pitch and tempo stages with `mixing.filtergraph`, the fleet's one
     # spelling of the stock-ffmpeg pitch shift (a sibling package, MIT). Its
