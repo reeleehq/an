@@ -155,7 +155,9 @@ def project_dir(
     Traceback (most recent call last):
     ValueError: ...
     """
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", project_id or ""):
+    from lacing.id_slug import is_id_slug  # one id-slug rule (lacing#165)
+
+    if not is_id_slug(project_id):
         raise ValueError(
             f"project id {project_id!r} must be one folder name "
             "(letters, digits, '.', '_' or '-'; no path separators)"

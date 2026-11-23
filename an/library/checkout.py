@@ -109,8 +109,13 @@ __all__ = [
 METADATA_KINDS: frozenset[str] = frozenset(
     {"character", "prop", "environment", "sound"}
 )
-#: A project-store key: one folder name.
-_KEY_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+def _is_key(key: str) -> bool:
+    """A project-store key is one folder name: the federation's one id-slug rule
+    (``lacing.is_id_slug``, reeleehq/lacing#165), imported here so importing this
+    module stays light."""
+    from lacing.id_slug import is_id_slug
+
+    return is_id_slug(key)
 
 
 @dataclass(frozen=True)
@@ -287,7 +292,7 @@ def checkout(
     """
     from an.stores import build_project_mall
 
-    if key is not None and not _KEY_RE.fullmatch(key):
+    if key is not None and not _is_key(key):
         raise CheckoutError(
             f"key {key!r} must be one folder name (letters, digits, '.', '_', '-')"
         )
@@ -658,7 +663,7 @@ def check_checkout(
     caller about to check out several assets (a kit) learns of the one that will
     fail before the first is written. Returns the pinned reference.
     """
-    if key is not None and not _KEY_RE.fullmatch(key):
+    if key is not None and not _is_key(key):
         raise CheckoutError(
             f"key {key!r} must be one folder name (letters, digits, '.', '_', '-')"
         )
