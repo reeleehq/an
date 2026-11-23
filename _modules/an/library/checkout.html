@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=32bad716"></script>
+    <script src="../../../_static/documentation_options.js?v=daa074d4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.427" />
+  <meta name="docsearch:version" content="0.1.428" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -823,8 +823,15 @@ window.runMermaid = runMermaid;</script>
 <span class="n">METADATA_KINDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
     <span class="p">{</span><span class="s2">"character"</span><span class="p">,</span> <span class="s2">"prop"</span><span class="p">,</span> <span class="s2">"environment"</span><span class="p">,</span> <span class="s2">"sound"</span><span class="p">}</span>
 <span class="p">)</span>
-<span class="c1">#: A project-store key: one folder name.</span>
-<span class="n">_KEY_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[A-Za-z0-9][A-Za-z0-9._-]*"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A project-store key is one folder name: the federation's one id-slug rule</span>
+<span class="sd">    (``lacing.is_id_slug``, reeleehq/lacing#165), imported here so importing this</span>
+<span class="sd">    module stays light."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">lacing.id_slug</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_id_slug</span>
+
+    <span class="k">return</span> <span class="n">is_id_slug</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="CheckoutResult">
@@ -1009,7 +1016,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_project_mall</span>
 
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_KEY_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_key</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"key </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> must be one folder name (letters, digits, '.', '_', '-')"</span>
         <span class="p">)</span>
@@ -1381,7 +1388,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    caller about to check out several assets (a kit) learns of the one that will</span>
 <span class="sd">    fail before the first is written. Returns the pinned reference.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_KEY_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_key</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">CheckoutError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"key </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> must be one folder name (letters, digits, '.', '_', '-')"</span>
         <span class="p">)</span>

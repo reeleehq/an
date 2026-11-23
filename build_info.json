@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-23T04:03:34Z",
+  "built_at": "2026-11-23T05:31:38Z",
   "package": {
     "name": "an",
-    "version": "0.1.427",
+    "version": "0.1.428",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "ded7bf5b9a5c7453e0e804c3d9f1021c57a63dc0",
-    "short_commit": "ded7bf5",
+    "commit": "5b8352c69caecd94ad85b2c297350cf410541dde",
+    "short_commit": "5b8352c",
     "branch": "main",
     "tags": [
-      "0.1.427"
+      "0.1.428"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/an",
-    "commit_url": "https://github.com/reeleehq/an/commit/ded7bf5b9a5c7453e0e804c3d9f1021c57a63dc0",
+    "commit_url": "https://github.com/reeleehq/an/commit/5b8352c69caecd94ad85b2c297350cf410541dde",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/an",
-    "sha": "365827601e6e91ef0b217bc50b7645adccb421a3",
+    "sha": "7e8fe35a4d6794059de81eef7a8850186a67080f",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "45108617526",
-    "run_url": "https://github.com/reeleehq/an/actions/runs/45108617526",
+    "run_id": "45117353471",
+    "run_url": "https://github.com/reeleehq/an/actions/runs/45117353471",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,16 +62,16 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.426",
+    "latest": "0.1.427",
     "relation": "ahead",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout ded7bf5b9a5c7453e0e804c3d9f1021c57a63dc0\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/an && cd an\ngit checkout 5b8352c69caecd94ad85b2c297350cf410541dde\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": false,
     "notes": [
-      "The documented version (0.1.427) is ahead of the latest release on PyPI (0.1.426): these docs describe unreleased code."
+      "The documented version (0.1.428) is ahead of the latest release on PyPI (0.1.427): these docs describe unreleased code."
     ]
   }
 }
