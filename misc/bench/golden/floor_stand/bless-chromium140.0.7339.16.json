@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-11-22T23:46:56Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 951,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "3bdac427e2c5b5d15737b1674918932761c1b806320bf191863b23e8a563ea72",
+      "shot_id": "floor",
+      "time": 0.0
+    },
+    {
+      "bytes": 954,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "9de9ae05cd2b421835238de31cbceea448bca717f3ef11379945caf309388b6e",
+      "shot_id": "floor",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "corpus-floor-shot",
+    "dirty": true,
+    "sha": "90a9cec8fe53951e2c46519d6f42bafbd5fecc60"
+  },
+  "reason": "an#796: new core corpus scene floor_stand, a floor with a rig standing on its origin and a cup on its base contact, so the support check inferred path has a corpus shot; first bless",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "floor_stand",
+  "scene_contract_sha256": "6ebe9f979770c95c479ac9711ef59f533ad1316621381de88881fe24b0ca7778",
+  "shot_ids": [
+    "floor"
+  ],
+  "source": "misc/bench/corpus/floor_stand",
+  "what_moves": "a floor at y 80 (`solve: {ground: 80}`, an#796): the signpost of `rig_origin` stands on its declared `origin`, the foot of its base, and a cup naming its `base` in `metadata.contacts` slides right along the floor (x 20 -> 90). Between the goldens the cup moves and its base stays on the floor line; the post does not move. A regression that lifted or sank a standing entity, or placed either by its box instead of the point it stands on, moves a golden; the `support` check passes it clean (tests/test_support.py)."
+}
