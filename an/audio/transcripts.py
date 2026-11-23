@@ -732,7 +732,8 @@ def textgrid_text(
     (an#716): :func:`scribed.textgrid.write_tiers`. The gaps between intervals
     are filled with empty ones, as Praat requires a tier to cover its span; a
     ``"`` in a label or a tier name is doubled; times are rounded to a
-    microsecond. Nothing is clamped: an interval outside ``0..xmax``, empty, or
+    microsecond, so an interval shorter than half of one is empty. Nothing is
+    clamped: an interval outside ``0..xmax``, empty, or
     overlapping another is a ``ValueError`` (clamp before, where the reason is
     known).
 
