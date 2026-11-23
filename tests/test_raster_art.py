@@ -971,12 +971,16 @@ def test_a_record_behind_a_symlink_out_of_the_entry_is_not_read(tmp_path):
     outside = tmp_path / "elsewhere"
     outside.mkdir()
     (outside / ART_SOURCES_FILE).write_text(
-        json.dumps({"sky.png": {"provider": "openai", "license": "cc0-1.0"}}))
+        json.dumps({"sky.png": {"provider": "openai", "license": "cc0-1.0"}}),
+        encoding="utf-8")
     envs = EnvironmentsStore(tmp_path / "envs")
     envs["yard"] = json.loads(EnvironmentDescriptor(
         name="yard", planes=[Plane(name="sky", art=PlaneArt(kind="image", src="link/sky.png"))],
     ).model_dump_json())
-    (tmp_path / "envs" / "yard" / "link").symlink_to(outside)
+    try:
+        (tmp_path / "envs" / "yard" / "link").symlink_to(outside)
+    except OSError:  # Windows without the symlink privilege
+        pytest.skip("cannot make a symlink here")
 
     by_asset = {e.asset: e.source
                 for e in collect_credits({"environments": envs}).entries}
