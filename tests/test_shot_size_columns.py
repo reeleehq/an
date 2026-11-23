@@ -120,3 +120,56 @@ def test_member_shot_sizes_takes_columns_and_says_what_it_drops(monkeypatch):
     assert got == {"hero": {"close_up": (0.0, 0.35, 0.1, 0.9)}}
     assert "0 <= left < right <= 1" in problems["hero"]["medium"]
     assert "(top, bottom, left, right)" in problems["hero"]["full"]
+
+
+def _eye_look(size, bands, *, look, box=BOX, frame=PORTRAIT):
+    world, extents = _world(box)
+    vp = Viewpoint(subject="hero", size=size, focal=FOCAL, look=look)
+    return resolve_viewpoint(
+        world, vp, extents=extents, width=frame[0], height=frame[1], bands=bands
+    )
+
+
+@pytest.mark.parametrize("pitch", [-30.0, -10.0, 0.0])
+def test_the_step_holds_off_axis_by_the_check_s_own_measure(pitch):
+    """The policy compares the subject's depth (what the jump-cut check reads),
+    not the distance to each size's aim point, so a pitched camera keeps the step.
+
+    Looking down steeply (pitch 20 and more here) the band's height alone puts
+    the close-up within a step of the medium by the check's measure, with or
+    without columns: the check measures depth at the subject's footing, not at
+    the framed band, and the policy never crops the band's height. That
+    pre-existing mismatch is reported on the issue, not fixed here."""
+    bands = {"hero": {"close_up": (0.0, 0.35, 0.0, 1.0), "medium": (0.0, 0.55, 0.0, 1.0)}}
+    look = (0.0, pitch, 0.0)
+    close = _eye_look("close_up", bands, look=look)
+    medium = _eye_look("medium", bands, look=look)
+    assert jump_cut_between(medium, close, [AT]) is None
+    assert close.view(AT)[2] < medium.view(AT)[2]
+
+
+def test_columns_on_the_wider_size_only_still_keep_the_step():
+    """A rig that measures a torso but no head: the medium has columns, the
+    close-up is the table's. The close-up is still a step nearer."""
+    box = (-200.0, -150.0, 200.0, 0.0)  # a wide subject
+    bands = {"hero": {"medium": (0.0, 0.55, 0.4, 0.6)}}
+    for frame in (PORTRAIT, (1920.0, 1080.0)):
+        close = _eye("close_up", bands, box=box, frame=frame)
+        medium = _eye("medium", bands, box=box, frame=frame)
+        assert jump_cut_between(medium, close, [AT]) is None
+        assert close.view(AT)[2] < medium.view(AT)[2]
+
+
+def test_a_two_shot_is_not_cropped_to_keep_the_step():
+    """With two subjects the band union spans the gap between them, so cropping
+    its sides would crop the subjects: the policy leaves a group alone."""
+    hero = WorldMember(kind="prop", id="a", store="props", ref="hero", at=(-1.5, 0.0, 10.0), height=3.0)
+    other = WorldMember(kind="prop", id="b", store="props", ref="hero", at=(1.5, 0.0, 10.0), height=3.0)
+    world = World(members=[hero, other])
+    extents = {"a": BOX, "b": BOX}
+    cols = {"close_up": (0.0, 0.35, 0.0, 1.0), "medium": (0.0, 0.55, 0.0, 1.0)}
+    vp = Viewpoint(subject=["a", "b"], size="close_up", focal=FOCAL)
+    eye = resolve_viewpoint(world, vp, extents=extents, width=1080, height=1920, bands={"a": cols, "b": cols})
+    half = 1080 / 2.0 * (10.0 - eye.at[2]) / FOCAL
+    face = 48.0 * UNIT
+    assert eye.at[0] - half <= -1.5 - face and 1.5 + face <= eye.at[0] + half

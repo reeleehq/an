@@ -84,6 +84,7 @@ from an.ir.schema import (
     DFLT_TRAVEL_TOLERANCE_PX,
     FAR_COUPLING,
     FAR_PLATE_ROLE,
+    JUMP_CUT_SIZE_RATIO,
     SHOT_SIZES,
     AssetRef,
     FrameSway,
@@ -152,7 +153,7 @@ Bands = Mapping[str, Mapping[str, "tuple[float, ...]"]]
 #: stay a size step nearer than (an#769's crop policy, :func:`resolve_viewpoint`).
 _NEXT_WIDER_SIZE: dict[str, str] = {"medium": "full", "close_up": "medium"}
 #: How far past the jump-cut rule's size ratio
-#: (:data:`an.verify.constraints.JUMP_CUT_SIZE_RATIO`) the crop policy keeps a
+#: (:data:`an.ir.schema.JUMP_CUT_SIZE_RATIO`) the crop policy keeps a
 #: partial size nearer than the next wider one, so float noise in the check's
 #: own measure never reads the step as a jump cut.
 _SIZE_STEP_MARGIN: float = 1.01
@@ -491,7 +492,7 @@ def resolve_viewpoint(
     **Crop policy for a partial size** (``medium``, ``close_up``; an#769). When
     a band's true width is known and fitting it would put the camera so far
     back that the size is not a jump-cut step
-    (:data:`an.verify.constraints.JUMP_CUT_SIZE_RATIO`) nearer than the next
+    (:data:`an.ir.schema.JUMP_CUT_SIZE_RATIO`) nearer than the next
     wider size, the camera comes in to that step, but never nearer than the
     band's height needs: the sides are cropped rather than the cut becoming a
     jump cut. A band without columns is fitted at its box's aspect, as before.
@@ -550,10 +551,11 @@ def resolve_viewpoint(
         boxes.append(_world_box(position, box, m))
         positions.append(position)
 
-    def fit(size: str) -> tuple[Point3, float, float, bool]:
+    def fit(size: str) -> tuple[Point3, float, float, bool, float]:
         """``(aim point, distance, distance its height alone needs, whether a
-        band named its own columns)`` for ``size``: the subjects' band union,
-        aimed at their mean depth, from what the NEAREST subject needs."""
+        band named its own columns, how far the first subject stands beyond the
+        aim point)`` for ``size``: the subjects' band union, aimed at their mean
+        depth, from what the NEAREST subject needs."""
         top, bottom, fill = SHOT_SIZES[size]
         cuts = [((bands or {}).get(sid) or {}).get(size, (top, bottom)) for sid in subjects]
         bands_at = [_band_box(b, *cut) for b, cut in zip(boxes, cuts)]
@@ -572,20 +574,28 @@ def resolve_viewpoint(
             ahead = _dot(_sub(p, centre), forward)  # how far beyond the aim point
             both = max(both, max(needed_h, needed_w) - ahead)
             tall = max(tall, needed_h - ahead)
-        return centre, both, tall, any(len(c) == 4 for c in cuts)
+        first_ahead = _dot(_sub(positions[0], centre), forward)
+        return centre, both, tall, any(len(c) == 4 for c in cuts), first_ahead
 
-    def distance_for(size: str) -> tuple[Point3, float]:
-        centre, both, tall, own_width = fit(size)
+    def distance_for(size: str) -> tuple[Point3, float, bool, float]:
+        """``(aim point, distance, whether a band named columns, the subject's
+        depth from the camera)``, with the crop policy applied (one subject only:
+        a group's union already spans the gap between them, and cropping its
+        sides crops the subjects themselves)."""
+        centre, both, tall, own_width, ahead = fit(size)
         wider = _NEXT_WIDER_SIZE.get(size)
-        if own_width and wider is not None:
-            from an.verify.constraints import JUMP_CUT_SIZE_RATIO
+        if wider is not None and len(positions) == 1:
+            _, _, wider_width, wider_depth = distance_for(wider)
+            if own_width or wider_width:
+                # The jump-cut check's own measure: the subject's depth, which is
+                # the distance plus how far it stands beyond this size's aim point.
+                step = wider_depth / (JUMP_CUT_SIZE_RATIO * _SIZE_STEP_MARGIN) - ahead
+                if both > step:  # its framing would make the cut a jump cut
+                    both = max(tall, step)  # crop the sides, never the band's height
+            own_width = own_width or wider_width
+        return centre, both, own_width, both + ahead
 
-            step = distance_for(wider)[1] / (JUMP_CUT_SIZE_RATIO * _SIZE_STEP_MARGIN)
-            if both > step:  # its whole width would make the cut a jump cut
-                both = max(tall, step)  # crop the sides, never the band's height
-        return centre, both
-
-    centre, distance = distance_for(size)
+    centre, distance, _, _ = distance_for(size)
     if vp.distance is not None:
         distance = float(vp.distance)
     sx, sy = (float(a) for a in vp.subject_at)
