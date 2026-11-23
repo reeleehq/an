@@ -557,7 +557,9 @@ def resolve_viewpoint(
         aim point)`` for ``size``: the subjects' band union, aimed at their mean
         depth, from what the NEAREST subject needs."""
         top, bottom, fill = SHOT_SIZES[size]
-        cuts = [((bands or {}).get(sid) or {}).get(size, (top, bottom)) for sid in subjects]
+        cuts = [
+            ((bands or {}).get(sid) or {}).get(size, (top, bottom)) for sid in subjects
+        ]
         bands_at = [_band_box(b, *cut) for b, cut in zip(boxes, cuts)]
         x0, x1 = min(b[0] for b in bands_at), max(b[2] for b in bands_at)
         y0, y1 = min(b[1] for b in bands_at), max(b[3] for b in bands_at)
