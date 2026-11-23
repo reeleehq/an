@@ -21,6 +21,7 @@ an.audio
       default_lipsync
       produce_audio_for_dialogue
       produce_audio_for_scene
+      speech_quote
       make_tts
       make_lipsync
       known_tts_names

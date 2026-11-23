@@ -34,6 +34,7 @@ without external services.
 | [`default_lipsync`](#an.audio.default_lipsync)()                                    | The default lip-sync provider: the loaded genre's `offline` one (the deterministic char-to-viseme provider of `cutan`), else [`NullLipSync`](an.audio.lipsync.html.md#an.audio.lipsync.NullLipSync).                                  |
 | [`produce_audio_for_dialogue`](#an.audio.produce_audio_for_dialogue)(dialogue[, mall, ...])    | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                                        |
 | [`produce_audio_for_scene`](#an.audio.produce_audio_for_scene)(scene[, mall, tts, ...])     | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                      |
+| [`speech_quote`](#an.audio.speech_quote)(scene, mall, \*[, tts])                 | What speaking `scene`'s dialogue would bill in dollars: `0.0` when every line is spoken by a provider that declares `billed = False` (offline, `mac_say`, recorded takes), else `None`: unknown, never free.                                             |
 | [`make_tts`](#an.audio.make_tts)(name, \*[, mall, api_key])                  | Instantiate a TTS provider by name.                                                                                                                                                                                                                      |
 | [`make_lipsync`](#an.audio.make_lipsync)(name, \*[, language])                   | Instantiate a LipSync provider by name.                                                                                                                                                                                                                  |
 | [`known_tts_names`](#an.audio.known_tts_names)()                                    | Return the registered TTS provider names.                                                                                                                                                                                                                |
@@ -789,6 +790,34 @@ line is never billed and never counted.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.audio.speech_quote(scene, mall, , tts=None)
+
+What speaking `scene`’s dialogue would bill in dollars: `0.0` when every
+line is spoken by a provider that declares `billed = False` (offline,
+`mac_say`, recorded takes), else `None`: unknown, never free.
+
+Each line’s provider is chosen as the render chooses it (`tts_chooser()`:
+`tts` overrides every voice, else each voice’s own document), so a voice the
+scene never speaks does not count. A provider that does not declare
+`billed` counts as billed. A billed provider is `None` even when its lines
+are cached: an counts billed characters (`takes_cost_message()`) but
+prices none in dollars yet; that rate is what turns `None` into a figure.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> shot = NS(entities=(), dialogue=[NS(voice_ref="bob", speaker="bob", text="Hi")])
+>>> scene = NS(timeline=[shot])
+>>> speech_quote(scene, {"voices": {"bob": {"provider": "offline"}}})
+0.0
+>>> speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}) is None
+True
+>>> speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}, tts="offline")
+0.0
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.word_timings_to_visemes(words, , total_duration, char_to_viseme, rest_viseme='X', min_gap_for_rest=0.2)
 

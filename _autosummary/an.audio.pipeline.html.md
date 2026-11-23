@@ -49,6 +49,7 @@ than its voice declares is a [`VoiceStandInWarning`](#an.audio.pipeline.VoiceSta
 | [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                                                                    |
 | [`retake_lines`](#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                                                                                 |
 | [`retime_dialogue`](#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                                                                        |
+| [`speech_quote`](#an.audio.pipeline.speech_quote)(scene, mall, \*[, tts])              | What speaking `scene`'s dialogue would bill in dollars: `0.0` when every line is spoken by a provider that declares `billed = False` (offline, `mac_say`, recorded takes), else `None`: unknown, never free.                                                                           |
 | [`stamp_from_stores`](#an.audio.pipeline.stamp_from_stores)(scene, mall, \*[, tts, ...])    | Stamp `scene`'s dialogue exactly as [`produce_audio_for_scene()`](#an.audio.pipeline.produce_audio_for_scene) would with these providers — `tts` as it takes it: `None` for each voice's own (an#305) — from the content-keyed `audio` and `visemes` stores only.                     |
 | [`synthesis_options`](#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                                                                    |
 | [`takes_cost_message`](#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` with `tts` will bill, when any of them takes best-of-N or `tts` bills per character (an#305: a voice that names a paid provider is spoken by it with no flag, so its cost is said first); else `""`.                                                         |
@@ -434,6 +435,34 @@ without the pipeline there is no authority to say that stamp is stale.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.audio.pipeline.speech_quote(scene, mall, , tts=None)
+
+What speaking `scene`’s dialogue would bill in dollars: `0.0` when every
+line is spoken by a provider that declares `billed = False` (offline,
+`mac_say`, recorded takes), else `None`: unknown, never free.
+
+Each line’s provider is chosen as the render chooses it ([`tts_chooser()`](#an.audio.pipeline.tts_chooser):
+`tts` overrides every voice, else each voice’s own document), so a voice the
+scene never speaks does not count. A provider that does not declare
+`billed` counts as billed. A billed provider is `None` even when its lines
+are cached: an counts billed characters ([`takes_cost_message()`](#an.audio.pipeline.takes_cost_message)) but
+prices none in dollars yet; that rate is what turns `None` into a figure.
+
+```pycon
+>>> from types import SimpleNamespace as NS
+>>> shot = NS(entities=(), dialogue=[NS(voice_ref="bob", speaker="bob", text="Hi")])
+>>> scene = NS(timeline=[shot])
+>>> speech_quote(scene, {"voices": {"bob": {"provider": "offline"}}})
+0.0
+>>> speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}) is None
+True
+>>> speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}, tts="offline")
+0.0
+```
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.audio.pipeline.stamp_from_stores(scene, mall, , tts=None, lipsync, tts_factory=None, free_in_memory=False)
 

@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=daa074d4"></script>
+    <script src="../../../_static/documentation_options.js?v=7ed8f0cd"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.428" />
+  <meta name="docsearch:version" content="0.1.429" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1850,6 +1850,45 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">_stable_hash</span><span class="p">(</span>
         <span class="p">{</span><span class="s2">"audio_key"</span><span class="p">:</span> <span class="n">audio_key_</span><span class="p">,</span> <span class="s2">"lipsync"</span><span class="p">:</span> <span class="n">lipsync_name</span><span class="p">,</span> <span class="s2">"transcript"</span><span class="p">:</span> <span class="n">transcript</span><span class="p">}</span>
     <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="speech_quote">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.speech_quote">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">speech_quote</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What speaking ``scene``'s dialogue would bill in dollars: ``0.0`` when every</span>
+<span class="sd">    line is spoken by a provider that declares ``billed = False`` (offline,</span>
+<span class="sd">    ``mac_say``, recorded takes), else ``None``: unknown, never free.</span>
+
+<span class="sd">    Each line's provider is chosen as the render chooses it (:func:`tts_chooser`:</span>
+<span class="sd">    ``tts`` overrides every voice, else each voice's own document), so a voice the</span>
+<span class="sd">    scene never speaks does not count. A provider that does not declare</span>
+<span class="sd">    ``billed`` counts as billed. A billed provider is ``None`` even when its lines</span>
+<span class="sd">    are cached: an counts billed characters (:func:`takes_cost_message`) but</span>
+<span class="sd">    prices none in dollars yet; that rate is what turns ``None`` into a figure.</span>
+
+<span class="sd">    &gt;&gt;&gt; from types import SimpleNamespace as NS</span>
+<span class="sd">    &gt;&gt;&gt; shot = NS(entities=(), dialogue=[NS(voice_ref="bob", speaker="bob", text="Hi")])</span>
+<span class="sd">    &gt;&gt;&gt; scene = NS(timeline=[shot])</span>
+<span class="sd">    &gt;&gt;&gt; speech_quote(scene, {"voices": {"bob": {"provider": "offline"}}})</span>
+<span class="sd">    0.0</span>
+<span class="sd">    &gt;&gt;&gt; speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; speech_quote(scene, {"voices": {"bob": {"provider": "elevenlabs"}}}, tts="offline")</span>
+<span class="sd">    0.0</span>
+<span class="sd">    """</span>
+    <span class="n">choose</span> <span class="o">=</span> <span class="n">tts_chooser</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">:</span>
+            <span class="n">provider</span> <span class="o">=</span> <span class="n">choose</span><span class="p">(</span><span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="s2">"billed"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="mf">0.0</span></div>
 
 
 

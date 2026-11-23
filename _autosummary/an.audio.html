@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=daa074d4"></script>
+    <script src="../_static/documentation_options.js?v=7ed8f0cd"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.428" />
+  <meta name="docsearch:version" content="0.1.429" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -704,16 +704,19 @@ without external services.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.produce_audio_for_scene" title="an.audio.produce_audio_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_scene</span></code></a>(scene[, mall, tts, ...])</p></td>
 <td><p>Walk every dialogue line, synthesize, and stamp viseme tracks back.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.make_tts" title="an.audio.make_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_tts</span></code></a>(name, *[, mall, api_key])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.speech_quote" title="an.audio.speech_quote"><code class="xref py py-obj docutils literal notranslate"><span class="pre">speech_quote</span></code></a>(scene, mall, *[, tts])</p></td>
+<td><p>What speaking <code class="docutils literal notranslate"><span class="pre">scene</span></code>'s dialogue would bill in dollars: <code class="docutils literal notranslate"><span class="pre">0.0</span></code> when every line is spoken by a provider that declares <code class="docutils literal notranslate"><span class="pre">billed</span> <span class="pre">=</span> <span class="pre">False</span></code> (offline, <code class="docutils literal notranslate"><span class="pre">mac_say</span></code>, recorded takes), else <code class="docutils literal notranslate"><span class="pre">None</span></code>: unknown, never free.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.make_tts" title="an.audio.make_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_tts</span></code></a>(name, *[, mall, api_key])</p></td>
 <td><p>Instantiate a TTS provider by name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.make_lipsync" title="an.audio.make_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_lipsync</span></code></a>(name, *[, language])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.make_lipsync" title="an.audio.make_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_lipsync</span></code></a>(name, *[, language])</p></td>
 <td><p>Instantiate a LipSync provider by name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.known_tts_names" title="an.audio.known_tts_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_tts_names</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.known_tts_names" title="an.audio.known_tts_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_tts_names</span></code></a>()</p></td>
 <td><p>Return the registered TTS provider names.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.known_lipsync_names" title="an.audio.known_lipsync_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_lipsync_names</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.known_lipsync_names" title="an.audio.known_lipsync_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_lipsync_names</span></code></a>()</p></td>
 <td><p>Return the registered LipSync provider names.</p></td>
 </tr>
 </tbody>
@@ -1645,6 +1648,36 @@ line is never billed and never counted.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.audio.speech_quote">
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">speech_quote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#speech_quote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.speech_quote" title="Link to this definition">#</a></dt>
+<dd><p>What speaking <code class="docutils literal notranslate"><span class="pre">scene</span></code>’s dialogue would bill in dollars: <code class="docutils literal notranslate"><span class="pre">0.0</span></code> when every
+line is spoken by a provider that declares <code class="docutils literal notranslate"><span class="pre">billed</span> <span class="pre">=</span> <span class="pre">False</span></code> (offline,
+<code class="docutils literal notranslate"><span class="pre">mac_say</span></code>, recorded takes), else <code class="docutils literal notranslate"><span class="pre">None</span></code>: unknown, never free.</p>
+<p>Each line’s provider is chosen as the render chooses it (<code class="xref py py-func docutils literal notranslate"><span class="pre">tts_chooser()</span></code>:
+<code class="docutils literal notranslate"><span class="pre">tts</span></code> overrides every voice, else each voice’s own document), so a voice the
+scene never speaks does not count. A provider that does not declare
+<code class="docutils literal notranslate"><span class="pre">billed</span></code> counts as billed. A billed provider is <code class="docutils literal notranslate"><span class="pre">None</span></code> even when its lines
+are cached: an counts billed characters (<code class="xref py py-func docutils literal notranslate"><span class="pre">takes_cost_message()</span></code>) but
+prices none in dollars yet; that rate is what turns <code class="docutils literal notranslate"><span class="pre">None</span></code> into a figure.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span> <span class="k">as</span> <span class="n">NS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">entities</span><span class="o">=</span><span class="p">(),</span> <span class="n">dialogue</span><span class="o">=</span><span class="p">[</span><span class="n">NS</span><span class="p">(</span><span class="n">voice_ref</span><span class="o">=</span><span class="s2">"bob"</span><span class="p">,</span> <span class="n">speaker</span><span class="o">=</span><span class="s2">"bob"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"Hi"</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scene</span> <span class="o">=</span> <span class="n">NS</span><span class="p">(</span><span class="n">timeline</span><span class="o">=</span><span class="p">[</span><span class="n">shot</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">speech_quote</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="p">{</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"offline"</span><span class="p">}}})</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">speech_quote</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="p">{</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"elevenlabs"</span><span class="p">}}})</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">speech_quote</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="p">{</span><span class="s2">"voices"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"elevenlabs"</span><span class="p">}}},</span> <span class="n">tts</span><span class="o">=</span><span class="s2">"offline"</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.audio.word_timings_to_visemes">
 <span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">word_timings_to_visemes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">words</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_to_viseme</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_viseme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/lipsync.html#word_timings_to_visemes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.word_timings_to_visemes" title="Link to this definition">#</a></dt>
 <dd><p>Distribute viseme keyframes across word boundaries.</p>
@@ -1852,6 +1885,7 @@ audio’s actual length.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.phones_track"><code class="docutils literal notranslate"><span class="pre">phones_track()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.produce_audio_for_dialogue"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_dialogue()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.produce_audio_for_scene"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.speech_quote"><code class="docutils literal notranslate"><span class="pre">speech_quote()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.word_timings_to_visemes"><code class="docutils literal notranslate"><span class="pre">word_timings_to_visemes()</span></code></a></li>
 </ul>
   </nav></div>

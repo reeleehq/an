@@ -32,6 +32,7 @@ an.audio.pipeline
       produce_audio_for_scene
       retake_lines
       retime_dialogue
+      speech_quote
       stamp_from_stores
       synthesis_options
       takes_cost_message
