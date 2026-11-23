@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-23
+- **Support/contacts spec: the six open choices decided as recommended** (an#791): `support_contacts_spec.md` §8 now records (a)-(f) as decided, so the rank-2 build PRs proceed on them.
+
 ## 2026-11-22
 - Solved keys: a rotation's compaction tolerance is over its own body's lever, so a nested rig's keys compact too (an#779).
 - View spaces: an axis may carry a field kind and a view space reads as a property space; `view.orbit3d` (version 2) is one `orbit` field derived from `OrbitKind` (contract 3.0.0) (an#788).
