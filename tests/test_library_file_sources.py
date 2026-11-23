@@ -496,3 +496,28 @@ def test_reindex_resolves_lineage_in_the_machines_libraries():
     reindex(core)  # no search=: the genre library is found on the machine
     assert _floor(core, COLLAR) == {"an:prop.stu-hat": "free"}
     assert _floor(core, HEAD) == {"an:prop.stu-hat": "private"}
+
+
+def test_the_library_reads_a_generated_plates_record_as_a_project_does():
+    """an#861: an environment published with ``source=cc0`` whose plate carries
+    a generator's record (``art_sources.json``, pinning the plate's bytes) under a
+    stricter licence. The project's credits credit the plate from the record;
+    the library's rights walk now reads the same record from the version's
+    files, so it no longer rolls the asset up as free. A record that pins other
+    bytes is unknown in both."""
+    plate = b"\x89PNG a generated sky"
+    doc = {"name": "yard", "planes": [{"name": "sky", "art": {"kind": "image", "src": "sky.png"}}]}
+
+    def files(plate: bytes, pinned: bytes) -> dict[str, bytes]:
+        record = {"sky.png": {"provider": "a-model", "license": "all-rights-reserved",
+                              "sha256": _sha(pinned)}}
+        return {"sky.png": plate, "art_sources.json": json.dumps(record).encode("utf-8")}
+
+    lib = _memory()
+    # first (no floor yet): a plate swapped under a record that pins other bytes
+    swapped = b"\x89PNG a stock photo"
+    stale = publish(lib, "environment.yard2", doc, files(swapped, plate), source=CC0)
+    assert stale.rights.license_class == "unknown"
+
+    recorded = publish(lib, "environment.yard", doc, files(plate, plate), source=CC0)
+    assert recorded.rights.license_class == "private"

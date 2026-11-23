@@ -858,33 +858,22 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
     restrict it) is written there when the plate is made; a descriptor that does
     not restate it would otherwise credit the plate under the environment's
     source, or as unverified. A plane's own ``source`` still wins: it is the
-    author's statement. Read only from a store with files on disk
-    (``sidecar_path``); a ``src`` that is absolute or leaves the entry is skipped.
+    author's statement. Files are read through :func:`_entry_reader` (a store's
+    ``read_file``, or its files on disk); a ``src`` that is absolute or leaves
+    the entry is skipped.
     """
-    sidecar = getattr(store, "sidecar_path", None)
-    if not callable(sidecar):
-        return {}
-    try:
-        entry = Path(sidecar(key, ".")).resolve()
-    except (OSError, ValueError, KeyError):
+    read = _entry_reader(store, key)
+    if read is None:
         return {}
     folders: dict[str, Mapping[str, Any]] = {}
-
-    def inside(rel: PurePosixPath) -> Path | None:
-        """The file at ``rel`` under the entry, never one a symlink leads out to."""
-        try:
-            path = Path(sidecar(key, rel.as_posix())).resolve()
-        except (OSError, ValueError, KeyError):
-            return None
-        return path if path.is_relative_to(entry) else None
 
     def records_in(folder: PurePosixPath) -> Mapping[str, Any]:
         rel = folder.as_posix()
         if rel not in folders:
-            record = inside(folder / ART_SOURCES_FILE)
+            data = read((folder / ART_SOURCES_FILE).as_posix())
             try:
-                loaded = json.loads(record.read_text("utf-8")) if record else {}
-            except (OSError, ValueError):
+                loaded = json.loads(data.decode("utf-8")) if data else {}
+            except (UnicodeDecodeError, ValueError):
                 loaded = {}
             folders[rel] = loaded if isinstance(loaded, Mapping) else {}
         return folders[rel]
@@ -897,23 +886,58 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
         raw = records_in(path.parent).get(path.name)
         if not (isinstance(raw, Mapping) and raw):
             continue
-        out[name] = _pinned_or_unknown(dict(raw), inside(path), src)
+        out[name] = _pinned_or_unknown(dict(raw), lambda: read(path.as_posix()), src)
     return out
 
 
+def _entry_reader(store: Any, key: str) -> Callable[[str], bytes | None] | None:
+    """``read(relative path) -> bytes | None`` for the files of ``store[key]``.
+
+    A store that answers ``read_file(key, path)`` is asked (the library, whose
+    versions are not on disk: an#861); else a store with files on disk
+    (``sidecar_path``) is read there, never through a symlink out of the entry;
+    else ``None``: nothing can be read.
+    """
+    provided = getattr(store, "read_file", None)
+    if callable(provided):
+
+        def from_store(rel: str) -> bytes | None:
+            try:
+                return provided(key, rel)
+            except (OSError, KeyError, ValueError):
+                return None
+
+        return from_store
+    sidecar = getattr(store, "sidecar_path", None)
+    if not callable(sidecar):
+        return None
+    try:
+        entry = Path(sidecar(key, ".")).resolve()
+    except (OSError, ValueError, KeyError):
+        return None
+
+    def from_disk(rel: str) -> bytes | None:
+        try:
+            path = Path(sidecar(key, rel)).resolve()
+            return path.read_bytes() if path.is_relative_to(entry) else None
+        except (OSError, ValueError, KeyError):
+            return None
+
+    return from_disk
+
+
 def _pinned_or_unknown(
-    raw: dict[str, Any], plate: Path | None, src: str
+    raw: dict[str, Any], plate: Callable[[], bytes | None], src: str
 ) -> dict[str, Any]:
     """``raw`` when the bytes it pins (``sha256``, as the generator records it) are
-    the plate's, else an unknown source saying why: a record that speaks for other
-    bytes (the plate replaced by hand since) must not credit these."""
+    the plate's (``plate()`` reads them), else an unknown source saying why: a
+    record that speaks for other bytes (the plate replaced by hand since) must
+    not credit these."""
     pinned = raw.get("sha256")
     if not pinned:
         return raw
-    try:
-        actual = hashlib.sha256(plate.read_bytes()).hexdigest() if plate else None
-    except OSError:
-        actual = None
+    data = plate()
+    actual = hashlib.sha256(data).hexdigest() if data is not None else None
     if actual == pinned:
         return raw
     reason = (
@@ -923,10 +947,7 @@ def _pinned_or_unknown(
     )
     return {
         "provider": "unknown",
-        "extra": {
-            "reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes",
-            "file": src,
-        },
+        "extra": {"reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes", "file": src},
     }
 
 

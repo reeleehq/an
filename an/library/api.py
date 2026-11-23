@@ -534,6 +534,29 @@ def _manifest(
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
 
 
+def _version_reader(
+    holder: Any, version: Mapping[str, Any]
+) -> Callable[[str], bytes | None] | None:
+    """``read(path) -> bytes | None`` for one version's files, from the blobs of
+    the library holding it (``None`` when none is known): what the credits walk
+    reads beside a file, such as a generated plate's record (an#861)."""
+    blobs = getattr(holder, "blobs", None)
+    if blobs is None:
+        return None
+    files = version.get("files") or {}
+
+    def read(path: str) -> bytes | None:
+        raw = files.get(path)
+        if raw is None:
+            return None
+        try:
+            return blobs[ContentRef.from_json(raw).item_id]
+        except (KeyError, ValueError, TypeError, OSError):
+            return None
+
+    return read
+
+
 def _file_hashes(files: Mapping[str, Mapping[str, Any]]) -> dict[str, str]:
     return {path: ContentRef.from_json(ref).item_id for path, ref in files.items()}
 
@@ -1130,6 +1153,7 @@ def version_sources(
                             store=kind.credits_store if kind else None,
                             source=_source_model(label.get("source")),
                             files=hashes,
+                            read=_version_reader(holder, version),
                         )
                     )
                 first = labels[0]
@@ -1210,6 +1234,7 @@ def version_sources(
                 store=kind.credits_store if kind else None,
                 source=_source_model(version.get("source")),
                 files=_file_hashes(version.get("files") or {}),
+                read=_version_reader(holder, version),
             )
         )
         if per_file:

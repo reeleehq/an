@@ -433,6 +433,7 @@ def checkout(
                     path: ContentRef.from_json(raw).item_id
                     for path, raw in (version.get("files") or {}).items()
                 },
+                read=files.get,  # the bytes the project's walk will read (an#861)
             )
             if label != ASSET_SOURCE_LABEL
         }

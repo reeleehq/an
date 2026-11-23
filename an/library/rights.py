@@ -38,7 +38,7 @@ Order, most restrictive first: ``private`` > ``unknown`` > ``attribution`` >
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -167,14 +167,25 @@ def descriptor_source(
 
 
 class _OneEntry(dict):
-    """A one-entry project store for the credits walk, knowing its files' digests."""
+    """A one-entry project store for the credits walk, knowing its files' digests
+    and, when given ``read``, their bytes (a record the walk reads beside a
+    plate, an#861)."""
 
-    def __init__(self, doc: Mapping[str, Any], files: Mapping[str, str] | None):
+    def __init__(
+        self,
+        doc: Mapping[str, Any],
+        files: Mapping[str, str] | None,
+        read: Callable[[str], bytes | None] | None = None,
+    ):
         super().__init__({"_": dict(doc)})
         self._files = files
+        self._read = read
 
     def file_digests(self, key: str) -> Mapping[str, str] | None:
         return self._files
+
+    def read_file(self, key: str, path: str) -> bytes | None:
+        return None if self._read is None else self._read(path)
 
 
 def _descriptor_sources(
@@ -183,6 +194,7 @@ def _descriptor_sources(
     store: str | None,
     files: Mapping[str, str] | None = None,
     covering: AssetSource | None = None,
+    read: Callable[[str], bytes | None] | None = None,
 ) -> list[tuple[str, AssetSource]]:
     """The descriptor's own source and each part's, as ``an credits`` reads them.
 
@@ -193,6 +205,9 @@ def _descriptor_sources(
         reconstructs), so the parts are walked as they will read there — the
         library and the project's credits see the same document — but it is
         reported under its own label, never as the descriptor's.
+    read: ``read(path) -> bytes | None`` for the asset's files, so what the
+        credits walk reads beside them (a generated plate's ``art_sources.json``,
+        an#861) is read here too, and the library and a project agree
     """
     from an.credits import collect_credits, gives_way_to_a_label
 
@@ -202,7 +217,7 @@ def _descriptor_sources(
     def walk(document: Mapping[str, Any]) -> list[Any]:
         if not store:
             return []
-        return collect_credits({store: _OneEntry(document, files)}).entries
+        return collect_credits({store: _OneEntry(document, files, read)}).entries
 
     entries = walk(doc)
     own = next((e.source for e in entries if e.asset == prefix), None)
@@ -234,6 +249,7 @@ def sources_in(
     store: str | None,
     source: AssetSource | None = None,
     files: Mapping[str, str] | None = None,
+    read: Callable[[str], bytes | None] | None = None,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source one version holds: the asset's, the descriptor's, each part's.
 
@@ -251,6 +267,8 @@ def sources_in(
         is checked against the bytes it pins (:func:`an.credits._part_credits`):
         a re-carved part under a stale stamp, or a file the factory's
         descriptor stamp does not pin, is ``unknown`` unless a source covers it
+    read: ``read(path) -> bytes | None`` for the asset's files (see
+        :func:`_descriptor_sources`); without it, nothing beside them is read
 
     With no source anywhere the asset contributes ``None``: ``unknown``.
 
@@ -259,7 +277,9 @@ def sources_in(
     ...                                   source=AssetSource(provider="me", license="cc0-1.0"))]
     ['asset', 'descriptor']
     """
-    found = _descriptor_sources(doc, store=store, files=files, covering=source)
+    found = _descriptor_sources(
+        doc, store=store, files=files, covering=source, read=read
+    )
     own = dict(found).get(DESCRIPTOR_SOURCE_LABEL)
     parts = [(label, src) for label, src in found if label != DESCRIPTOR_SOURCE_LABEL]
     top: list[tuple[str, AssetSource | None]]
