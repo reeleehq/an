@@ -1097,7 +1097,10 @@ def jump_cut_between(
     import math
 
     c = _centroid(subject)
-    va, vb = a.view(c), b.view(c)
+    # A size frames a band of the subject, so each view is measured where it is
+    # aimed (the band's centre), not at the footing: with a pitched camera the two
+    # move differently from size to size (an#853).
+    va, vb = a.view(a.aim or c), b.view(b.aim or c)
     if va[2] <= 0 or vb[2] <= 0:
         return None
     dot = sum(x * y for x, y in zip(a.forward, b.forward))

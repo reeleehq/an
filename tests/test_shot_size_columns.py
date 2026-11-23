@@ -130,22 +130,18 @@ def _eye_look(size, bands, *, look, box=BOX, frame=PORTRAIT):
     )
 
 
-@pytest.mark.parametrize("pitch", [-30.0, -10.0, 0.0])
+@pytest.mark.parametrize("pitch", [-30.0, -10.0, 0.0, 20.0, 40.0])
 def test_the_step_holds_off_axis_by_the_check_s_own_measure(pitch):
-    """The policy compares the subject's depth (what the jump-cut check reads),
-    not the distance to each size's aim point, so a pitched camera keeps the step.
-
-    Looking down steeply (pitch 20 and more here) the band's height alone puts
-    the close-up within a step of the medium by the check's measure, with or
-    without columns: the check measures depth at the subject's footing, not at
-    the framed band, and the policy never crops the band's height. That
-    pre-existing mismatch is reported on the issue, not fixed here."""
+    """The jump-cut check reads a size where it is framed, the centre of the band the
+    camera aims at (`Projection.aim`, an#853), and the policy compares the same
+    distance, so a pitched camera, looking up or down, keeps the step: the close-up
+    is never read as farther than the medium, nor as a jump cut from it."""
     bands = {"hero": {"close_up": (0.0, 0.35, 0.0, 1.0), "medium": (0.0, 0.55, 0.0, 1.0)}}
     look = (0.0, pitch, 0.0)
     close = _eye_look("close_up", bands, look=look)
     medium = _eye_look("medium", bands, look=look)
     assert jump_cut_between(medium, close, [AT]) is None
-    assert close.view(AT)[2] < medium.view(AT)[2]
+    assert close.view(close.aim)[2] < medium.view(medium.aim)[2]
 
 
 def test_columns_on_the_wider_size_only_still_keep_the_step():

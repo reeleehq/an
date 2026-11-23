@@ -290,6 +290,10 @@ class Projection:
     right: Point3
     down: Point3
     focal: float
+    #: The point a subject-framed viewpoint aims at: the centre of the band it
+    #: frames (not the subject's footing). ``None`` for a camera given by ``at``.
+    #: The jump-cut check measures a shot's size there (an#853).
+    aim: Point3 | None = None
 
     def view(self, p: Point3) -> tuple[float, float, float]:
         """``p`` in camera coordinates: ``(right, down, depth)``."""
@@ -307,7 +311,12 @@ class Projection:
     def moved(self, by: Point3) -> "Projection":
         """The same camera translated by ``by`` (the vehicle moved)."""
         return Projection(
-            _add(self.at, by), self.forward, self.right, self.down, self.focal
+            _add(self.at, by),
+            self.forward,
+            self.right,
+            self.down,
+            self.focal,
+            None if self.aim is None else _add(self.aim, by),
         )
 
     def transformed(self, pose: Pose) -> "Projection":
@@ -329,6 +338,7 @@ class Projection:
             pose.rotate(self.right),
             pose.rotate(self.down),
             self.focal,
+            None if self.aim is None else pose.apply(self.aim),
         )
 
 
@@ -573,10 +583,10 @@ def resolve_viewpoint(
         needed_w = focal * (x1 - x0) / (fill * float(width))
         both = tall = _MIN_DEPTH
         for p in positions:
-            ahead = _dot(_sub(p, centre), forward)  # how far beyond the aim point
+            ahead = _dot((0.0, 0.0, p[2] - centre[2]), forward)  # how far beyond the aim point, in depth only (an#853)
             both = max(both, max(needed_h, needed_w) - ahead)
             tall = max(tall, needed_h - ahead)
-        first_ahead = _dot(_sub(positions[0], centre), forward)
+        first_ahead = _dot((0.0, 0.0, positions[0][2] - centre[2]), forward)
         return centre, both, tall, any(len(c) == 4 for c in cuts), first_ahead
 
     def distance_for(size: str) -> tuple[Point3, float, bool, float]:
@@ -589,13 +599,13 @@ def resolve_viewpoint(
         if wider is not None and len(positions) == 1:
             _, _, wider_width, wider_depth = distance_for(wider)
             if own_width or wider_width:
-                # The jump-cut check's own measure: the subject's depth, which is
-                # the distance plus how far it stands beyond this size's aim point.
-                step = wider_depth / (JUMP_CUT_SIZE_RATIO * _SIZE_STEP_MARGIN) - ahead
+                # The jump-cut check's own measure: the distance to the aim point,
+                # the centre of the framed band (an#853).
+                step = wider_depth / (JUMP_CUT_SIZE_RATIO * _SIZE_STEP_MARGIN)
                 if both > step:  # its framing would make the cut a jump cut
                     both = max(tall, step)  # crop the sides, never the band's height
             own_width = own_width or wider_width
-        return centre, both, own_width, both + ahead
+        return centre, both, own_width, both
 
     centre, distance, _, _ = distance_for(size)
     if vp.distance is not None:
@@ -608,7 +618,7 @@ def resolve_viewpoint(
         ),
         _mul(down, sy * distance / focal),
     )
-    return Projection(at, forward, right, down, focal)
+    return Projection(at, forward, right, down, focal, centre)
 
 
 # --- placing members ---------------------------------------------------------
