@@ -65,7 +65,7 @@ dependencies = [
     # its closure beyond what `an` already has is `cw` (MIT, no dependencies)
     # and `intervaltree` (Apache-2.0) with `sortedcontainers` (Apache-2.0),
     # ~0.05 s of import on top of `an`'s own.
-    "lacing",
+    "lacing>=0.0.120",  # lacing.id_slug: project ids and checkout keys (lacing#165)
     # TextGrids (thorwhalen/scribed#14): `scribed.textgrid` is the fleet's one
     # reader and writer of Praat TextGrids and of the aligners' tier
     # conventions; `an.audio.transcripts` delegates to it. A sibling package
