@@ -109,6 +109,8 @@ __all__ = [
 METADATA_KINDS: frozenset[str] = frozenset(
     {"character", "prop", "environment", "sound"}
 )
+
+
 def _is_key(key: str) -> bool:
     """A project-store key is one folder name: the federation's one id-slug rule
     (``lacing.is_id_slug``, reeleehq/lacing#165), imported here so importing this
