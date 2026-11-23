@@ -901,7 +901,9 @@ def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, 
     return out
 
 
-def _pinned_or_unknown(raw: dict[str, Any], plate: Path | None, src: str) -> dict[str, Any]:
+def _pinned_or_unknown(
+    raw: dict[str, Any], plate: Path | None, src: str
+) -> dict[str, Any]:
     """``raw`` when the bytes it pins (``sha256``, as the generator records it) are
     the plate's, else an unknown source saying why: a record that speaks for other
     bytes (the plate replaced by hand since) must not credit these."""
@@ -921,7 +923,10 @@ def _pinned_or_unknown(raw: dict[str, Any], plate: Path | None, src: str) -> dic
     )
     return {
         "provider": "unknown",
-        "extra": {"reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes", "file": src},
+        "extra": {
+            "reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes",
+            "file": src,
+        },
     }
 
 
