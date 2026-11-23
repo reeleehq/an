@@ -583,7 +583,9 @@ def resolve_viewpoint(
         needed_w = focal * (x1 - x0) / (fill * float(width))
         both = tall = _MIN_DEPTH
         for p in positions:
-            ahead = _dot((0.0, 0.0, p[2] - centre[2]), forward)  # how far beyond the aim point, in depth only (an#853)
+            ahead = _dot(
+                (0.0, 0.0, p[2] - centre[2]), forward
+            )  # how far beyond the aim point, in depth only (an#853)
             both = max(both, max(needed_h, needed_w) - ahead)
             tall = max(tall, needed_h - ahead)
         first_ahead = _dot((0.0, 0.0, positions[0][2] - centre[2]), forward)
