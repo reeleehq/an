@@ -35,7 +35,7 @@ import warnings
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from an.ir.assets import (
@@ -470,8 +470,19 @@ def collect_credits(
             if source is not None:
                 found.append(CreditEntry(asset=f"{store_name}/{key}", source=source))
             if store_name == "environments":
-                planes = _plane_credits(key, descriptor)
-                plates = _unsourced_plates(descriptor)
+                # a generated plate's record beside it speaks for that plate,
+                # ahead of the environment's own source (an#772)
+                recorded = _recorded_plate_sources(store, key, descriptor)
+                planes = _plane_credits(key, descriptor) + [
+                    CreditEntry(
+                        asset=f"environments/{key}/planes/{name}",
+                        source=_source_or_unknown(
+                            raw, f"environments/{key}/planes/{name}"
+                        ),
+                    )
+                    for name, raw in recorded.items()
+                ]
+                plates = _unsourced_plates(descriptor, recorded=recorded)
                 if found:
                     # The environment's source speaks for its plates: say which.
                     found[0] = CreditEntry(found[0].asset, found[0].source, plates)
@@ -489,7 +500,9 @@ def collect_credits(
                                 },
                             ),
                         )
-                        for name, src in _unsourced_plate_names(descriptor)
+                        for name, src in _unsourced_plate_names(
+                            descriptor, recorded=recorded
+                        )
                     ]
                 found.extend(planes)
             if store_name in ("characters", "props"):
@@ -802,8 +815,11 @@ def _source_or_unknown(raw: Any, asset: str) -> AssetSource:
         return AssetSource(provider="unknown", extra={"raw": raw})
 
 
-def _unsourced_plate_names(descriptor: Any) -> list[tuple[str, str]]:
-    """``(plane name, file)`` of every image plane that declares no source of its own."""
+def _unsourced_plate_names(
+    descriptor: Any, *, recorded: Mapping[str, Any] | None = None
+) -> list[tuple[str, str]]:
+    """``(plane name, file)`` of every image plane that declares no source of its
+    own and has none ``recorded`` beside its file (:func:`_recorded_plate_sources`)."""
     raw = descriptor if isinstance(descriptor, Mapping) else None
     if raw is None and hasattr(descriptor, "model_dump"):
         raw = descriptor.model_dump(mode="json")
@@ -813,12 +829,100 @@ def _unsourced_plate_names(descriptor: Any) -> list[tuple[str, str]]:
             continue
         art = plane.get("art")
         if isinstance(art, Mapping) and art.get("kind") == "image" and art.get("src"):
-            out.append((str(plane.get("name", "?")), str(art["src"])))
+            name = str(plane.get("name", "?"))
+            if name not in (recorded or {}):
+                out.append((name, str(art["src"])))
     return out
 
 
-def _unsourced_plates(descriptor: Any) -> tuple[str, ...]:
-    return tuple(src for _, src in _unsourced_plate_names(descriptor))
+def _unsourced_plates(
+    descriptor: Any, *, recorded: Mapping[str, Any] | None = None
+) -> tuple[str, ...]:
+    return tuple(
+        src for _, src in _unsourced_plate_names(descriptor, recorded=recorded)
+    )
+
+
+#: The record an image generator writes beside the images it makes:
+#: ``{file name: AssetSource}`` (``cutan art generate``,
+#: ``cutan.carve.generate.SOURCES_FILE``). The file belongs to the folder it is
+#: in, so its keys are names relative to that folder.
+ART_SOURCES_FILE: str = "art_sources.json"
+
+
+def _recorded_plate_sources(store: Any, key: str, descriptor: Any) -> dict[str, Any]:
+    """``{plane name: raw source}`` for every image plane with no source of its
+    own whose file has an entry in the :data:`ART_SOURCES_FILE` beside it (an#772).
+
+    A generated plate's provenance (provider, model, licence, the terms that
+    restrict it) is written there when the plate is made; a descriptor that does
+    not restate it would otherwise credit the plate under the environment's
+    source, or as unverified. A plane's own ``source`` still wins: it is the
+    author's statement. Read only from a store with files on disk
+    (``sidecar_path``); a ``src`` that is absolute or leaves the entry is skipped.
+    """
+    sidecar = getattr(store, "sidecar_path", None)
+    if not callable(sidecar):
+        return {}
+    try:
+        entry = Path(sidecar(key, ".")).resolve()
+    except (OSError, ValueError, KeyError):
+        return {}
+    folders: dict[str, Mapping[str, Any]] = {}
+
+    def inside(rel: PurePosixPath) -> Path | None:
+        """The file at ``rel`` under the entry, never one a symlink leads out to."""
+        try:
+            path = Path(sidecar(key, rel.as_posix())).resolve()
+        except (OSError, ValueError, KeyError):
+            return None
+        return path if path.is_relative_to(entry) else None
+
+    def records_in(folder: PurePosixPath) -> Mapping[str, Any]:
+        rel = folder.as_posix()
+        if rel not in folders:
+            record = inside(folder / ART_SOURCES_FILE)
+            try:
+                loaded = json.loads(record.read_text("utf-8")) if record else {}
+            except (OSError, ValueError):
+                loaded = {}
+            folders[rel] = loaded if isinstance(loaded, Mapping) else {}
+        return folders[rel]
+
+    out: dict[str, Any] = {}
+    for name, src in _unsourced_plate_names(descriptor):
+        path = PurePosixPath(src)
+        if path.is_absolute() or ".." in path.parts or "\\" in src:
+            continue
+        raw = records_in(path.parent).get(path.name)
+        if not (isinstance(raw, Mapping) and raw):
+            continue
+        out[name] = _pinned_or_unknown(dict(raw), inside(path), src)
+    return out
+
+
+def _pinned_or_unknown(raw: dict[str, Any], plate: Path | None, src: str) -> dict[str, Any]:
+    """``raw`` when the bytes it pins (``sha256``, as the generator records it) are
+    the plate's, else an unknown source saying why: a record that speaks for other
+    bytes (the plate replaced by hand since) must not credit these."""
+    pinned = raw.get("sha256")
+    if not pinned:
+        return raw
+    try:
+        actual = hashlib.sha256(plate.read_bytes()).hexdigest() if plate else None
+    except OSError:
+        actual = None
+    if actual == pinned:
+        return raw
+    reason = (
+        "the plate's file is missing"
+        if actual is None
+        else "the plate changed since it was generated"
+    )
+    return {
+        "provider": "unknown",
+        "extra": {"reason": f"{reason}: {ART_SOURCES_FILE} pins other bytes", "file": src},
+    }
 
 
 def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
