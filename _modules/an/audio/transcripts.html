@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=96c2530f"></script>
+    <script src="../../../_static/documentation_options.js?v=32bad716"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.426" />
+  <meta name="docsearch:version" content="0.1.427" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1344,106 +1344,48 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">segments_from_tiers</span><span class="p">(</span><span class="n">tiers</span><span class="p">)</span>
 
 
-<span class="n">_TG_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="sa">r</span><span class="s1">'class\s*=\s*"IntervalTier"\s*\n\s*name\s*=\s*"(?P&lt;name&gt;(?:[^"]|"")*)"'</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
-<span class="p">)</span>
-<span class="n">_TG_INTERVAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="sa">r</span><span class="s1">'xmin\s*=\s*(?P&lt;a&gt;[\d.]+)\s*\n\s*xmax\s*=\s*(?P&lt;b&gt;[\d.]+)\s*\n\s*text\s*=\s*"(?P&lt;t&gt;(?:[^"]|"")*)"'</span>
-<span class="p">)</span>
-<span class="n">_TG_SHORT_TIER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'"IntervalTier"\s*\n\s*"(?P&lt;name&gt;(?:[^"]|"")*)"\s*\n'</span><span class="p">)</span>
-<span class="c1">#: Decimals :func:`textgrid_text` writes a time with (fixed-point, as the TextGrid</span>
-<span class="c1">#: interval patterns read no exponent): a microsecond.</span>
-<span class="n">_TG_DECIMALS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
-<span class="n">_TG_SHORT_INTERVAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-    <span class="sa">r</span><span class="s1">'(?P&lt;a&gt;\d+(?:\.\d+)?)\s*\n\s*(?P&lt;b&gt;\d+(?:\.\d+)?)\s*\n\s*"(?P&lt;t&gt;(?:[^"]|"")*)"'</span>
-<span class="p">)</span>
-<span class="c1">#: Tier names whose intervals are the LINES (one segment each), by preference.</span>
-<span class="n">_TG_LINE_TIERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"utterances"</span><span class="p">,</span>
-    <span class="s2">"utterance"</span><span class="p">,</span>
-    <span class="s2">"lines"</span><span class="p">,</span>
-    <span class="s2">"line"</span><span class="p">,</span>
-    <span class="s2">"sentences"</span><span class="p">,</span>
-    <span class="s2">"sentence"</span><span class="p">,</span>
-    <span class="s2">"segments"</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="c1">#: Tier names whose intervals are the WORDS, by preference.</span>
-<span class="n">_TG_WORD_TIERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"words"</span><span class="p">,</span> <span class="s2">"word"</span><span class="p">,</span> <span class="s2">"ortho"</span><span class="p">,</span> <span class="s2">"orthography"</span><span class="p">)</span>
-<span class="c1">#: The names a forced aligner gives its phone tier (Montreal Forced Aligner:</span>
-<span class="c1">#: ``phones``; others ``phonemes``), read beside the words (an#491).</span>
-<span class="n">_TG_PHONE_TIERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"phones"</span><span class="p">,</span> <span class="s2">"phone"</span><span class="p">,</span> <span class="s2">"phonemes"</span><span class="p">,</span> <span class="s2">"phoneme"</span><span class="p">,</span> <span class="s2">"mau"</span><span class="p">)</span>
-<span class="c1">#: Every tier name read above (lower case): MFA's ``"&lt;speaker&gt; - &lt;tier&gt;"``</span>
-<span class="c1">#: names a speaker only when ``&lt;tier&gt;`` is one of these (an#721), so a tier</span>
-<span class="c1">#: called ``"notes - draft"`` is not a speaker's.</span>
-<span class="n">_TG_KNOWN_TIERS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
-    <span class="n">_TG_LINE_TIERS</span> <span class="o">+</span> <span class="n">_TG_WORD_TIERS</span> <span class="o">+</span> <span class="n">_TG_PHONE_TIERS</span>
-<span class="p">)</span>
-<span class="c1">#: MFA's separator between a speaker and its tier's name (``"carl - words"``).</span>
-<span class="n">_TG_SPEAKER_SEP</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">" - "</span>
 <span class="c1">#: How far (seconds) a timing may stick out of a span and still be inside it:</span>
 <span class="c1">#: an aligner's float times for one boundary differ in the last digits.</span>
 <span class="n">_SPAN_EPS_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
-<span class="c1">#: Interval labels that are silence, not speech (compared lower-case): dropped</span>
-<span class="c1">#: from words and phones, as is any label in ``&lt;…&gt;``, ``[…]`` or ``+…+``</span>
-<span class="c1">#: (WebMAUS's ``&lt;p:&gt;``, a ``+breath+``, a ``[noise]``). ``spn`` is MFA's</span>
-<span class="c1">#: unknown word, ``oov`` Gentle's (an#715).</span>
-<span class="n">_TG_SILENCE</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"sil"</span><span class="p">,</span> <span class="s2">"sp"</span><span class="p">,</span> <span class="s2">"spn"</span><span class="p">,</span> <span class="s2">"oov"</span><span class="p">,</span> <span class="s2">""</span><span class="p">})</span>
-<span class="n">_TG_BRACKETS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"&gt;"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"["</span><span class="p">,</span> <span class="s2">"]"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"+"</span><span class="p">,</span> <span class="s2">"+"</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tg</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">""":mod:`scribed.textgrid`, the fleet's one home for the TextGrid format and</span>
+<span class="sd">    its tier conventions (thorwhalen/scribed#14): the reader and writer, which</span>
+<span class="sd">    tier names hold lines, words and phones, MFA's ``"&lt;speaker&gt; - &lt;tier&gt;"``</span>
+<span class="sd">    names, and which labels are speech. Imported on first use, as</span>
+<span class="sd">    ``import scribed`` costs about half a second.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scribed</span><span class="w"> </span><span class="kn">import</span> <span class="n">textgrid</span>
+
+    <span class="k">return</span> <span class="n">textgrid</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_is_speech</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Whether a TextGrid interval label is speech (not silence or a marker).</span>
+<span class="w">    </span><span class="sd">"""Whether a TextGrid interval label is speech (not silence or a marker):</span>
+<span class="sd">    :func:`scribed.textgrid.is_speech`.</span>
 
 <span class="sd">    &gt;&gt;&gt; [_is_speech(x) for x in ("hello", "SIL", "&lt;p:&gt;", "+breath+", "[noise]", "AH0")]</span>
 <span class="sd">    [True, False, False, False, False, True]</span>
 <span class="sd">    """</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">_TG_SILENCE</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">_TG_BRACKETS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">is_speech</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The tier whose name, or whose name after a speaker's prefix (MFA's</span>
-<span class="sd">    ``"&lt;speaker&gt; - phones"``, :func:`_speaker_and_tier`), is one of ``names``</span>
-<span class="sd">    (case-insensitive), by the order of ``names``.</span>
+<span class="sd">    ``"&lt;speaker&gt; - phones"``), is one of ``names`` (case-insensitive), by the</span>
+<span class="sd">    order of ``names``: :func:`scribed.textgrid.tier_named`.</span>
 
 <span class="sd">    &gt;&gt;&gt; _tier_named({"notes - draft": [], "carl - Words": []}, ("words",))</span>
 <span class="sd">    'carl - Words'</span>
 <span class="sd">    """</span>
-    <span class="k">for</span> <span class="n">want</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">tiers</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">_speaker_and_tier</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">want</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">name</span>
-    <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_textgrid_tiers</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
-<span class="w">    </span><span class="sd">"""``{tier name: [(xmin, xmax, text), ...]}`` for every interval tier, long or short format."""</span>
-    <span class="n">tiers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">long_form</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_TG_TIER_RE</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
-    <span class="n">heads</span> <span class="o">=</span> <span class="n">long_form</span> <span class="k">if</span> <span class="n">long_form</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">_TG_SHORT_TIER_RE</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
-    <span class="n">interval_re</span> <span class="o">=</span> <span class="n">_TG_INTERVAL_RE</span> <span class="k">if</span> <span class="n">long_form</span> <span class="k">else</span> <span class="n">_TG_SHORT_INTERVAL_RE</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">head</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">heads</span><span class="p">):</span>
-        <span class="n">chunk</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span>
-            <span class="n">head</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="p">:</span> <span class="n">heads</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">heads</span><span class="p">)</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-        <span class="p">]</span>
-        <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span>
-                <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"a"</span><span class="p">)),</span>
-                <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"b"</span><span class="p">)),</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"t"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'""'</span><span class="p">,</span> <span class="s1">'"'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">interval_re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
-        <span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">long_form</span><span class="p">:</span>
-            <span class="n">intervals</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">intervals</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-                <span class="k">if</span> <span class="n">intervals</span> <span class="ow">and</span> <span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
-                <span class="k">else</span> <span class="n">intervals</span>
-            <span class="p">)</span>
-        <span class="n">tiers</span><span class="p">[</span><span class="n">head</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'""'</span><span class="p">,</span> <span class="s1">'"'</span><span class="p">)]</span> <span class="o">=</span> <span class="n">intervals</span>
-    <span class="k">return</span> <span class="n">tiers</span>
+<span class="w">    </span><span class="sd">"""``{tier name: [(xmin, xmax, text), ...]}`` for every interval tier, long or</span>
+<span class="sd">    short format: :func:`scribed.textgrid.read_tiers`."""</span>
+    <span class="k">return</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">read_tiers</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="parse_textgrid">
@@ -1474,16 +1416,13 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_speaker_and_tier</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""MFA's ``"&lt;speaker&gt; - words"`` → ``("&lt;speaker&gt;", "words")``. Only a known</span>
-<span class="sd">    tier name after the separator (:data:`_TG_KNOWN_TIERS`) makes a speaker;</span>
-<span class="sd">    any other name → ``(None, name)``.</span>
+<span class="sd">    tier name after the separator makes a speaker; any other name →</span>
+<span class="sd">    ``(None, name)``: :func:`scribed.textgrid.speaker_and_tier`.</span>
 
 <span class="sd">    &gt;&gt;&gt; _speaker_and_tier("carl - words"), _speaker_and_tier("notes - draft")</span>
 <span class="sd">    (('carl', 'words'), (None, 'notes - draft'))</span>
 <span class="sd">    """</span>
-    <span class="n">speaker</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">bare</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="n">_TG_SPEAKER_SEP</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">sep</span> <span class="ow">and</span> <span class="n">speaker</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">bare</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">_TG_KNOWN_TIERS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">speaker</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">bare</span>
-    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">speaker_and_tier</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
 
 <span class="n">Tiers</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
@@ -1539,9 +1478,11 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""A long-form Praat TextGrid of interval ``tiers`` (``{name: [(start, end,</span>
 <span class="sd">    label), ...]}``) spanning ``0..xmax``: what :func:`parse_textgrid` reads</span>
 <span class="sd">    back, and what a forced aligner takes as a transcript of timed lines</span>
-<span class="sd">    (an#716). The gaps between intervals are filled with empty ones, as Praat</span>
-<span class="sd">    requires a tier to cover its span; a ``"`` in a label or a tier name is</span>
-<span class="sd">    doubled. Nothing is clamped: an interval outside ``0..xmax``, empty, or</span>
+<span class="sd">    (an#716): :func:`scribed.textgrid.write_tiers`. The gaps between intervals</span>
+<span class="sd">    are filled with empty ones, as Praat requires a tier to cover its span; a</span>
+<span class="sd">    ``"`` in a label or a tier name is doubled; times are rounded to a</span>
+<span class="sd">    microsecond, so an interval shorter than half of one is empty. Nothing is</span>
+<span class="sd">    clamped: an interval outside ``0..xmax``, empty, or</span>
 <span class="sd">    overlapping another is a ``ValueError`` (clamp before, where the reason is</span>
 <span class="sd">    known).</span>
 
@@ -1554,44 +1495,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ValueError: tier 'take': interval (1.0, 1.5, 'b') overlaps the one before, which ends at 1.2</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">quoted</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'"'</span><span class="p">,</span> <span class="s1">'""'</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">num</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># fixed-point: the reader takes no exponent</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.</span><span class="si">{</span><span class="n">_TG_DECIMALS</span><span class="si">}</span><span class="s2">f</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"0"</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"0"</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">tiled</span><span class="p">(</span>
-        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">intervals</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-        <span class="n">out</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="p">[],</span> <span class="mf">0.0</span>
-        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">intervals</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">xmax</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"tier </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: interval </span><span class="si">{</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">label</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is empty or outside 0..</span><span class="si">{</span><span class="n">xmax</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"tier </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: interval </span><span class="si">{</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">label</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> overlaps the one "</span>
-                    <span class="sa">f</span><span class="s2">"before, which ends at </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">"</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">:</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">b</span>
-        <span class="k">return</span> <span class="n">out</span> <span class="o">+</span> <span class="p">([(</span><span class="n">t</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="s2">""</span><span class="p">)]</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">xmax</span> <span class="k">else</span> <span class="p">[])</span>
-
-    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'File type = "ooTextFile"'</span><span class="p">,</span> <span class="s1">'Object class = "TextGrid"'</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-             <span class="s2">"xmin = 0"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"xmax = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">xmax</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"tiers? &lt;exists&gt;"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"size = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tiers</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-             <span class="s2">"item []:"</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">intervals</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tiers</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">cells</span> <span class="o">=</span> <span class="n">tiled</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">intervals</span><span class="p">)</span>
-        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"    item [</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]:"</span><span class="p">,</span> <span class="s1">'        class = "IntervalTier"'</span><span class="p">,</span>
-                  <span class="sa">f</span><span class="s1">'        name = "</span><span class="si">{</span><span class="n">quoted</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">}</span><span class="s1">"'</span><span class="p">,</span> <span class="s2">"        xmin = 0"</span><span class="p">,</span>
-                  <span class="sa">f</span><span class="s2">"        xmax = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">xmax</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"        intervals: size = </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
-        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"        intervals [</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">]:"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"            xmin = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                      <span class="sa">f</span><span class="s2">"            xmax = </span><span class="si">{</span><span class="n">num</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'            text = "</span><span class="si">{</span><span class="n">quoted</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="si">}</span><span class="s1">"'</span><span class="p">]</span>  <span class="c1"># fmt: skip</span>
-    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span></div>
+    <span class="k">return</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">write_tiers</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">xmax</span><span class="p">)</span></div>
 
 
 
@@ -1604,7 +1508,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    tier, one segment per interval of a lines tier when there is one.</span>
 
 <span class="sd">    MFA names a speaker's tiers ``"&lt;speaker&gt; - words"`` (a known tier name</span>
-<span class="sd">    after the separator, :data:`_TG_KNOWN_TIERS`). With two speakers or more</span>
+<span class="sd">    after the separator, :data:`scribed.textgrid.KNOWN_TIERS`). With two speakers or more</span>
 <span class="sd">    the conversation is cut into TURNS (an#721): every speaker's words in one</span>
 <span class="sd">    time-ordered stream, a new segment at each change of speaker, its phones</span>
 <span class="sd">    that speaker's within the turn (:func:`_turn_segments`). There, a tier</span>
@@ -1638,7 +1542,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># stream they only cut the others' words into turns, and their own turns</span>
     <span class="c1"># are dropped.</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">w</span><span class="p">:</span> <span class="n">_lines</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">_TG_LINE_TIERS</span><span class="p">))</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">speakers</span>
+        <span class="n">w</span><span class="p">:</span> <span class="n">_lines</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">w</span><span class="p">],</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">LINE_TIERS</span><span class="p">))</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">speakers</span>
     <span class="p">}</span>
     <span class="n">lined</span> <span class="o">=</span> <span class="p">{</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">speakers</span> <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">w</span><span class="p">]}</span>
     <span class="n">turns</span> <span class="o">=</span> <span class="n">_turn_segments</span><span class="p">(</span>
@@ -1646,8 +1550,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">who</span><span class="p">:</span> <span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="p">[])</span>
             <span class="k">if</span> <span class="n">who</span> <span class="ow">in</span> <span class="n">lined</span>
             <span class="k">else</span> <span class="p">(</span>
-                <span class="n">_speech</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_TG_WORD_TIERS</span><span class="p">)),</span>
-                <span class="n">_speech</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_TG_PHONE_TIERS</span><span class="p">)),</span>
+                <span class="n">_speech</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">WORD_TIERS</span><span class="p">)),</span>
+                <span class="n">_speech</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">who</span><span class="p">],</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">PHONE_TIERS</span><span class="p">)),</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">who</span> <span class="ow">in</span> <span class="n">speakers</span>
         <span class="p">}</span>
@@ -1718,13 +1622,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">tiers</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
-    <span class="n">phone_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_TG_PHONE_TIERS</span><span class="p">)</span>
-    <span class="n">line_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_TG_LINE_TIERS</span><span class="p">)</span>
+    <span class="n">phone_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">PHONE_TIERS</span><span class="p">)</span>
+    <span class="n">line_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">LINE_TIERS</span><span class="p">)</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">_lines</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">line_tier</span><span class="p">)</span>
     <span class="c1"># Without a tier named for words, the first tier that is neither the</span>
     <span class="c1"># phones nor the lines (a phones tier read as words would put "HH AH0" in</span>
     <span class="c1"># the captions, an#491).</span>
-    <span class="n">word_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_TG_WORD_TIERS</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span>
+    <span class="n">word_tier</span> <span class="o">=</span> <span class="n">_tier_named</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">_tg</span><span class="p">()</span><span class="o">.</span><span class="n">WORD_TIERS</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span>
         <span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tiers</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">phone_tier</span><span class="p">,</span> <span class="n">line_tier</span><span class="p">)),</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">tiers</span><span class="p">))</span>
     <span class="p">)</span>
     <span class="n">words</span> <span class="o">=</span> <span class="n">_speech</span><span class="p">(</span><span class="n">tiers</span><span class="p">,</span> <span class="n">word_tier</span><span class="p">)</span>

@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=96c2530f"></script>
+    <script src="../_static/documentation_options.js?v=32bad716"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.426" />
+  <meta name="docsearch:version" content="0.1.427" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -723,7 +723,7 @@ a transcriber’s timed words are matched to the text (<code class="xref py py-f
 <td><p>A Praat TextGrid (long or short form, as a forced aligner writes it) → segments.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.transcripts.textgrid_text" title="an.audio.transcripts.textgrid_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">textgrid_text</span></code></a>(tiers, *, xmax)</p></td>
-<td><p>A long-form Praat TextGrid of interval <code class="docutils literal notranslate"><span class="pre">tiers</span></code> (<code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">[(start,</span> <span class="pre">end,</span> <span class="pre">label),</span> <span class="pre">...]}</span></code>) spanning <code class="docutils literal notranslate"><span class="pre">0..xmax</span></code>: what <a class="reference internal" href="#an.audio.transcripts.parse_textgrid" title="an.audio.transcripts.parse_textgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_textgrid()</span></code></a> reads back, and what a forced aligner takes as a transcript of timed lines (an#716).</p></td>
+<td><p>A long-form Praat TextGrid of interval <code class="docutils literal notranslate"><span class="pre">tiers</span></code> (<code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">[(start,</span> <span class="pre">end,</span> <span class="pre">label),</span> <span class="pre">...]}</span></code>) spanning <code class="docutils literal notranslate"><span class="pre">0..xmax</span></code>: what <a class="reference internal" href="#an.audio.transcripts.parse_textgrid" title="an.audio.transcripts.parse_textgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_textgrid()</span></code></a> reads back, and what a forced aligner takes as a transcript of timed lines (an#716): <code class="xref py py-func docutils literal notranslate"><span class="pre">scribed.textgrid.write_tiers()</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.transcripts.from_transcript_object" title="an.audio.transcripts.from_transcript_object"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_transcript_object</span></code></a>(obj)</p></td>
 <td><p>A transcriber's result — scribed's <code class="docutils literal notranslate"><span class="pre">Transcript</span></code> or anything shaped like it (iterable segments with <code class="docutils literal notranslate"><span class="pre">text</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">speaker</span></code> and <code class="docutils literal notranslate"><span class="pre">words</span></code> having <code class="docutils literal notranslate"><span class="pre">text</span></code>/<code class="docutils literal notranslate"><span class="pre">start</span></code>/<code class="docutils literal notranslate"><span class="pre">end</span></code>) — as segments.</p></td>
@@ -1107,9 +1107,11 @@ first word’s start to its last word’s end, with its own <code class="docutil
 <dd><p>A long-form Praat TextGrid of interval <code class="docutils literal notranslate"><span class="pre">tiers</span></code> (<code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">[(start,</span> <span class="pre">end,</span>
 <span class="pre">label),</span> <span class="pre">...]}</span></code>) spanning <code class="docutils literal notranslate"><span class="pre">0..xmax</span></code>: what <a class="reference internal" href="#an.audio.transcripts.parse_textgrid" title="an.audio.transcripts.parse_textgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_textgrid()</span></code></a> reads
 back, and what a forced aligner takes as a transcript of timed lines
-(an#716). The gaps between intervals are filled with empty ones, as Praat
-requires a tier to cover its span; a <code class="docutils literal notranslate"><span class="pre">&quot;</span></code> in a label or a tier name is
-doubled. Nothing is clamped: an interval outside <code class="docutils literal notranslate"><span class="pre">0..xmax</span></code>, empty, or
+(an#716): <code class="xref py py-func docutils literal notranslate"><span class="pre">scribed.textgrid.write_tiers()</span></code>. The gaps between intervals
+are filled with empty ones, as Praat requires a tier to cover its span; a
+<code class="docutils literal notranslate"><span class="pre">&quot;</span></code> in a label or a tier name is doubled; times are rounded to a
+microsecond, so an interval shorter than half of one is empty. Nothing is
+clamped: an interval outside <code class="docutils literal notranslate"><span class="pre">0..xmax</span></code>, empty, or
 overlapping another is a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> (clamp before, where the reason is
 known).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">textgrid_text</span><span class="p">({</span><span class="s2">"take"</span><span class="p">:</span> <span class="p">[(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="s1">'say "hi"'</span><span class="p">)]},</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
