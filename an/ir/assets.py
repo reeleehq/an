@@ -195,10 +195,13 @@ _FREE_WORDS: tuple[str, ...] = (
     "publicdomain",
     "public-domain",
     "cc-pdm",
-    "mit",
-    "apache",
-    "bsd",
 )
+#: Permissive software licences whose notice must travel with every copy, so a
+#: credit is owed: ``attribution``, not ``free`` (an#753, decided 2026-11-09).
+#: MIT: "the above copyright notice and this permission notice shall be included
+#: in all copies"; BSD and Apache-2.0 ask the same of their notices. Matched as
+#: whole leading words, as :data:`_FREE_WORDS` is (``mitigated`` is not MIT).
+_NOTICE_WORDS: tuple[str, ...] = ("mit", "apache", "bsd")
 
 #: Licence codes that oblige the *user of the output* to credit someone.
 #:
@@ -388,6 +391,8 @@ def license_class(source: AssetSource) -> LicenseClass:
     for term, cls in terms.items():
         if code == term or code.startswith(term + "-"):
             return cls
+    if any(code == w or code.startswith(w + "-") for w in _NOTICE_WORDS):
+        return "attribution"
     if any(code == w or code.startswith(w + "-") for w in _FREE_WORDS):
         return "free"
     return "unknown"

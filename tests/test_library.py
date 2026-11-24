@@ -234,7 +234,7 @@ def test_a_declared_source_carries_forward_to_later_versions(alice_dir):
         lib, alice_dir, "character.alice", source=MIT,
         relicense={"by": "tests", "reason": "re-drew the torso and arm myself"},
     )
-    assert relabelled.rights.license_class == "free"
+    assert relabelled.rights.license_class == "attribution"  # MIT owes its notice (an#753)
 
 
 def test_re_tagging_is_curation_and_makes_no_version():
@@ -573,7 +573,7 @@ def test_checkout_reproduces_the_folder_records_its_origin_and_pins_it(
         "cutan:character.alice@v001",
         pub.manifest_sha256,
     )
-    assert origin["rights"]["license_class"] == "free"
+    assert origin["rights"]["license_class"] == "attribution"  # MIT owes its notice (an#753)
     assert doc["source"] == MIT  # the asset-level source travels into the copy
     pin = ProjectLock(project)["characters/alice"]
     assert (pin["library"], pin["manifest_sha256"]) == (
