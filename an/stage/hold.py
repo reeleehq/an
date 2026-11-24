@@ -639,6 +639,8 @@ class Gesture:
     partner: int | None = None
     #: A taking hand turns the item, over its retract, to how it holds things.
     align: bool = False
+    #: ... and then by this much more (radians, mirrored with the hand; an#864).
+    carry: float = 0.0
     #: Gestures that bend the same body the other way while this one runs.
     against: tuple[int, ...] = ()
     # frame indices (contact snapped to the grid)
@@ -1056,7 +1058,14 @@ def _schedule(
                 )
                 continue
             g = new_gesture(
-                "grasp", item, hand, v, a.by, point=point, align=bool(a.align)
+                "grasp",
+                item,
+                hand,
+                v,
+                a.by,
+                point=point,
+                align=bool(a.align),
+                carry=math.radians(float(getattr(a, "carry", None) or 0.0)),
             )
             events[item].append(Event(g.kc, "take", g, where=v.where))
             if g.align and g.k1 > g.kc:
@@ -1446,15 +1455,18 @@ def _holder_lean(ctx: _Ctx, entity: str, k: int) -> float:
     return float(value) if isinstance(value, (int, float)) else 0.0
 
 
-def _socket_lin(ctx: _Ctx, run: Run, k: int, holder: Holder, item: str) -> Lin:
+def _socket_lin(
+    ctx: _Ctx, run: Run, k: int, holder: Holder, item: str, *, turn: float = 0.0
+) -> Lin:
     """An item aligned with a socket: the socket node's orientation and mirror,
-    the item's own size."""
+    the item's own size; ``turn`` (radians) more, in the socket's frame (so
+    mirrored with it)."""
     frame = _compose(
         _body_world(ctx.puppet, run, k, holder.body), holder.frame or _IDENTITY
     )
     theta, _sx, _sy, mirrored = _decompose(frame)
     sx0, sy0 = ctx.items[item].scale
-    return (theta, -sx0 if mirrored else sx0, sy0)
+    return (theta + (-turn if mirrored else turn), -sx0 if mirrored else sx0, sy0)
 
 
 def _on_line(
@@ -1765,7 +1777,7 @@ def _pose(
         carried = _lin_of(_compose(hand_world, state.local))
         span = max(_EPS, ctx.times[g.k1] - ctx.times[g.kc])
         f = _min_jerk((ctx.times[k] - ctx.times[g.kc]) / span)
-        target = _socket_lin(ctx, run, k, g.hand, item)
+        target = _socket_lin(ctx, run, k, g.hand, item, turn=g.carry)
         return _placed(
             _apply(hand_world, state.hand), _blend_lin(carried, target, f), state.attach
         )

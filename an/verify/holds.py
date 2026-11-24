@@ -227,6 +227,8 @@ def _sunk_fix(s: dict[str, Any]) -> str:
     if s.get("align"):
         verb = "grasp" if s.get("opened") == "grasp" else "handover"
         ways.insert(0, f"`align: false` on the {verb} keeps the angle it was taken at")
+        if verb == "grasp":  # an#864: turn it from how the hand holds it
+            ways.insert(0, "`carry: <degrees>` on the grasp turns it up from the hand")
     if s.get("opened") == "held_by":
         ways.insert(0, "aim it up (`held_rotation` on it)")
     if s.get("opened") == "grasp":

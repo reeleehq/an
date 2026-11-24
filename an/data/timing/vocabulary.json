@@ -61,7 +61,7 @@
    ],
    "params": {
     "additionalProperties": true,
-    "description": "``by`` (a body's point: a hand) reaches ``item``'s grip and takes it.\n\n``item`` is an entity id, with ``@<point>`` the grip (a bone of its rig,\nor ``u,v`` a fraction of its drawing); unset: its ``grip`` bone, else its\nstage point. ``by`` with no ``@`` is the far end of the body (an arm's\nhand). The item is held from ``start + reach`` on, and over the retract it\nturns to how the hand holds things (``align``): drawn as it is, upright\nalong the hand's part, the way a socket holds it; ``align: false`` keeps\nthe angle it was taken at.\n\n>>> GraspAction(by=\"stu@hand_r\", item=\"musket\").reach == DFLT_REACH\nTrue",
+    "description": "``by`` (a body's point: a hand) reaches ``item``'s grip and takes it.\n\n``item`` is an entity id, with ``@<point>`` the grip (a bone of its rig,\nor ``u,v`` a fraction of its drawing); unset: its ``grip`` bone, else its\nstage point. ``by`` with no ``@`` is the far end of the body (an arm's\nhand). The item is held from ``start + reach`` on, and over the retract it\nturns to how the hand holds things (``align``): drawn as it is, upright\nalong the hand's part, the way a socket holds it; ``align: false`` keeps\nthe angle it was taken at. ``carry`` (degrees) turns the aligned item by\nthat much from how the hand holds it, about the grip, mirrored with the\nhand: a long musket carried at ``carry: -60`` points up and clears the floor\na hand near the ground would sink it through (an#864). It needs ``align``.\n\n>>> GraspAction(by=\"stu@hand_r\", item=\"musket\").reach == DFLT_REACH\nTrue\n>>> GraspAction(by=\"stu@hand_r\", item=\"musket\", carry=-60).carry\n-60.0",
     "properties": {
      "name": {
       "anyOf": [
@@ -106,6 +106,20 @@
       "default": true,
       "title": "Align",
       "type": "boolean"
+     },
+     "carry": {
+      "anyOf": [
+       {
+        "maximum": 360,
+        "minimum": -360,
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Carry"
      }
     },
     "required": [

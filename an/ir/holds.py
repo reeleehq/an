@@ -49,7 +49,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from an.base import Seconds
 from an.genres.registry import CORE_OWNER, ActionKind, action_kind, register_action_kind
@@ -118,10 +118,15 @@ class GraspAction(ExtensionAction):
     hand). The item is held from ``start + reach`` on, and over the retract it
     turns to how the hand holds things (``align``): drawn as it is, upright
     along the hand's part, the way a socket holds it; ``align: false`` keeps
-    the angle it was taken at.
+    the angle it was taken at. ``carry`` (degrees) turns the aligned item by
+    that much from how the hand holds it, about the grip, mirrored with the
+    hand: a long musket carried at ``carry: -60`` points up and clears the floor
+    a hand near the ground would sink it through (an#864). It needs ``align``.
 
     >>> GraspAction(by="stu@hand_r", item="musket").reach == DFLT_REACH
     True
+    >>> GraspAction(by="stu@hand_r", item="musket", carry=-60).carry
+    -60.0
     """
 
     kind: Literal["grasp"] = "grasp"
@@ -131,6 +136,16 @@ class GraspAction(ExtensionAction):
     retract: Seconds = _Retract
     lean: float = _Lean
     align: bool = True
+    carry: float | None = Field(default=None, ge=-360, le=360, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def _carry_needs_align(self) -> "GraspAction":
+        if self.carry is not None and not self.align:
+            raise ValueError(
+                "`carry` turns the item from how the hand holds it, which `align: false` "
+                "does not do: drop one of them"
+            )
+        return self
 
 
 class PlaceAction(ExtensionAction):
@@ -246,6 +261,7 @@ def grasp(
     retract: Seconds = DFLT_RETRACT,
     lean: float = DFLT_LEAN_DEG,
     align: bool = True,
+    carry: float | None = None,
 ) -> GraspAction:
     """``by`` takes ``item``.
 
@@ -253,7 +269,13 @@ def grasp(
     'musket@grip'
     """
     return GraspAction(
-        by=by, item=item, reach=reach, retract=retract, lean=lean, align=align
+        by=by,
+        item=item,
+        reach=reach,
+        retract=retract,
+        lean=lean,
+        align=align,
+        carry=carry,
     )
 
 
