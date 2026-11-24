@@ -61,7 +61,10 @@ def test_unknown_cost_is_none_not_zero():
 @pytest.mark.parametrize(
     "license,expected",
     [
-        ("cc0-1.0", False), ("CC0-1.0", False), ("mit", False),
+        ("cc0-1.0", False), ("CC0-1.0", False),
+        # an#753: MIT, BSD and Apache-2.0 require their notice with every copy.
+        ("mit", True), ("MIT", True), ("bsd-3-clause", True), ("apache-2.0", True),
+        ("mitigated", None),
         ("cc-by-4.0", True), ("CC-BY-4.0", True), ("by-sa", True),
         (None, None), ("some-bespoke-thing", None),
     ],

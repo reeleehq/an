@@ -249,7 +249,7 @@ def _carve_head(folder: Path) -> None:
 @pytest.mark.parametrize(
     "carved_first", [True, False], ids=["carved-first", "factory-first"]
 )
-def test_shared_factory_parts_stay_free_in_either_publish_order(tmp_path, carved_first):
+def test_shared_factory_parts_stay_publishable_in_either_publish_order(tmp_path, carved_first):
     alice, bob = _factory(tmp_path, "alice"), _factory(tmp_path, "bob")
     _carve_head(alice)
     lib = _memory("cutan")
@@ -259,7 +259,8 @@ def test_shared_factory_parts_stay_free_in_either_publish_order(tmp_path, carved
     ]
     results = [step() for step in (steps if carved_first else steps[::-1])]
     by_id = {r.ref.asset_id: r.rights.license_class for r in results}
-    assert by_id == {"character.alice": "private", "character.bob": "free"}
+    # MIT owes its notice (an#753): attribution, still publishable, never private.
+    assert by_id == {"character.alice": "private", "character.bob": "attribution"}
     assert [h.asset_id for h in find(lib, rights="publishable")] == ["character.bob"]
 
 
