@@ -70,9 +70,7 @@ def has_anchors(scene: SceneIR) -> bool:
     return any(isinstance(c.at, CueAnchor) or c.until is not None for c in cues)
 
 
-def _stage_document(
-    shot: Any, ctx: Any, renderer: Any, *, compiled: Any = None
-) -> Any:
+def _stage_document(shot: Any, ctx: Any, renderer: Any, *, compiled: Any = None) -> Any:
     from an.stage import draws_on_stage
     from an.stage.cache_key import compiled_document
 
