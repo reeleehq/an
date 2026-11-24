@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=618d8d38"></script>
+    <script src="../../_static/documentation_options.js?v=c5f50921"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.434" />
+  <meta name="docsearch:version" content="0.1.435" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -787,17 +787,18 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">until</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cues</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">compiled</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">draws_on_stage</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.cache_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">compiled_document</span>
 
+    <span class="n">compiled</span> <span class="o">=</span> <span class="n">compiled</span> <span class="ow">or</span> <span class="n">compiled_document</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">SoundAnchorError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is drawn by </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">renderer</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="n">renderer</span><span class="p">)</span><span class="si">!r}</span><span class="s2">: "</span>
             <span class="s2">"a cue can be timed by the picture only in a stage shot (whose "</span>
             <span class="s2">"positions an can compute); give it `at:` in seconds"</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="n">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">compiled</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="crossing_in_document">
@@ -1028,7 +1029,13 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_change</span><span class="p">(</span>
-    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extent_of</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">""":func:`change_in_shot`, with the play extent ``doc`` was compiled with</span>
 <span class="sd">    when there is one (a shot no stage draws flattens with the default)."""</span>
@@ -1041,23 +1048,42 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">play_extent_of</span>
 
-        <span class="n">extent</span> <span class="o">=</span> <span class="n">play_extent_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+        <span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">extent_of</span> <span class="ow">or</span> <span class="n">play_extent_of</span><span class="p">)(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">change_in_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_crossing</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">renderer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="n">CueAnchor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">compiled</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extent_of</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Shot-local seconds of ``anchor``: its authored change, its event, or</span>
-<span class="sd">    when ``anchor.when``'s centre first reaches ``anchor.reaches``."""</span>
+<span class="sd">    when ``anchor.when``'s centre first reaches ``anchor.reaches``.</span>
+
+<span class="sd">    ``compiled(shot, ctx)`` (default :func:`an.stage.cache_key.compiled_document`)</span>
+<span class="sd">    and ``extent_of(doc, shot, mall)`` are seams a caller resolving many anchors</span>
+<span class="sd">    memoises, so a shot is compiled once, not once per anchor (an#864)."""</span>
     <span class="k">if</span> <span class="n">anchor</span><span class="o">.</span><span class="n">changes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">draws_on_stage</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.cache_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">compiled_document</span>
 
-        <span class="n">doc</span> <span class="o">=</span> <span class="n">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">_change</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s2">"mall"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="n">compile_</span> <span class="o">=</span> <span class="n">compiled</span> <span class="ow">or</span> <span class="n">compiled_document</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">compile_</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">draws_on_stage</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">_change</span><span class="p">(</span>
+            <span class="n">doc</span><span class="p">,</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">anchor</span><span class="p">,</span>
+            <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
+            <span class="n">mall</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s2">"mall"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">extent_of</span><span class="o">=</span><span class="n">extent_of</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">anchor_in_document</span><span class="p">(</span>
-        <span class="n">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderer</span><span class="p">),</span>
+        <span class="n">_stage_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">compiled</span><span class="o">=</span><span class="n">compiled</span><span class="p">),</span>
         <span class="n">anchor</span><span class="p">,</span>
         <span class="n">shot_id</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
         <span class="n">fps</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>
@@ -1121,6 +1147,31 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_per_shot_memo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(compiled, extent_of)``: :func:`an.stage.cache_key.compiled_document` and</span>
+<span class="sd">    :func:`an.stage.compile.play_extent_of`, each memoised per shot object for one</span>
+<span class="sd">    resolution, so N anchors in a shot compile it once (an#864: each anchor used to</span>
+<span class="sd">    compile the whole shot). A compile that raises is not memoised."""</span>
+    <span class="n">docs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">extents</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compiled</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.cache_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">compiled_document</span>
+
+        <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
+            <span class="n">docs</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">shot</span><span class="p">)]</span> <span class="o">=</span> <span class="n">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">docs</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">shot</span><span class="p">)]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extent_of</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">play_extent_of</span>
+
+        <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">extents</span><span class="p">:</span>
+            <span class="n">extents</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">shot</span><span class="p">)]</span> <span class="o">=</span> <span class="n">play_extent_of</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">extents</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">shot</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">compiled</span><span class="p">,</span> <span class="n">extent_of</span>
+
+
 <div class="viewcode-block" id="resolve_cue_anchors">
 <a class="viewcode-back" href="../../_autosummary/an.sound_anchors.html#an.sound_anchors.resolve_cue_anchors">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">resolve_cue_anchors</span><span class="p">(</span>
@@ -1140,6 +1191,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">has_anchors</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">scene</span><span class="p">,</span> <span class="p">[]</span>
     <span class="n">findings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Finding</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">compiled</span><span class="p">,</span> <span class="n">extent_of</span> <span class="o">=</span> <span class="n">_per_shot_memo</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="n">cue</span><span class="p">:</span> <span class="n">SoundCue</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">film</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SoundCue</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">CueAnchor</span><span class="p">):</span>
@@ -1147,7 +1199,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">anchor</span> <span class="o">=</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span>
         <span class="n">shot_index</span> <span class="o">=</span> <span class="n">_shot_with</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">renderers</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="k">if</span> <span class="n">film</span> <span class="k">else</span> <span class="n">i</span>
         <span class="n">local</span> <span class="o">=</span> <span class="n">_crossing</span><span class="p">(</span>
-            <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">shot_index</span><span class="p">],</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">renderers</span><span class="p">[</span><span class="n">shot_index</span><span class="p">],</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">path</span>
+            <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">shot_index</span><span class="p">],</span>
+            <span class="n">ctx</span><span class="p">,</span>
+            <span class="n">renderers</span><span class="p">[</span><span class="n">shot_index</span><span class="p">],</span>
+            <span class="n">anchor</span><span class="p">,</span>
+            <span class="n">where</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">compiled</span><span class="o">=</span><span class="n">compiled</span><span class="p">,</span>
+            <span class="n">extent_of</span><span class="o">=</span><span class="n">extent_of</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">t</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">local</span> <span class="o">+</span> <span class="n">anchor</span><span class="o">.</span><span class="n">offset</span> <span class="o">+</span> <span class="p">(</span><span class="n">film_starts</span><span class="p">[</span><span class="n">shot_index</span><span class="p">]</span> <span class="k">if</span> <span class="n">film</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">))</span>
         <span class="n">findings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>

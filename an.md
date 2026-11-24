@@ -1,4 +1,4 @@
-> built 2026-11-23 23:18 UTC from e6312ae (main) · an 0.1.434. Details: build_info.json
+> built 2026-11-24 02:26 UTC from 37c5950 (main) · an 0.1.435. Details: build_info.json
 
 # index.html.md
 
@@ -21269,12 +21269,12 @@ shelf needs them without saying character), registered when [`an.ir`](_autosumma
 
 ### Functions
 
-| [`grasp`](_autosummary/an.ir.holds.html.md#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                                                              |
-|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| [`place`](_autosummary/an.ir.holds.html.md#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                                                |
-| [`release`](_autosummary/an.ir.holds.html.md#an.ir.holds.release)(item, \*[, at, onto, arc, rotation, ...])    | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first). |
-| [`handover`](_autosummary/an.ir.holds.html.md#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                                                            |
-| [`swap`](_autosummary/an.ir.holds.html.md#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place.                                |
+| [`grasp`](_autosummary/an.ir.holds.html.md#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, ...])   | `by` takes `item`.                                                                              |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| [`place`](_autosummary/an.ir.holds.html.md#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                                                |
+| [`release`](_autosummary/an.ir.holds.html.md#an.ir.holds.release)(item, \*[, at, onto, arc, rotation, ...])  | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first). |
+| [`handover`](_autosummary/an.ir.holds.html.md#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                                            |
+| [`swap`](_autosummary/an.ir.holds.html.md#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.                                |
 
 ### Classes
 
@@ -21324,7 +21324,7 @@ The kinds that move a hand (a reach and a retract), as flattened leaves.
 
 The name of the floor in a target (`ground`, `ground@x`).
 
-### *class* an.ir.holds.GraspAction(, name=None, kind='grasp', by, item, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
+### *class* an.ir.holds.GraspAction(, name=None, kind='grasp', by, item, reach=0.4, retract=0.35, lean=60.0, align=True, carry=None, \*\*extra_data)
 
 Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
@@ -21336,11 +21336,16 @@ stage point. `by` with no `@` is the far end of the body (an arm’s
 hand). The item is held from `start + reach` on, and over the retract it
 turns to how the hand holds things (`align`): drawn as it is, upright
 along the hand’s part, the way a socket holds it; `align: false` keeps
-the angle it was taken at.
+the angle it was taken at. `carry` (degrees) turns the aligned item by
+that much from how the hand holds it, about the grip, mirrored with the
+hand: a long musket carried at `carry: -60` points up and clears the floor
+a hand near the ground would sink it through (an#864). It needs `align`.
 
 ```pycon
 >>> GraspAction(by="stu@hand_r", item="musket").reach == DFLT_REACH
 True
+>>> GraspAction(by="stu@hand_r", item="musket", carry=-60).carry
+-60.0
 ```
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
@@ -21446,7 +21451,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.ir.holds.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True)
+### an.ir.holds.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True, carry=None)
 
 `by` takes `item`.
 
@@ -21528,39 +21533,39 @@ authoring-time DSL to canonical-form actions.
 
 ### Functions
 
-| [`lower_world`](_autosummary/an.ir.html.md#an.ir.lower_world)(scene, \*, extents[, ...])             | The scene with every framed shot's placements derived from the world.                                                                                                                              |
-|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`set_`](_autosummary/an.ir.html.md#an.ir.set_)(target, property, value, \*[, at])            | Discrete property set at time `at` (relative to its enclosing scope).                                                                                                                              |
-| [`tween`](_autosummary/an.ir.html.md#an.ir.tween)(target, property, to, duration, \*[, ...])   | Animate a property from `from_` (or its current value) to `to`.                                                                                                                                    |
-| [`sequence`](_autosummary/an.ir.html.md#an.ir.sequence)(\*actions)                                | Run children one after the other.                                                                                                                                                                  |
-| [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                                | Run all children at once.                                                                                                                                                                          |
-| [`stagger`](_autosummary/an.ir.html.md#an.ir.stagger)(lag, \*actions)                            | Start each action `lag` seconds after the previous one STARTS.                                                                                                                                     |
-| [`crowd`](_autosummary/an.ir.html.md#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])      | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.                                                                                                                             |
-| [`fan_out`](_autosummary/an.ir.html.md#an.ir.fan_out)(action, members, \*[, crowd_id])           | A copy of `action` per member, its targets moved from the crowd to the member.                                                                                                                     |
-| [`delay`](_autosummary/an.ir.html.md#an.ir.delay)(duration)                                    | An empty span that consumes time.                                                                                                                                                                  |
-| [`loop`](_autosummary/an.ir.html.md#an.ir.loop)(action, count)                                | Repeat `action` `count` times.                                                                                                                                                                     |
-| [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start, play_extent])          | Walk a composition tree, emitting leaf actions with absolute times.                                                                                                                                |
-| [`dialogue_layout`](_autosummary/an.ir.html.md#an.ir.dialogue_layout)(shot, \*[, tempo_of])              | A [`LinePlacement`](_autosummary/an.ir.html.md#an.ir.LinePlacement) for each dialogue line of `shot`, in order.                                                                                       |
-| [`validate_schema`](_autosummary/an.ir.html.md#an.ir.validate_schema)(doc)                               | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                        |
-| [`validate_semantic`](_autosummary/an.ir.html.md#an.ir.validate_semantic)(scene, \*[, ...])                | Cross-field semantic checks.                                                                                                                                                                       |
-| [`migrate`](_autosummary/an.ir.html.md#an.ir.migrate)(doc[, target_version, kind])               | Migrate a document to `target_version` (default: its kind's current).                                                                                                                              |
-| [`register_migration`](_autosummary/an.ir.html.md#an.ir.register_migration)(kind, from_version, ...)        | Decorator: register a migration for one kind in `MIGRATIONS`.                                                                                                                                      |
-| [`register_kind`](_autosummary/an.ir.html.md#an.ir.register_kind)(kind)                                | Register a document kind.                                                                                                                                                                          |
-| [`kind_of`](_autosummary/an.ir.html.md#an.ir.kind_of)(doc, \*[, kind])                           | Resolve a document's kind, by explicit name or from its `kind` tag.                                                                                                                                |
-| [`markdown_to_ir`](_autosummary/an.ir.html.md#an.ir.markdown_to_ir)(md_text)                            | Parse the structured Markdown form of a scene into a SceneIR.                                                                                                                                      |
-| [`ir_to_markdown`](_autosummary/an.ir.html.md#an.ir.ir_to_markdown)(scene)                              | Render a SceneIR back into the structured Markdown form.                                                                                                                                           |
-| [`sync`](_autosummary/an.ir.html.md#an.ir.sync)(project_dir[, scene_file])                    | Reconcile a scene's markdown and JSON inside a project directory (`scene.md` and `ir/scene.json`, or the pair of the `scene_file` named; a named scene that is not there raises `SceneFileError`). |
-| [`pin`](_autosummary/an.ir.html.md#an.ir.pin)(point, to, \*[, duration])                     | `point` held at `to`.                                                                                                                                                                              |
-| [`pull`](_autosummary/an.ir.html.md#an.ir.pull)(point, to, \*[, over, give])                  | `point` drawn toward `to` (a point, a body point, or a path).                                                                                                                                      |
-| [`join`](_autosummary/an.ir.html.md#an.ir.join)(joint, \*[, at])                              | Rejoin the joint named `joint` at `at`.                                                                                                                                                            |
-| [`unjoin`](_autosummary/an.ir.html.md#an.ir.unjoin)(joint, \*[, at])                            | Let go of the joint named `joint` at `at`.                                                                                                                                                         |
-| [`grasp`](_autosummary/an.ir.html.md#an.ir.grasp)(by, item, \*[, reach, retract, lean, align]) | `by` takes `item`.                                                                                                                                                                                 |
-| [`reframe`](_autosummary/an.ir.html.md#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])     | `target` changes to frame `to` at `at` seconds into the action.                                                                                                                                    |
-| [`place`](_autosummary/an.ir.html.md#an.ir.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                                                                                                                                                   |
-| [`release`](_autosummary/an.ir.html.md#an.ir.release)(item, \*[, at, onto, arc, rotation, ...])  | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).                                                                                                    |
-| [`handover`](_autosummary/an.ir.html.md#an.ir.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                                                                                                                                               |
-| [`swap`](_autosummary/an.ir.html.md#an.ir.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.                                                                                                                                   |
-| [`topple`](_autosummary/an.ir.html.md#an.ir.topple)(body, \*\*kw)                               | `body` falls over (see `ToppleAction` for the fields).                                                                                                                                             |
+| [`lower_world`](_autosummary/an.ir.html.md#an.ir.lower_world)(scene, \*, extents[, ...])            | The scene with every framed shot's placements derived from the world.                                                                                                                              |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`set_`](_autosummary/an.ir.html.md#an.ir.set_)(target, property, value, \*[, at])           | Discrete property set at time `at` (relative to its enclosing scope).                                                                                                                              |
+| [`tween`](_autosummary/an.ir.html.md#an.ir.tween)(target, property, to, duration, \*[, ...])  | Animate a property from `from_` (or its current value) to `to`.                                                                                                                                    |
+| [`sequence`](_autosummary/an.ir.html.md#an.ir.sequence)(\*actions)                               | Run children one after the other.                                                                                                                                                                  |
+| [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                               | Run all children at once.                                                                                                                                                                          |
+| [`stagger`](_autosummary/an.ir.html.md#an.ir.stagger)(lag, \*actions)                           | Start each action `lag` seconds after the previous one STARTS.                                                                                                                                     |
+| [`crowd`](_autosummary/an.ir.html.md#an.ir.crowd)(id, \*, ref, count[, kind, store, ...])     | `count` entities of one asset (`kind`/`store`/`ref`) placed in `area`.                                                                                                                             |
+| [`fan_out`](_autosummary/an.ir.html.md#an.ir.fan_out)(action, members, \*[, crowd_id])          | A copy of `action` per member, its targets moved from the crowd to the member.                                                                                                                     |
+| [`delay`](_autosummary/an.ir.html.md#an.ir.delay)(duration)                                   | An empty span that consumes time.                                                                                                                                                                  |
+| [`loop`](_autosummary/an.ir.html.md#an.ir.loop)(action, count)                               | Repeat `action` `count` times.                                                                                                                                                                     |
+| [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start, play_extent])         | Walk a composition tree, emitting leaf actions with absolute times.                                                                                                                                |
+| [`dialogue_layout`](_autosummary/an.ir.html.md#an.ir.dialogue_layout)(shot, \*[, tempo_of])             | A [`LinePlacement`](_autosummary/an.ir.html.md#an.ir.LinePlacement) for each dialogue line of `shot`, in order.                                                                                       |
+| [`validate_schema`](_autosummary/an.ir.html.md#an.ir.validate_schema)(doc)                              | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                        |
+| [`validate_semantic`](_autosummary/an.ir.html.md#an.ir.validate_semantic)(scene, \*[, ...])               | Cross-field semantic checks.                                                                                                                                                                       |
+| [`migrate`](_autosummary/an.ir.html.md#an.ir.migrate)(doc[, target_version, kind])              | Migrate a document to `target_version` (default: its kind's current).                                                                                                                              |
+| [`register_migration`](_autosummary/an.ir.html.md#an.ir.register_migration)(kind, from_version, ...)       | Decorator: register a migration for one kind in `MIGRATIONS`.                                                                                                                                      |
+| [`register_kind`](_autosummary/an.ir.html.md#an.ir.register_kind)(kind)                               | Register a document kind.                                                                                                                                                                          |
+| [`kind_of`](_autosummary/an.ir.html.md#an.ir.kind_of)(doc, \*[, kind])                          | Resolve a document's kind, by explicit name or from its `kind` tag.                                                                                                                                |
+| [`markdown_to_ir`](_autosummary/an.ir.html.md#an.ir.markdown_to_ir)(md_text)                           | Parse the structured Markdown form of a scene into a SceneIR.                                                                                                                                      |
+| [`ir_to_markdown`](_autosummary/an.ir.html.md#an.ir.ir_to_markdown)(scene)                             | Render a SceneIR back into the structured Markdown form.                                                                                                                                           |
+| [`sync`](_autosummary/an.ir.html.md#an.ir.sync)(project_dir[, scene_file])                   | Reconcile a scene's markdown and JSON inside a project directory (`scene.md` and `ir/scene.json`, or the pair of the `scene_file` named; a named scene that is not there raises `SceneFileError`). |
+| [`pin`](_autosummary/an.ir.html.md#an.ir.pin)(point, to, \*[, duration])                    | `point` held at `to`.                                                                                                                                                                              |
+| [`pull`](_autosummary/an.ir.html.md#an.ir.pull)(point, to, \*[, over, give])                 | `point` drawn toward `to` (a point, a body point, or a path).                                                                                                                                      |
+| [`join`](_autosummary/an.ir.html.md#an.ir.join)(joint, \*[, at])                             | Rejoin the joint named `joint` at `at`.                                                                                                                                                            |
+| [`unjoin`](_autosummary/an.ir.html.md#an.ir.unjoin)(joint, \*[, at])                           | Let go of the joint named `joint` at `at`.                                                                                                                                                         |
+| [`grasp`](_autosummary/an.ir.html.md#an.ir.grasp)(by, item, \*[, reach, retract, lean, ...])  | `by` takes `item`.                                                                                                                                                                                 |
+| [`reframe`](_autosummary/an.ir.html.md#an.ir.reframe)(target, \*, to[, at, keep, snap, ...])    | `target` changes to frame `to` at `at` seconds into the action.                                                                                                                                    |
+| [`place`](_autosummary/an.ir.html.md#an.ir.place)(item, onto, \*[, by, rotation, reach, ...]) | The hand holding `item` puts it `onto` a target.                                                                                                                                                   |
+| [`release`](_autosummary/an.ir.html.md#an.ir.release)(item, \*[, at, onto, arc, rotation, ...]) | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first).                                                                                                    |
+| [`handover`](_autosummary/an.ir.html.md#an.ir.handover)(item, to, \*[, by, meet, reach, ...])    | Give `item` to `to`.                                                                                                                                                                               |
+| [`swap`](_autosummary/an.ir.html.md#an.ir.swap)(holder, \*, take, give, by[, lag, ...])      | `by` takes `take` from `holder`; `give` goes there in its place.                                                                                                                                   |
+| [`topple`](_autosummary/an.ir.html.md#an.ir.topple)(body, \*\*kw)                              | `body` falls over (see `ToppleAction` for the fields).                                                                                                                                             |
 
 ### Classes
 
@@ -22468,7 +22473,7 @@ loaded is validated by the registered model on the way through.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
-### an.ir.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True)
+### an.ir.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True, carry=None)
 
 `by` takes `item`.
 
@@ -52966,7 +52971,7 @@ scene: the scene file to read, inside the project (default scene.md; for example
 
 # About this build
 
-This documentation was built on **2026-11-23 23:18 UTC** from commit <a href="https://github.com/reeleehq/an/commit/e6312aefa067e2b9429c09e523a218ade051ff7c"><code>e6312ae</code></a> on branch <code>main</code>, for **an 0.1.434** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-24 02:26 UTC** from commit <a href="https://github.com/reeleehq/an/commit/37c5950db8962be5b0cbb41fb2fa598874629b3b"><code>37c5950</code></a> on branch <code>main</code>, for **an 0.1.435** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -52975,9 +52980,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/an/commit/e6312aefa067e2b9429c09e523a218ade051ff7c"><code>e6312aefa067e2b9429c09e523a218ade051ff7c</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/an/commit/37c5950db8962be5b0cbb41fb2fa598874629b3b"><code>37c5950db8962be5b0cbb41fb2fa598874629b3b</code></a> |
 | Branch              | <code>main</code>                                                                                                                                  |
-| Tags at this commit | <code>0.1.434</code>                                                                                                                               |
+| Tags at this commit | <code>0.1.435</code>                                                                                                                               |
 | Working tree        | clean                                                                                                                                              |
 | Remote              | <code>https://github.com/reeleehq/an</code>                                                                                                        |
 
@@ -52986,9 +52991,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/an</code>                                                                   |
-| Run          | <a href="https://github.com/reeleehq/an/actions/runs/45286304018">45286304018</a>          |
+| Run          | <a href="https://github.com/reeleehq/an/actions/runs/45311167256">45311167256</a>          |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>be48ff3006b3bd3cb6cb591ade849ee4cd692e96</code> (in the history of the built commit) |
+| Event commit | <code>3d12a429f87c1425c7c49560165dbef76726a3d0</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -53013,13 +53018,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.434/">0.1.434</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.435/">0.1.435</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/an && cd an
-git checkout e6312aefa067e2b9429c09e523a218ade051ff7c
+git checkout 37c5950db8962be5b0cbb41fb2fa598874629b3b
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

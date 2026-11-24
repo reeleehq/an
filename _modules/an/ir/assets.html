@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=618d8d38"></script>
+    <script src="../../../_static/documentation_options.js?v=c5f50921"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.434" />
+  <meta name="docsearch:version" content="0.1.435" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -912,10 +912,13 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"publicdomain"</span><span class="p">,</span>
     <span class="s2">"public-domain"</span><span class="p">,</span>
     <span class="s2">"cc-pdm"</span><span class="p">,</span>
-    <span class="s2">"mit"</span><span class="p">,</span>
-    <span class="s2">"apache"</span><span class="p">,</span>
-    <span class="s2">"bsd"</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="c1">#: Permissive software licences whose notice must travel with every copy, so a</span>
+<span class="c1">#: credit is owed: ``attribution``, not ``free`` (an#753, decided 2026-11-09).</span>
+<span class="c1">#: MIT: "the above copyright notice and this permission notice shall be included</span>
+<span class="c1">#: in all copies"; BSD and Apache-2.0 ask the same of their notices. Matched as</span>
+<span class="c1">#: whole leading words, as :data:`_FREE_WORDS` is (``mitigated`` is not MIT).</span>
+<span class="n">_NOTICE_WORDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"mit"</span><span class="p">,</span> <span class="s2">"apache"</span><span class="p">,</span> <span class="s2">"bsd"</span><span class="p">)</span>
 
 <span class="c1">#: Licence codes that oblige the *user of the output* to credit someone.</span>
 <span class="c1">#:</span>
@@ -1113,6 +1116,8 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">term</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">terms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="n">term</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">term</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">w</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">w</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_NOTICE_WORDS</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"attribution"</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">w</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">w</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_FREE_WORDS</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">"free"</span>
     <span class="k">return</span> <span class="s2">"unknown"</span></div>

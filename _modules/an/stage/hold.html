@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=618d8d38"></script>
+    <script src="../../../_static/documentation_options.js?v=c5f50921"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.434" />
+  <meta name="docsearch:version" content="0.1.435" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1377,6 +1377,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">partner</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: A taking hand turns the item, over its retract, to how it holds things.</span>
     <span class="n">align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1">#: ... and then by this much more (radians, mirrored with the hand; an#864).</span>
+    <span class="n">carry</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="c1">#: Gestures that bend the same body the other way while this one runs.</span>
     <span class="n">against</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
     <span class="c1"># frame indices (contact snapped to the grid)</span>
@@ -1794,7 +1796,14 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
                 <span class="k">continue</span>
             <span class="n">g</span> <span class="o">=</span> <span class="n">new_gesture</span><span class="p">(</span>
-                <span class="s2">"grasp"</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">hand</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">by</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="n">point</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">align</span><span class="p">)</span>
+                <span class="s2">"grasp"</span><span class="p">,</span>
+                <span class="n">item</span><span class="p">,</span>
+                <span class="n">hand</span><span class="p">,</span>
+                <span class="n">v</span><span class="p">,</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">by</span><span class="p">,</span>
+                <span class="n">point</span><span class="o">=</span><span class="n">point</span><span class="p">,</span>
+                <span class="n">align</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">align</span><span class="p">),</span>
+                <span class="n">carry</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"carry"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)),</span>
             <span class="p">)</span>
             <span class="n">events</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Event</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">,</span> <span class="s2">"take"</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">where</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">align</span> <span class="ow">and</span> <span class="n">g</span><span class="o">.</span><span class="n">k1</span> <span class="o">&gt;</span> <span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">:</span>
@@ -2184,15 +2193,18 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="k">else</span> <span class="mf">0.0</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_socket_lin</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Holder</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lin</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_socket_lin</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">_Ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="n">Run</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">holder</span><span class="p">:</span> <span class="n">Holder</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">turn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lin</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""An item aligned with a socket: the socket node's orientation and mirror,</span>
-<span class="sd">    the item's own size."""</span>
+<span class="sd">    the item's own size; ``turn`` (radians) more, in the socket's frame (so</span>
+<span class="sd">    mirrored with it)."""</span>
     <span class="n">frame</span> <span class="o">=</span> <span class="n">_compose</span><span class="p">(</span>
         <span class="n">_body_world</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">puppet</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">holder</span><span class="o">.</span><span class="n">body</span><span class="p">),</span> <span class="n">holder</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="n">_IDENTITY</span>
     <span class="p">)</span>
     <span class="n">theta</span><span class="p">,</span> <span class="n">_sx</span><span class="p">,</span> <span class="n">_sy</span><span class="p">,</span> <span class="n">mirrored</span> <span class="o">=</span> <span class="n">_decompose</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
     <span class="n">sx0</span><span class="p">,</span> <span class="n">sy0</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">scale</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="o">-</span><span class="n">sx0</span> <span class="k">if</span> <span class="n">mirrored</span> <span class="k">else</span> <span class="n">sx0</span><span class="p">,</span> <span class="n">sy0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">theta</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">turn</span> <span class="k">if</span> <span class="n">mirrored</span> <span class="k">else</span> <span class="n">turn</span><span class="p">),</span> <span class="o">-</span><span class="n">sx0</span> <span class="k">if</span> <span class="n">mirrored</span> <span class="k">else</span> <span class="n">sx0</span><span class="p">,</span> <span class="n">sy0</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_on_line</span><span class="p">(</span>
@@ -2503,7 +2515,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">carried</span> <span class="o">=</span> <span class="n">_lin_of</span><span class="p">(</span><span class="n">_compose</span><span class="p">(</span><span class="n">hand_world</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">local</span><span class="p">))</span>
         <span class="n">span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_EPS</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">k1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">])</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">_min_jerk</span><span class="p">((</span><span class="n">ctx</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">kc</span><span class="p">])</span> <span class="o">/</span> <span class="n">span</span><span class="p">)</span>
-        <span class="n">target</span> <span class="o">=</span> <span class="n">_socket_lin</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">_socket_lin</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">hand</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">turn</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">carry</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_placed</span><span class="p">(</span>
             <span class="n">_apply</span><span class="p">(</span><span class="n">hand_world</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">hand</span><span class="p">),</span> <span class="n">_blend_lin</span><span class="p">(</span><span class="n">carried</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">state</span><span class="o">.</span><span class="n">attach</span>
         <span class="p">)</span>

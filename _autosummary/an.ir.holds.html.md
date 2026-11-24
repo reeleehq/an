@@ -63,12 +63,12 @@ shelf needs them without saying character), registered when [`an.ir`](an.ir.html
 
 ### Functions
 
-| [`grasp`](#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, align])   | `by` takes `item`.                                                                              |
-|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| [`place`](#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])    | The hand holding `item` puts it `onto` a target.                                                |
-| [`release`](#an.ir.holds.release)(item, \*[, at, onto, arc, rotation, ...])    | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first). |
-| [`handover`](#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])       | Give `item` to `to`.                                                                            |
-| [`swap`](#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])         | `by` takes `take` from `holder`; `give` goes there in its place.                                |
+| [`grasp`](#an.ir.holds.grasp)(by, item, \*[, reach, retract, lean, ...])   | `by` takes `item`.                                                                              |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| [`place`](#an.ir.holds.place)(item, onto, \*[, by, rotation, reach, ...])  | The hand holding `item` puts it `onto` a target.                                                |
+| [`release`](#an.ir.holds.release)(item, \*[, at, onto, arc, rotation, ...])  | Let `item` go at `at` (a drop; `onto: ground@x` to land there; `arc` > 0 to throw it up first). |
+| [`handover`](#an.ir.holds.handover)(item, to, \*[, by, meet, reach, ...])     | Give `item` to `to`.                                                                            |
+| [`swap`](#an.ir.holds.swap)(holder, \*, take, give, by[, lag, ...])       | `by` takes `take` from `holder`; `give` goes there in its place.                                |
 
 ### Classes
 
@@ -118,7 +118,7 @@ The kinds that move a hand (a reach and a retract), as flattened leaves.
 
 The name of the floor in a target (`ground`, `ground@x`).
 
-### *class* an.ir.holds.GraspAction(, name=None, kind='grasp', by, item, reach=0.4, retract=0.35, lean=60.0, align=True, \*\*extra_data)
+### *class* an.ir.holds.GraspAction(, name=None, kind='grasp', by, item, reach=0.4, retract=0.35, lean=60.0, align=True, carry=None, \*\*extra_data)
 
 Bases: [`ExtensionAction`](an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
@@ -130,11 +130,16 @@ stage point. `by` with no `@` is the far end of the body (an arm’s
 hand). The item is held from `start + reach` on, and over the retract it
 turns to how the hand holds things (`align`): drawn as it is, upright
 along the hand’s part, the way a socket holds it; `align: false` keeps
-the angle it was taken at.
+the angle it was taken at. `carry` (degrees) turns the aligned item by
+that much from how the hand holds it, about the grip, mirrored with the
+hand: a long musket carried at `carry: -60` points up and clears the floor
+a hand near the ground would sink it through (an#864). It needs `align`.
 
 ```pycon
 >>> GraspAction(by="stu@hand_r", item="musket").reach == DFLT_REACH
 True
+>>> GraspAction(by="stu@hand_r", item="musket", carry=-60).carry
+-60.0
 ```
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True}*
@@ -240,7 +245,7 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### an.ir.holds.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True)
+### an.ir.holds.grasp(by, item, , reach=0.4, retract=0.35, lean=60.0, align=True, carry=None)
 
 `by` takes `item`.
 

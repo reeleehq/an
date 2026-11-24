@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=618d8d38"></script>
+    <script src="../../../_static/documentation_options.js?v=c5f50921"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.434" />
+  <meta name="docsearch:version" content="0.1.435" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -763,7 +763,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">model_validator</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Seconds</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_OWNER</span><span class="p">,</span> <span class="n">ActionKind</span><span class="p">,</span> <span class="n">action_kind</span><span class="p">,</span> <span class="n">register_action_kind</span>
@@ -834,10 +834,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    hand). The item is held from ``start + reach`` on, and over the retract it</span>
 <span class="sd">    turns to how the hand holds things (``align``): drawn as it is, upright</span>
 <span class="sd">    along the hand's part, the way a socket holds it; ``align: false`` keeps</span>
-<span class="sd">    the angle it was taken at.</span>
+<span class="sd">    the angle it was taken at. ``carry`` (degrees) turns the aligned item by</span>
+<span class="sd">    that much from how the hand holds it, about the grip, mirrored with the</span>
+<span class="sd">    hand: a long musket carried at ``carry: -60`` points up and clears the floor</span>
+<span class="sd">    a hand near the ground would sink it through (an#864). It needs ``align``.</span>
 
 <span class="sd">    &gt;&gt;&gt; GraspAction(by="stu@hand_r", item="musket").reach == DFLT_REACH</span>
 <span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; GraspAction(by="stu@hand_r", item="musket", carry=-60).carry</span>
+<span class="sd">    -60.0</span>
 <span class="sd">    """</span>
 
     <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"grasp"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"grasp"</span>
@@ -846,7 +851,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">reach</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">_Reach</span>
     <span class="n">retract</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">_Retract</span>
     <span class="n">lean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_Lean</span>
-    <span class="n">align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></div>
+    <span class="n">align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">carry</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=-</span><span class="mi">360</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">360</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_carry_needs_align</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"GraspAction"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">carry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">align</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"`carry` turns the item from how the hand holds it, which `align: false` "</span>
+                <span class="s2">"does not do: drop one of them"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
 
 
@@ -977,6 +992,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">retract</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DFLT_RETRACT</span><span class="p">,</span>
     <span class="n">lean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_LEAN_DEG</span><span class="p">,</span>
     <span class="n">align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">carry</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GraspAction</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``by`` takes ``item``.</span>
 
@@ -984,7 +1000,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    'musket@grip'</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">GraspAction</span><span class="p">(</span>
-        <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span> <span class="n">reach</span><span class="o">=</span><span class="n">reach</span><span class="p">,</span> <span class="n">retract</span><span class="o">=</span><span class="n">retract</span><span class="p">,</span> <span class="n">lean</span><span class="o">=</span><span class="n">lean</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">align</span>
+        <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span>
+        <span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">,</span>
+        <span class="n">reach</span><span class="o">=</span><span class="n">reach</span><span class="p">,</span>
+        <span class="n">retract</span><span class="o">=</span><span class="n">retract</span><span class="p">,</span>
+        <span class="n">lean</span><span class="o">=</span><span class="n">lean</span><span class="p">,</span>
+        <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
+        <span class="n">carry</span><span class="o">=</span><span class="n">carry</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
