@@ -395,14 +395,18 @@ def test_a_long_chain_publishes_in_linear_time():
     itemised: each publish stays cheap (it was over 3 s at v040)."""
     import time
 
+    # CPU time per publish, and the late publishes against the early ones in the same
+    # run: a quadratic walk makes v040 many times v001, while a loaded machine only
+    # stretches wall time (an#864: this failed at load ~270 on wall-clock seconds).
     lib = _memory()
-    slowest = 0.0
+    cost = []
     for v in range(40):
         files = {f"parts/p{i}.svg": f"<svg>{i}-{v if i == 0 else 0}</svg>".encode() for i in range(30)}
         slots = {f"s{i}": {"a": {"path": p, "source": {**CC0, "sha256": _sha(b)}}}
                  for i, (p, b) in enumerate(files.items())}
-        t = time.perf_counter()
+        t = time.process_time()
         publish(lib, "prop.x", {"name": "x", "skins": {"default": {"slots": slots}}}, files,
                 source=PRIVATE if v == 0 else None)
-        slowest = max(slowest, time.perf_counter() - t)
-    assert slowest < 1.5, slowest
+        cost.append(time.process_time() - t)
+    early, late = max(cost[1:6]), max(cost[-5:])  # v000 sets the chain up: not a baseline
+    assert late < 5 * early + 0.25, (early, late)

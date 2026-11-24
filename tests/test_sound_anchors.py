@@ -221,3 +221,29 @@ def test_a_film_cue_timed_by_a_change_looks_in_the_shot_that_has_it(tmp_path):
     two = scene.model_copy(update={"timeline": [bare, shot]})
     anchor = SoundCue.model_validate({"sound": "scratch", "at": CHANGE}).at
     assert _shot_with(two, anchor, [], None) == 1
+
+
+def test_a_shot_is_compiled_once_for_all_its_anchors(tmp_path, monkeypatch):
+    """an#864: each anchor used to compile the whole shot; now one resolution
+    compiles a shot once, whatever its anchors (changes, crossings)."""
+    from an.stage import cache_key
+
+    calls = []
+    real = cache_key.compiled_document
+
+    def counting(shot, ctx):
+        calls.append(shot.id)
+        return real(shot, ctx)
+
+    monkeypatch.setattr(cache_key, "compiled_document", counting)
+    root = _project(
+        tmp_path,
+        shot_sounds=[
+            {"sound": "scratch", "at": CHANGE},
+            {"sound": "scratch", "at": {**CHANGE, "offset": 0.1}},
+            {"sound": "theme", "at": ANCHOR},
+        ],
+    )
+    prep = _prepared(root, tmp_path)
+    assert [c.at for c in prep.scene.timeline[0].sounds] == pytest.approx([0.25, 0.35, 0.25])
+    assert calls.count(prep.scene.timeline[0].id) == 1

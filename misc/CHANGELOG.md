@@ -3,6 +3,10 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-11-24
+- **`carry: <degrees>` on grasp** (an#864): the aligned item settles turned that much from how the hand holds it, about the grip, mirrored with the hand; refused with `align: false`. `sunk_item` now suggests it. Contract 3.2.0 (`grasp`'s params in `vocabulary.json`).
+- Cue anchors compile a shot once per resolution, not once per anchor (an#864); the rights-chain linearity test measures CPU time against the run's own early publishes.
+
 ## 2026-11-23
 - **Support/contacts spec: the six open choices decided as recommended** (an#791): `support_contacts_spec.md` §8 now records (a)-(f) as decided, so the rank-2 build PRs proceed on them.
 

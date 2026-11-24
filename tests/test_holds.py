@@ -690,6 +690,29 @@ def test_a_taken_item_turns_to_how_the_hand_holds_things(tmp_path):
     ] == pytest.approx(turned, abs=2 * angle)
 
 
+def test_carry_turns_a_taken_item_from_how_the_hand_holds_it(tmp_path):
+    """``carry`` (an#864): the aligned stick ends turned by that many degrees from
+    the hand's frame, and stays so while the arm moves; it needs ``align``."""
+    actions = "- {{kind: grasp, by: fig/arm_r, item: stick, start: 0.5{}}}\n- {{kind: tween, target: fig/arm_r, property: rotation, from: 0.0, to: 0.4, duration: 0.5, start: 2.0}}"
+    carried = _compile(_project(tmp_path / "c", actions.format(", carry: -60")))
+    from an.stage.solve import SOLVED_POSE_TOLERANCE_PX
+
+    angle = SOLVED_POSE_TOLERANCE_PX / ((math.sqrt(2.0) + 1.0) * 200.0 * K)
+    g = _gesture(carried, "grasp")
+    for t in (g["end"] + 0.05, 2.25, 3.0):
+        pose = _pose(carried, t)
+        assert pose[("stick", "rotation")] == pytest.approx(
+            pose[("fig/arm_r", "rotation")] + math.radians(-60), abs=2 * angle
+        ), t
+        assert math.dist(_hand(carried, t), _grip(carried, t)) < GRASP_TOLERANCE_PX
+    from pydantic import ValidationError
+
+    from an.ir.holds import GraspAction
+
+    with pytest.raises(ValidationError, match="align: false"):
+        GraspAction(by="fig/arm_r", item="stick", carry=30, align=False)
+
+
 def test_a_passenger_part_does_not_swing_when_its_body_moves(tmp_path):
     """In pose mode a part nothing acts on (the head, the idle arm) keeps the
     angle the document gives it while the figure travels: it does not swing

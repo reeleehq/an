@@ -70,17 +70,20 @@ def has_anchors(scene: SceneIR) -> bool:
     return any(isinstance(c.at, CueAnchor) or c.until is not None for c in cues)
 
 
-def _stage_document(shot: Any, ctx: Any, renderer: Any) -> Any:
+def _stage_document(
+    shot: Any, ctx: Any, renderer: Any, *, compiled: Any = None
+) -> Any:
     from an.stage import draws_on_stage
     from an.stage.cache_key import compiled_document
 
+    compiled = compiled or compiled_document
     if not draws_on_stage(shot):
         raise SoundAnchorError(
             f"shot {shot.id!r} is drawn by {getattr(renderer, 'name', renderer)!r}: "
             "a cue can be timed by the picture only in a stage shot (whose "
             "positions an can compute); give it `at:` in seconds"
         )
-    return compiled_document(shot, ctx)
+    return compiled(shot, ctx)
 
 
 def crossing_in_document(
@@ -299,7 +302,13 @@ def anchor_in_document(
 
 
 def _change(
-    doc: Any, shot: Any, anchor: CueAnchor, *, where: str, mall: Any = None
+    doc: Any,
+    shot: Any,
+    anchor: CueAnchor,
+    *,
+    where: str,
+    mall: Any = None,
+    extent_of: Any = None,
 ) -> float:
     """:func:`change_in_shot`, with the play extent ``doc`` was compiled with
     when there is one (a shot no stage draws flattens with the default)."""
@@ -312,23 +321,42 @@ def _change(
     if doc is not None:
         from an.stage.compile import play_extent_of
 
-        extent = play_extent_of(doc, shot, mall)
+        extent = (extent_of or play_extent_of)(doc, shot, mall)
     return change_in_shot(shot, anchor, where=where, play_extent=extent)
 
 
 def _crossing(
-    shot: Any, ctx: Any, renderer: Any, anchor: CueAnchor, *, where: str
+    shot: Any,
+    ctx: Any,
+    renderer: Any,
+    anchor: CueAnchor,
+    *,
+    where: str,
+    compiled: Any = None,
+    extent_of: Any = None,
 ) -> float:
     """Shot-local seconds of ``anchor``: its authored change, its event, or
-    when ``anchor.when``'s centre first reaches ``anchor.reaches``."""
+    when ``anchor.when``'s centre first reaches ``anchor.reaches``.
+
+    ``compiled(shot, ctx)`` (default :func:`an.stage.cache_key.compiled_document`)
+    and ``extent_of(doc, shot, mall)`` are seams a caller resolving many anchors
+    memoises, so a shot is compiled once, not once per anchor (an#864)."""
     if anchor.changes is not None:
         from an.stage import draws_on_stage
         from an.stage.cache_key import compiled_document
 
-        doc = compiled_document(shot, ctx) if draws_on_stage(shot) else None
-        return _change(doc, shot, anchor, where=where, mall=getattr(ctx, "mall", None))
+        compile_ = compiled or compiled_document
+        doc = compile_(shot, ctx) if draws_on_stage(shot) else None
+        return _change(
+            doc,
+            shot,
+            anchor,
+            where=where,
+            mall=getattr(ctx, "mall", None),
+            extent_of=extent_of,
+        )
     return anchor_in_document(
-        _stage_document(shot, ctx, renderer),
+        _stage_document(shot, ctx, renderer, compiled=compiled),
         anchor,
         shot_id=shot.id,
         fps=float(ctx.fps),
@@ -392,6 +420,31 @@ def _until(cues: list[SoundCue], where: str) -> list[SoundCue]:
     return out
 
 
+def _per_shot_memo() -> tuple[Any, Any]:
+    """``(compiled, extent_of)``: :func:`an.stage.cache_key.compiled_document` and
+    :func:`an.stage.compile.play_extent_of`, each memoised per shot object for one
+    resolution, so N anchors in a shot compile it once (an#864: each anchor used to
+    compile the whole shot). A compile that raises is not memoised."""
+    docs: dict[int, Any] = {}
+    extents: dict[int, Any] = {}
+
+    def compiled(shot: Any, ctx: Any) -> Any:
+        from an.stage.cache_key import compiled_document
+
+        if id(shot) not in docs:
+            docs[id(shot)] = compiled_document(shot, ctx)
+        return docs[id(shot)]
+
+    def extent_of(doc: Any, shot: Any, mall: Any) -> Any:
+        from an.stage.compile import play_extent_of
+
+        if id(shot) not in extents:
+            extents[id(shot)] = play_extent_of(doc, shot, mall)
+        return extents[id(shot)]
+
+    return compiled, extent_of
+
+
 def resolve_cue_anchors(
     scene: SceneIR,
     ctx: Any,
@@ -409,6 +462,7 @@ def resolve_cue_anchors(
     if not has_anchors(scene):
         return scene, []
     findings: list[Finding] = []
+    compiled, extent_of = _per_shot_memo()
 
     def resolve(cue: SoundCue, i: int, *, path: str, film: bool) -> SoundCue:
         if not isinstance(cue.at, CueAnchor):
@@ -416,7 +470,13 @@ def resolve_cue_anchors(
         anchor = cue.at
         shot_index = _shot_with(scene, anchor, renderers, ctx) if film else i
         local = _crossing(
-            scene.timeline[shot_index], ctx, renderers[shot_index], anchor, where=path
+            scene.timeline[shot_index],
+            ctx,
+            renderers[shot_index],
+            anchor,
+            where=path,
+            compiled=compiled,
+            extent_of=extent_of,
         )
         t = max(0.0, local + anchor.offset + (film_starts[shot_index] if film else 0.0))
         findings.append(
