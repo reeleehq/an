@@ -231,9 +231,17 @@ class EntityKind:
     #: that raises or gives anything but actions is reported as a ``view`` note on the
     #: shot and adds nothing; a camera straight above the member gives no call (a
     #: note). A member's ``facing`` is a yaw in the frame it starts the shot in.
-    #: Not covered yet: a mirroring ``set`` of ``scale_x`` replaces the world's
-    #: scale (a ``set`` wins over placement), so a kind that mirrors needs a core
-    #: channel for it first (filed as a follow-up of an#734).
+    #: **Mirroring (an#868, level 21):** a ``set`` of the member's own ``scale_x``
+    #: among the actions is a SIGN, not a scale: ``-1`` mirrors it (a profile that
+    #: faces the other way), ``1`` does not. The lowering composes it with the
+    #: world's scale, at rest and over the keys it gives a member the camera sees
+    #: move, and takes it out of the actions (a native ``set`` would have replaced
+    #: the world's scale). The last such ``set`` wins. Only a plain ``set`` of ``-1`` or
+    #: ``1`` is one (any other form is a ``view`` note and dropped). A kind that
+    #: mirrors should give a sign every time (``1`` too), since a ``continue:``
+    #: carries the last. An author's own ``scale_x`` is absolute and drops the
+    #: mirror; an attached member is not mirrored with its host; the builder's root
+    #: ``scale_x`` is taken to be 1.
     #: Since ``an.genres.API_LEVEL`` 20.
     view_for: Callable[[Any, Any, float], Sequence[Any] | None] | None = None
 

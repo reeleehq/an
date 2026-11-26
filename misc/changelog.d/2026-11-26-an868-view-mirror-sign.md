@@ -1,0 +1,1 @@
+- A view's `set` of a world member's `scale_x` (from `EntityKind.view_for`) is a sign that mirrors it, composed with the world's scale at rest and over its motion (an#868, genre API level 21).
