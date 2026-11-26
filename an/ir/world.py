@@ -77,6 +77,7 @@ from an.ir.frames import (
     TrackEvent,
 )
 from an.ir.frames import look_basis as _basis
+from an.ir.schema import _ActionBase
 from an.ir.schema import (
     DFLT_FOV_DEG,
     DFLT_TRAVEL_MAX_ACTIONS,
@@ -3035,6 +3036,7 @@ def _lower_shot(
     plane_anchors: dict[tuple[str, str], _PlaneAnchor],
     bands: Bands | None = None,
     band_problems: Mapping[str, Mapping[str, str]] | None = None,
+    view_for: ViewFor | None = None,
 ) -> tuple[Shot, list[WorldNote], list[int | None]]:
     shot = scene.timeline[index]
     world = scene.world
@@ -3651,11 +3653,111 @@ def _lower_shot(
             "no member of the world could be measured, so this shot draws none of "
             "them (each is noted: a store not supplied, or a ref it cannot find; an#516)",
         )
+    if view_for is not None:
+        listed_ids = {e.id for e in shot.entities}
+        shown = {e.id for e in entities}
+        views: list[Any] = []
+        for mid, member in members.items():
+            if (
+                member.facing is None
+                or mid not in shown
+                or member.kind == "environment"
+            ):
+                continue
+            if mid not in positioned:
+                note(
+                    "warning", "view", mid,
+                    "it has a `facing` but is attached to another member, which "
+                    "has none of its own to turn it by: nothing turns it (an#734)",
+                )  # fmt: skip
+                continue
+            if mid in vp.hide and mid not in listed_ids:
+                continue
+            yaw = _relative_yaw(
+                member,
+                projection=projection,
+                tree=tree,
+                vp_frame=vp_frame,
+                film_start=film_start,
+                frame=frame_of[mid],  # its facing is in the frame it starts in
+                at=member_at.get(mid) or _member_point(member, None, 0.0),
+            )
+            if yaw is None:
+                note(
+                    "info", "view", mid,
+                    "the camera is straight above or below it (or at it): there "
+                    "is no side to see it from, so its view is left as it is",
+                )  # fmt: skip
+                continue
+            try:
+                got = view_for(member, yaw)
+                got = [got] if isinstance(got, _ActionBase) else list(got or ())
+                bad = [a for a in got if not isinstance(a, _ActionBase)]
+                if bad:
+                    raise TypeError(
+                        f"expected actions, got {type(bad[0]).__name__} {bad[0]!r:.40}"
+                    )
+            except Exception as e:  # noqa: BLE001 - a genre that cannot say adds nothing
+                note(
+                    "warning", "view", mid,
+                    f"its kind's `view_for` gave nothing usable: "
+                    f"{type(e).__name__}: {e}",
+                )  # fmt: skip
+                continue
+            # A shot lowered again already holds what it gave the first time.
+            views.extend(a for a in got if a not in shot.actions)
+        # At t=0 AHEAD of the shot's own, so an author's explicit swap wins (a
+        # later action of a channel wins). Continuity's carried state is added
+        # after this and so loses to a view, and a channel a view sets counts
+        # as one the shot opens itself.
+        actions = [*views, *actions]
     return (
         shot.model_copy(update={"entities": entities, "actions": actions}),
         notes,
         origins,
     )
+
+
+#: ``(member, relative_yaw) -> actions | None``: what shows ``member`` from the
+#: angle the camera sees it at (an#734); :func:`an.stage.world.member_views`
+#: binds the kinds' :attr:`an.genres.EntityKind.view_for` hooks to it.
+ViewFor = Callable[[WorldMember, float], "Sequence[Any] | None"]
+
+
+def _relative_yaw(
+    member: WorldMember,
+    *,
+    projection: Projection,
+    tree: FrameTree,
+    vp_frame: str,
+    film_start: float,
+    frame: str,
+    at: Point3,
+) -> float | None:
+    """The camera's yaw about ``member`` relative to where it faces, in
+    ``(-180, 180]`` degrees, as the shot opens: ``0`` the camera is in front of
+    it, ``±180`` behind, ``+90`` it faces screen-right. ``None`` when the camera
+    is straight above or below it, where no side is seen.
+
+    ``at`` is where it stands in the viewpoint's frame; its facing is a yaw in
+    ``frame`` (the frame it starts the shot in), carried into the viewpoint's
+    frame as a direction (a frame that turns turns the member with it). The
+    angles are read from x and z only.
+    """
+    f = math.radians(float(member.facing or 0.0))
+    pose = tree.relative_pose(frame, vp_frame, 0.0, film_start=film_start)
+    o = pose.apply((0.0, 0.0, 0.0))
+    d = _sub(pose.apply((math.sin(f), 0.0, math.cos(f))), o)
+    to_cam = _sub(projection.at, at)
+    if math.hypot(to_cam[0], to_cam[2]) < _EPS_HORIZONTAL:
+        return None
+    rel = math.degrees(math.atan2(to_cam[0], to_cam[2]) - math.atan2(d[0], d[2]))
+    rel = (rel + 180.0) % 360.0 - 180.0
+    return 180.0 if rel == -180.0 else rel
+
+
+#: The horizontal distance (world units) under which the camera is "above" a member.
+_EPS_HORIZONTAL = 1e-6
 
 
 def parallax_factor(z: float, z_ref: float) -> float:
@@ -4613,6 +4715,7 @@ def lower_world(
     | None = None,
     bands: Bands | None = None,
     band_problems: Mapping[str, Mapping[str, str]] | None = None,
+    view_for: ViewFor | None = None,
 ) -> Lowered:
     """The scene with every framed shot's placements derived from the world.
 
@@ -4638,7 +4741,12 @@ def lower_world(
     it does not name); ``bands`` is where a subject's own rig puts each shot
     size (:data:`Bands`, measured by :func:`an.stage.world.member_shot_sizes`),
     and ``band_problems`` why a subject's could not be (a ``shot_size`` note on
-    each shot that frames it).
+    each shot that frames it). ``view_for`` is ``(member, relative_yaw) ->
+    actions | None`` (:data:`ViewFor`, bound to the kinds' own hook by
+    :func:`an.stage.world.member_views`): for each shown member with a
+    ``facing`` it is given the camera's yaw about the member relative to where
+    it faces (an#734), and what it returns is put at the head of the shot's
+    actions. ``None`` (the default): no member is turned to the camera.
 
     Raises :class:`WorldError` for a viewpoint the world cannot resolve.
 
@@ -4676,6 +4784,7 @@ def lower_world(
             plane_anchors=plane_anchors,
             bands=bands,
             band_problems=band_problems,
+            view_for=view_for,
         )
         shots.append(lowered)
         notes.extend(shot_notes)

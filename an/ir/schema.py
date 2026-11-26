@@ -584,6 +584,13 @@ class WorldMember(AssetRef):
     units_per_px: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     attached: Attachment | None = None
     after: str | None = None
+    #: Where the member faces: a yaw in degrees in its own frame, in the
+    #: convention of a camera's yaw (0 looks along ``+z``, positive turns toward
+    #: ``+x``). ``None`` (the default) keeps a billboard: the member has no facing
+    #: for its kind to answer to. Read by :attr:`an.genres.EntityKind.view_for`
+    #: (an#734, ``an.genres.API_LEVEL`` 20), which is handed the camera's yaw
+    #: relative to it.
+    facing: float | None = Field(default=None, allow_inf_nan=False)
     #: The frame of reference this member is in (document key ``in``); unset
     #: means the world's default frame (:meth:`World.default_frame`). An
     #: environment's ``frame`` is the default of its planes; ``planes`` names
@@ -681,6 +688,7 @@ class WorldMember(AssetRef):
                 "units_per_px",
                 "attached",
                 "after",
+                "facing",
                 "depths",
                 "frame",
                 "planes",
