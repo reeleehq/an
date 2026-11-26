@@ -4,6 +4,7 @@ AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
 ## 2026-11-26
+- A world member may carry a `facing` (a yaw in degrees); a kind answers `EntityKind.view_for(entity, mall, relative_yaw)` with the actions that show it from the camera's angle, put at t=0 ahead of the shot's own (an#734, genre API level 20).
 - perf(bench): read_png/decode_png decode through Pillow when importable (bit-exact, 24-50x on filtered PNGs), pure unfilter kept as fallback and oracle (an#855)
 
 ## 2026-11-24

@@ -1,1 +1,0 @@
-- A world member may carry a `facing` (a yaw in degrees); a kind answers `EntityKind.view_for(entity, mall, relative_yaw)` with the actions that show it from the camera's angle, put at t=0 ahead of the shot's own (an#734, genre API level 20).
