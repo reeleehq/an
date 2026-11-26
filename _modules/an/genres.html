@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=f20d834b"></script>
+    <script src="../../_static/documentation_options.js?v=56750752"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.436" />
+  <meta name="docsearch:version" content="0.1.437" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -883,7 +883,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: 19 = a shot size's own columns (an#769): ``EntityKind.shot_sizes`` may give a band as</span>
 <span class="c1">#:     ``(top, bottom, left, right)``, framed at its true width under the partial-size</span>
 <span class="c1">#:     crop policy (``an.ir.world.resolve_viewpoint``).</span>
-<span class="n">API_LEVEL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">19</span>
+<span class="c1">#: 20 = a member's facing and the view it calls for (an#734): ``WorldMember.facing`` and</span>
+<span class="c1">#:     ``EntityKind.view_for(entity, mall, relative_yaw)``, which the world's lowering</span>
+<span class="c1">#:     calls per framed shot with the camera's yaw relative to the member's facing.</span>
+<span class="n">API_LEVEL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span>
 
 
 <div class="viewcode-block" id="GenreAPILevelError">

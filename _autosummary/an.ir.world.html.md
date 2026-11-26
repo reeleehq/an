@@ -417,7 +417,7 @@ False
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
-### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None, bands=None, band_problems=None)
+### an.ir.world.lower_world(scene, , extents, film_starts=None, fps=None, extent_problems=None, plane_geometry=None, bands=None, band_problems=None, view_for=None)
 
 The scene with every framed shot’s placements derived from the world.
 
@@ -443,7 +443,12 @@ anchored and when it is on screen (an#503; the origin and no box for one
 it does not name); `bands` is where a subject’s own rig puts each shot
 size (`Bands`, measured by `an.stage.world.member_shot_sizes()`),
 and `band_problems` why a subject’s could not be (a `shot_size` note on
-each shot that frames it).
+each shot that frames it). `view_for` is `(member, relative_yaw) ->
+actions | None` (`ViewFor`, bound to the kinds’ own hook by
+`an.stage.world.member_views()`): for each shown member with a
+`facing` it is given the camera’s yaw about the member relative to where
+it faces (an#734), and what it returns is put at the head of the shot’s
+actions. `None` (the default): no member is turned to the camera.
 
 Raises [`WorldError`](#an.ir.world.WorldError) for a viewpoint the world cannot resolve.
 

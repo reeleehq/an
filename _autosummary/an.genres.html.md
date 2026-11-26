@@ -106,7 +106,7 @@ genre defined in the same process).
 | [`RegistryError`](#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.         |
 | [`UnregisteredKindError`](#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                    |
 
-### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 19*
+### an.genres.API_LEVEL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 20*
 
 every hook, registry
 field a genre package may rely on. Bumped by each change a
@@ -199,6 +199,10 @@ an.ir.world.planes_at_infinity(world,
 19 = a shot size’s own columns (an#769): `EntityKind.shot_sizes` may give a band as
 : `(top, bottom, left, right)`, framed at its true width under the partial-size
   crop policy (`an.ir.world.resolve_viewpoint`).
+
+20 = a member’s facing and the view it calls for (an#734): `WorldMember.facing` and
+: `EntityKind.view_for(entity, mall, relative_yaw)`, which the world’s lowering
+  calls per framed shot with the camera’s yaw relative to the member’s facing.
 
 * **Type:**
   The level of the genre-facing API this `an` provides
@@ -316,7 +320,7 @@ checked against what the sugar declares).
 
 The entry-point group a genre package declares its [`Genre`](#an.genres.Genre) under.
 
-### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None, contacts=None)
+### *class* an.genres.EntityKind(name, space=None, store=None, description='', version='1', swap_declaration=None, descriptor_kind=None, placeholder_on_missing=False, swap_checks=None, specimen=None, landmarks=None, shot_sizes=None, contacts=None, view_for=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -414,6 +418,29 @@ kind declares nothing (its built nodes’ sets ARE its declaration).
 #### version *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
 
 The kind’s vocabulary version (ADR 0003), as [`ActionKind.version`](#an.genres.ActionKind.version).
+
+#### view_for *: [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[Any](https://docs.python.org/3/library/typing.html#typing.Any), [Any](https://docs.python.org/3/library/typing.html#typing.Any), [float](https://docs.python.org/3/builtins/functions.html#float)], [Sequence](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)* *= None*
+
+the actions
+that show a world member from the angle the camera sees it at (an#734,
+reeleehq/cutan#173). Called once per framed shot for each shown member that
+has a [`an.ir.schema.WorldMember.facing`](an.ir.schema.html.md#an.ir.schema.WorldMember.facing); `entity` is the member,
+`relative_yaw` the camera’s yaw about it in degrees, in `(-180, 180]`
+relative to where it faces: `0` the camera is in front, `±180` behind,
+`+90` the member faces screen-right. The answer is actions, not a view
+name, because the view is the genre’s vocabulary (a `view` swap, a
+mirroring `scale_x`); they are put at `t=0` AHEAD of the shot’s own, so
+an author’s explicit swap at 0 still wins. `None` or empty: nothing. A hook
+that raises or gives anything but actions is reported as a `view` note on the
+shot and adds nothing; a camera straight above the member gives no call (a
+note). A member’s `facing` is a yaw in the frame it starts the shot in.
+Not covered yet: a mirroring `set` of `scale_x` replaces the world’s
+scale (a `set` wins over placement), so a kind that mirrors needs a core
+channel for it first (filed as a follow-up of an#734).
+Since `an.genres.API_LEVEL` 20.
+
+* **Type:**
+  `(entity, mall, relative_yaw) -> Sequence[Action] | None`
 
 ### *class* an.genres.Genre(name, title='', description='', package='', library='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=(), capabilities=(), analysers=(), vocabulary=(), aspects=(), compile_passes=(), runtime_scripts=(), services=dict())
 

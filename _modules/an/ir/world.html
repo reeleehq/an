@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=f20d834b"></script>
+    <script src="../../../_static/documentation_options.js?v=56750752"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.436" />
+  <meta name="docsearch:version" content="0.1.437" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -791,6 +791,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">TrackEvent</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">look_basis</span> <span class="k">as</span> <span class="n">_basis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ActionBase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DFLT_FOV_DEG</span><span class="p">,</span>
     <span class="n">DFLT_TRAVEL_MAX_ACTIONS</span><span class="p">,</span>
@@ -3818,6 +3819,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">plane_anchors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">_PlaneAnchor</span><span class="p">],</span>
     <span class="n">bands</span><span class="p">:</span> <span class="n">Bands</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">band_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">view_for</span><span class="p">:</span> <span class="n">ViewFor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Shot</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">WorldNote</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
     <span class="n">shot</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">world</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">world</span>
@@ -4434,11 +4436,111 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"no member of the world could be measured, so this shot draws none of "</span>
             <span class="s2">"them (each is noted: a store not supplied, or a ref it cannot find; an#516)"</span><span class="p">,</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="n">view_for</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">listed_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+        <span class="n">shown</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">}</span>
+        <span class="n">views</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">member</span><span class="o">.</span><span class="n">facing</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shown</span>
+                <span class="ow">or</span> <span class="n">member</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span>
+            <span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">positioned</span><span class="p">:</span>
+                <span class="n">note</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"view"</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span>
+                    <span class="s2">"it has a `facing` but is attached to another member, which "</span>
+                    <span class="s2">"has none of its own to turn it by: nothing turns it (an#734)"</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">vp</span><span class="o">.</span><span class="n">hide</span> <span class="ow">and</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">listed_ids</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">yaw</span> <span class="o">=</span> <span class="n">_relative_yaw</span><span class="p">(</span>
+                <span class="n">member</span><span class="p">,</span>
+                <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">,</span>
+                <span class="n">tree</span><span class="o">=</span><span class="n">tree</span><span class="p">,</span>
+                <span class="n">vp_frame</span><span class="o">=</span><span class="n">vp_frame</span><span class="p">,</span>
+                <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">,</span>
+                <span class="n">frame</span><span class="o">=</span><span class="n">frame_of</span><span class="p">[</span><span class="n">mid</span><span class="p">],</span>  <span class="c1"># its facing is in the frame it starts in</span>
+                <span class="n">at</span><span class="o">=</span><span class="n">member_at</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_member_point</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">note</span><span class="p">(</span>
+                    <span class="s2">"info"</span><span class="p">,</span> <span class="s2">"view"</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span>
+                    <span class="s2">"the camera is straight above or below it (or at it): there "</span>
+                    <span class="s2">"is no side to see it from, so its view is left as it is"</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">got</span> <span class="o">=</span> <span class="n">view_for</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">yaw</span><span class="p">)</span>
+                <span class="n">got</span> <span class="o">=</span> <span class="p">[</span><span class="n">got</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">got</span><span class="p">,</span> <span class="n">_ActionBase</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">got</span> <span class="ow">or</span> <span class="p">())</span>
+                <span class="n">bad</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">got</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">_ActionBase</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">bad</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"expected actions, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">bad</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">bad</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r:</span><span class="s2">.40</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 - a genre that cannot say adds nothing</span>
+                <span class="n">note</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"view"</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"its kind's `view_for` gave nothing usable: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># fmt: skip</span>
+                <span class="k">continue</span>
+            <span class="c1"># A shot lowered again already holds what it gave the first time.</span>
+            <span class="n">views</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">got</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="c1"># At t=0 AHEAD of the shot's own, so an author's explicit swap wins (a</span>
+        <span class="c1"># later action of a channel wins). Continuity's carried state is added</span>
+        <span class="c1"># after this and so loses to a view, and a channel a view sets counts</span>
+        <span class="c1"># as one the shot opens itself.</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">views</span><span class="p">,</span> <span class="o">*</span><span class="n">actions</span><span class="p">]</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">shot</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"entities"</span><span class="p">:</span> <span class="n">entities</span><span class="p">,</span> <span class="s2">"actions"</span><span class="p">:</span> <span class="n">actions</span><span class="p">}),</span>
         <span class="n">notes</span><span class="p">,</span>
         <span class="n">origins</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="c1">#: ``(member, relative_yaw) -&gt; actions | None``: what shows ``member`` from the</span>
+<span class="c1">#: angle the camera sees it at (an#734); :func:`an.stage.world.member_views`</span>
+<span class="c1">#: binds the kinds' :attr:`an.genres.EntityKind.view_for` hooks to it.</span>
+<span class="n">ViewFor</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">WorldMember</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="s2">"Sequence[Any] | None"</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_relative_yaw</span><span class="p">(</span>
+    <span class="n">member</span><span class="p">:</span> <span class="n">WorldMember</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">projection</span><span class="p">:</span> <span class="n">Projection</span><span class="p">,</span>
+    <span class="n">tree</span><span class="p">:</span> <span class="n">FrameTree</span><span class="p">,</span>
+    <span class="n">vp_frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">film_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">frame</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">at</span><span class="p">:</span> <span class="n">Point3</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The camera's yaw about ``member`` relative to where it faces, in</span>
+<span class="sd">    ``(-180, 180]`` degrees, as the shot opens: ``0`` the camera is in front of</span>
+<span class="sd">    it, ``±180`` behind, ``+90`` it faces screen-right. ``None`` when the camera</span>
+<span class="sd">    is straight above or below it, where no side is seen.</span>
+
+<span class="sd">    ``at`` is where it stands in the viewpoint's frame; its facing is a yaw in</span>
+<span class="sd">    ``frame`` (the frame it starts the shot in), carried into the viewpoint's</span>
+<span class="sd">    frame as a direction (a frame that turns turns the member with it). The</span>
+<span class="sd">    angles are read from x and z only.</span>
+<span class="sd">    """</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">member</span><span class="o">.</span><span class="n">facing</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">pose</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">relative_pose</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">vp_frame</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">film_start</span><span class="o">=</span><span class="n">film_start</span><span class="p">)</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="n">pose</span><span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">_sub</span><span class="p">(</span><span class="n">pose</span><span class="o">.</span><span class="n">apply</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">f</span><span class="p">))),</span> <span class="n">o</span><span class="p">)</span>
+    <span class="n">to_cam</span> <span class="o">=</span> <span class="n">_sub</span><span class="p">(</span><span class="n">projection</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">to_cam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">to_cam</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">_EPS_HORIZONTAL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">rel</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">to_cam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">to_cam</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">rel</span> <span class="o">=</span> <span class="p">(</span><span class="n">rel</span> <span class="o">+</span> <span class="mf">180.0</span><span class="p">)</span> <span class="o">%</span> <span class="mf">360.0</span> <span class="o">-</span> <span class="mf">180.0</span>
+    <span class="k">return</span> <span class="mf">180.0</span> <span class="k">if</span> <span class="n">rel</span> <span class="o">==</span> <span class="o">-</span><span class="mf">180.0</span> <span class="k">else</span> <span class="n">rel</span>
+
+
+<span class="c1">#: The horizontal distance (world units) under which the camera is "above" a member.</span>
+<span class="n">_EPS_HORIZONTAL</span> <span class="o">=</span> <span class="mf">1e-6</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">parallax_factor</span><span class="p">(</span><span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">z_ref</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -5413,6 +5515,7 @@ window.runMermaid = runMermaid;</script>
     <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">bands</span><span class="p">:</span> <span class="n">Bands</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">band_problems</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">view_for</span><span class="p">:</span> <span class="n">ViewFor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Lowered</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The scene with every framed shot's placements derived from the world.</span>
 
@@ -5438,7 +5541,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    it does not name); ``bands`` is where a subject's own rig puts each shot</span>
 <span class="sd">    size (:data:`Bands`, measured by :func:`an.stage.world.member_shot_sizes`),</span>
 <span class="sd">    and ``band_problems`` why a subject's could not be (a ``shot_size`` note on</span>
-<span class="sd">    each shot that frames it).</span>
+<span class="sd">    each shot that frames it). ``view_for`` is ``(member, relative_yaw) -&gt;</span>
+<span class="sd">    actions | None`` (:data:`ViewFor`, bound to the kinds' own hook by</span>
+<span class="sd">    :func:`an.stage.world.member_views`): for each shown member with a</span>
+<span class="sd">    ``facing`` it is given the camera's yaw about the member relative to where</span>
+<span class="sd">    it faces (an#734), and what it returns is put at the head of the shot's</span>
+<span class="sd">    actions. ``None`` (the default): no member is turned to the camera.</span>
 
 <span class="sd">    Raises :class:`WorldError` for a viewpoint the world cannot resolve.</span>
 
@@ -5476,6 +5584,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">plane_anchors</span><span class="o">=</span><span class="n">plane_anchors</span><span class="p">,</span>
             <span class="n">bands</span><span class="o">=</span><span class="n">bands</span><span class="p">,</span>
             <span class="n">band_problems</span><span class="o">=</span><span class="n">band_problems</span><span class="p">,</span>
+            <span class="n">view_for</span><span class="o">=</span><span class="n">view_for</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lowered</span><span class="p">)</span>
         <span class="n">notes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shot_notes</span><span class="p">)</span>

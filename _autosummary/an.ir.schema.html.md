@@ -1887,7 +1887,7 @@ stands as the shot opens.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* an.ir.schema.WorldMember(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, frame=None, planes=None, depths=None, \*\*extra_data)
+### *class* an.ir.schema.WorldMember(\*, kind, id, store, ref, overrides=None, stage=None, library=None, joints=<factory>, at=None, height=None, width=None, units_per_px=None, attached=None, after=None, facing=None, frame=None, planes=None, depths=None, \*\*extra_data)
 
 Bases: [`AssetRef`](#an.ir.schema.AssetRef)
 
@@ -1920,6 +1920,18 @@ a plane declares where it is and not how fast it scrolls. A plane
 with a depth must keep the descriptor’s own `depth` (1.0) and
 `parallax` unset: two spellings of one fact are refused. What is at
 infinity is a plane in a `far` frame, not a depth.
+
+#### facing *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a yaw in degrees in its own frame, in the
+convention of a camera’s yaw (0 looks along `+z`, positive turns toward
+`+x`). `None` (the default) keeps a billboard: the member has no facing
+for its kind to answer to. Read by [`an.genres.EntityKind.view_for`](an.genres.html.md#an.genres.EntityKind.view_for)
+(an#734, `an.genres.API_LEVEL` 20), which is handed the camera’s yaw
+relative to it.
+
+* **Type:**
+  Where the member faces
 
 #### frame *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

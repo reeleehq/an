@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=f20d834b"></script>
+    <script src="../../../_static/documentation_options.js?v=56750752"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.436" />
+  <meta name="docsearch:version" content="0.1.437" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -737,7 +737,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
 
@@ -948,7 +948,25 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Since ``an.genres.API_LEVEL`` 18.</span>
     <span class="n">contacts</span><span class="p">:</span> <span class="p">(</span>
         <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span> <span class="o">|</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: ``(entity, mall, relative_yaw) -&gt; Sequence[Action] | None``: the actions</span>
+    <span class="c1">#: that show a world member from the angle the camera sees it at (an#734,</span>
+    <span class="c1">#: reeleehq/cutan#173). Called once per framed shot for each shown member that</span>
+    <span class="c1">#: has a :attr:`an.ir.schema.WorldMember.facing`; ``entity`` is the member,</span>
+    <span class="c1">#: ``relative_yaw`` the camera's yaw about it in degrees, in ``(-180, 180]``</span>
+    <span class="c1">#: relative to where it faces: ``0`` the camera is in front, ``±180`` behind,</span>
+    <span class="c1">#: ``+90`` the member faces screen-right. The answer is actions, not a view</span>
+    <span class="c1">#: name, because the view is the genre's vocabulary (a ``view`` swap, a</span>
+    <span class="c1">#: mirroring ``scale_x``); they are put at ``t=0`` AHEAD of the shot's own, so</span>
+    <span class="c1">#: an author's explicit swap at 0 still wins. ``None`` or empty: nothing. A hook</span>
+    <span class="c1">#: that raises or gives anything but actions is reported as a ``view`` note on the</span>
+    <span class="c1">#: shot and adds nothing; a camera straight above the member gives no call (a</span>
+    <span class="c1">#: note). A member's ``facing`` is a yaw in the frame it starts the shot in.</span>
+    <span class="c1">#: Not covered yet: a mirroring ``set`` of ``scale_x`` replaces the world's</span>
+    <span class="c1">#: scale (a ``set`` wins over placement), so a kind that mirrors needs a core</span>
+    <span class="c1">#: channel for it first (filed as a follow-up of an#734).</span>
+    <span class="c1">#: Since ``an.genres.API_LEVEL`` 20.</span>
+    <span class="n">view_for</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
