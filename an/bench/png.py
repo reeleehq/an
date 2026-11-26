@@ -330,7 +330,7 @@ def _pillow_decode(data: bytes) -> Any:
 
     with Image.open(io.BytesIO(data)) as im:
         im.load()
-        return np.asarray(im)
+        return np.array(im)  # a writable copy: callers mutate decoded frames
 
 
 def decode_png(data: bytes, *, decoder: str = "auto") -> Any:
