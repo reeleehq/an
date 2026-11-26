@@ -318,8 +318,28 @@ def _unfilter(raw: bytes, *, height: int, width: int, bpp: int) -> Any:
     return np.frombuffer(out, np.uint8).reshape(height, width, bpp)
 
 
-def decode_png(data: bytes) -> Any:
+DECODERS = ("auto", "pillow", "pure")
+
+
+def _pillow_decode(data: bytes) -> Any:
+    """Decode through Pillow (libpng-speed unfilter); bit-exact with :func:`_unfilter`."""
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    with Image.open(io.BytesIO(data)) as im:
+        im.load()
+        return np.array(im)  # a writable copy: callers mutate decoded frames
+
+
+def decode_png(data: bytes, *, decoder: str = "auto") -> Any:
     """Decode an 8-bit truecolour PNG to ``(H, W, C)`` uint8, ``C`` in ``{3, 4}``.
+
+    ``decoder``: ``"auto"`` uses Pillow when importable (24-50x faster on
+    filtered PNGs, bit-exact) and the pure-Python unfilter otherwise;
+    ``"pillow"`` requires Pillow; ``"pure"`` forces the numpy + stdlib path,
+    which is also the test oracle. The format guards below run first either way.
 
     Refuses — rather than approximates — 16-bit, palette, greyscale and
     interlaced images, naming what it found.
@@ -354,6 +374,15 @@ def decode_png(data: bytes) -> Any:
             f"this module decodes {sorted(_CHANNELS_BY_COLOUR_TYPE)}"
         )
     bpp = _CHANNELS_BY_COLOUR_TYPE[colour_type]
+    if decoder not in DECODERS:
+        raise ValueError(f"decoder must be one of {DECODERS}; got {decoder!r}")
+    # Pillow pads a short IDAT silently; the pure path owns that refusal.
+    if decoder != "pure" and len(raw) == height * (width * bpp + 1):
+        try:
+            return _pillow_decode(data)
+        except ImportError:
+            if decoder == "pillow":
+                raise
     return _unfilter(raw, height=height, width=width, bpp=bpp)
 
 
@@ -390,11 +419,11 @@ def to_rgb(arr: Any) -> Any:
     return a[..., :RGB_CHANNELS]
 
 
-def read_png(path: Any) -> Any:
+def read_png(path: Any, *, decoder: str = "auto") -> Any:
     """``(H, W, 3)`` uint8 for a PNG on disk, alpha dropped only if opaque."""
     from pathlib import Path
 
-    return to_rgb(decode_png(Path(path).read_bytes()))
+    return to_rgb(decode_png(Path(path).read_bytes(), decoder=decoder))
 
 
 def write_png(path: Any, rgb: Any, *, level: int = DFLT_ZLIB_LEVEL) -> Any:

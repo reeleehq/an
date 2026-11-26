@@ -554,3 +554,26 @@ def test_the_committed_goldens_headers_agree_with_their_decoded_shapes():
     assert goldens, "the committed golden corpus is missing"
     for path in goldens:
         assert read_png_dimensions(path) == read_png(path).shape[1::-1], path
+
+
+def test_pillow_decoder_bit_exact_with_pure_on_every_filter():
+    """The Pillow fast path must equal the pure unfilter (the oracle), bit for bit."""
+    pytest.importorskip("PIL.Image")
+    from pathlib import Path
+
+    fixture = Path(__file__).parent / "fixtures" / "png" / "adaptive_filters.png"
+    data = fixture.read_bytes()
+    assert np.array_equal(
+        decode_png(data, decoder="pillow"), decode_png(data, decoder="pure")
+    )
+    rng = np.random.default_rng(0)
+    rgb = rng.integers(0, 256, (9, 11, 3), dtype=np.uint8)
+    for filter_type in range(5):
+        d = _filtered_png(rgb, filter_type)
+        assert np.array_equal(decode_png(d, decoder="pillow"), rgb)
+        assert np.array_equal(decode_png(d, decoder="pure"), rgb)
+
+
+def test_decoder_name_is_validated():
+    with pytest.raises(ValueError, match="decoder"):
+        decode_png(encode_png(np.zeros((1, 1, 3), np.uint8)), decoder="nope")
