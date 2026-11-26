@@ -169,7 +169,9 @@ class GenreError(RegistryError):
 #: 20 = a member's facing and the view it calls for (an#734): ``WorldMember.facing`` and
 #:     ``EntityKind.view_for(entity, mall, relative_yaw)``, which the world's lowering
 #:     calls per framed shot with the camera's yaw relative to the member's facing.
-API_LEVEL: int = 20
+#: 21 = a view's mirror (an#868): a ``set`` of the member's ``scale_x`` among ``view_for``'s
+#:     actions is a sign the lowering composes with the world's scale.
+API_LEVEL: int = 21
 
 
 class GenreAPILevelError(GenreError, ImportError):

@@ -77,7 +77,7 @@ from an.ir.frames import (
     TrackEvent,
 )
 from an.ir.frames import look_basis as _basis
-from an.ir.schema import _ActionBase
+from an.ir.schema import SetAction, TweenAction, _ActionBase
 from an.ir.schema import (
     DFLT_FOV_DEG,
     DFLT_TRAVEL_MAX_ACTIONS,
@@ -3657,6 +3657,7 @@ def _lower_shot(
         listed_ids = {e.id for e in shot.entities}
         shown = {e.id for e in entities}
         views: list[Any] = []
+        mirrored: dict[str, float] = {}
         for mid, member in members.items():
             if (
                 member.facing is None
@@ -3704,8 +3705,28 @@ def _lower_shot(
                     f"{type(e).__name__}: {e}",
                 )  # fmt: skip
                 continue
+            # A `set` of the member's `scale_x` is a SIGN (an#868): -1 mirrors it,
+            # composed with the world's scale; it is taken out of the views.
+            sign, got, why = _view_mirror(got, mid)
+            for problem in why:
+                note("warning", "view", mid, f"its kind's `view_for` gave {problem}")
+            if sign is not None:
+                mirrored[mid] = sign
             # A shot lowered again already holds what it gave the first time.
             views.extend(a for a in got if a not in shot.actions)
+        n_own = len(split.actions)  # the shot's own come first, then the lowering's
+        for mid, sign in mirrored.items():
+            if sign < 0:
+                actions[n_own:] = [_mirrored_scale_x(a, mid) for a in actions[n_own:]]
+            entity = next(e for e in entities if e.id == mid)
+            scale = float(entity.stage.scale) if entity.stage is not None else 1.0
+            if mid not in already and not any(
+                _moves_scale_x(a, mid) for a in actions[n_own:]
+            ):
+                # at rest: the placement's uniform scale, signed on x alone
+                mirror = set_(mid, "scale_x", sign * scale, at=0.0)
+                if mirror not in shot.actions:
+                    views.append(mirror)
         # At t=0 AHEAD of the shot's own, so an author's explicit swap wins (a
         # later action of a channel wins). Continuity's carried state is added
         # after this and so loses to a view, and a channel a view sets counts
@@ -3716,6 +3737,76 @@ def _lower_shot(
         notes,
         origins,
     )
+
+
+def _view_mirror(got: list[Any], mid: str) -> tuple[float | None, list[Any], list[str]]:
+    """``(sign, the rest, problems)``: a view's plain ``set`` of ``mid``'s
+    ``scale_x`` is a sign (its sign; ``-1`` mirrors, ``1`` un-mirrors), and the
+    last one wins. Any other form of it (inside a composition, a tween), or a
+    value that is not ``±1``, is not one: the action is dropped and ``problems``
+    says why.
+
+    >>> _view_mirror([set_("a", "scale_x", -1), set_("a", "view", "side")], "a")[0]
+    -1.0
+    >>> _view_mirror([set_("a", "view", "side")], "a")[0] is None
+    True
+    >>> _view_mirror([tween("a", "scale_x", to=-1, duration=0)], "a")[::2]
+    (None, ['a tween of `scale_x` is not a sign: give a plain `set` of -1 or 1'])
+    """
+    sign, rest, problems = None, [], []
+    for a in got:
+        if isinstance(a, SetAction) and a.target == mid and a.property == "scale_x":
+            try:
+                value = float(a.value)
+            except (TypeError, ValueError):
+                value = 0.0
+            if abs(value) != 1.0:
+                problems.append(
+                    f"a `scale_x` of {a.value!r} is not a sign: give -1 or 1"
+                )
+            else:
+                sign = value
+        elif any(
+            getattr(x, "target", None) == mid
+            and getattr(x, "property", None) == "scale_x"
+            for x in iter_actions(a)
+        ):
+            kind = getattr(a, "kind", "action")
+            problems.append(
+                f"a {kind} of `scale_x` is not a sign: give a plain `set` of -1 or 1"
+            )
+        else:
+            rest.append(a)
+    return sign, rest, problems
+
+
+def _moves_scale_x(action: Any, mid: str) -> bool:
+    """Whether the lowering made ``mid``'s ``scale_x`` move (a pass keys it)."""
+    if isinstance(action, (SetAction, TweenAction)):
+        return action.target == mid and action.property == "scale_x"
+    return any(_moves_scale_x(a, mid) for a in getattr(action, "children", ()) or ())
+
+
+def _mirrored_scale_x(action: Any, mid: str) -> Any:
+    """``action`` with every value of ``mid``'s ``scale_x`` negated (a view's
+    mirror over the lowering's keys of it); other actions as they are."""
+    if isinstance(action, SetAction):
+        if action.target == mid and action.property == "scale_x":
+            return action.model_copy(update={"value": -float(action.value)})
+    elif isinstance(action, TweenAction):
+        if action.target == mid and action.property == "scale_x":
+            frm = action.from_value
+            return action.model_copy(
+                update={
+                    "to_value": -float(action.to_value),
+                    "from_value": None if frm is None else -float(frm),
+                }
+            )
+    elif getattr(action, "children", None):
+        return action.model_copy(
+            update={"children": [_mirrored_scale_x(a, mid) for a in action.children]}
+        )
+    return action
 
 
 #: ``(member, relative_yaw) -> actions | None``: what shows ``member`` from the
