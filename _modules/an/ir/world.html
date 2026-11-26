@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=56750752"></script>
+    <script src="../../../_static/documentation_options.js?v=be6fa490"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.437" />
+  <meta name="docsearch:version" content="0.1.438" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -791,7 +791,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">TrackEvent</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">look_basis</span> <span class="k">as</span> <span class="n">_basis</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ActionBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SetAction</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">,</span> <span class="n">_ActionBase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DFLT_FOV_DEG</span><span class="p">,</span>
     <span class="n">DFLT_TRAVEL_MAX_ACTIONS</span><span class="p">,</span>
@@ -4440,6 +4440,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">listed_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
         <span class="n">shown</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">}</span>
         <span class="n">views</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mirrored</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">member</span><span class="o">.</span><span class="n">facing</span> <span class="ow">is</span> <span class="kc">None</span>
@@ -4487,8 +4488,28 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                 <span class="p">)</span>  <span class="c1"># fmt: skip</span>
                 <span class="k">continue</span>
+            <span class="c1"># A `set` of the member's `scale_x` is a SIGN (an#868): -1 mirrors it,</span>
+            <span class="c1"># composed with the world's scale; it is taken out of the views.</span>
+            <span class="n">sign</span><span class="p">,</span> <span class="n">got</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">_view_mirror</span><span class="p">(</span><span class="n">got</span><span class="p">,</span> <span class="n">mid</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">why</span><span class="p">:</span>
+                <span class="n">note</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"view"</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"its kind's `view_for` gave </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sign</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mirrored</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
             <span class="c1"># A shot lowered again already holds what it gave the first time.</span>
             <span class="n">views</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">got</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">n_own</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>  <span class="c1"># the shot's own come first, then the lowering's</span>
+        <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="n">sign</span> <span class="ow">in</span> <span class="n">mirrored</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sign</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">actions</span><span class="p">[</span><span class="n">n_own</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_mirrored_scale_x</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mid</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">[</span><span class="n">n_own</span><span class="p">:]]</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">mid</span><span class="p">)</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="n">mid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">_moves_scale_x</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mid</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">[</span><span class="n">n_own</span><span class="p">:]</span>
+            <span class="p">):</span>
+                <span class="c1"># at rest: the placement's uniform scale, signed on x alone</span>
+                <span class="n">mirror</span> <span class="o">=</span> <span class="n">set_</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">,</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mirror</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">:</span>
+                    <span class="n">views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mirror</span><span class="p">)</span>
         <span class="c1"># At t=0 AHEAD of the shot's own, so an author's explicit swap wins (a</span>
         <span class="c1"># later action of a channel wins). Continuity's carried state is added</span>
         <span class="c1"># after this and so loses to a view, and a channel a view sets counts</span>
@@ -4499,6 +4520,76 @@ window.runMermaid = runMermaid;</script>
         <span class="n">notes</span><span class="p">,</span>
         <span class="n">origins</span><span class="p">,</span>
     <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_view_mirror</span><span class="p">(</span><span class="n">got</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">mid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(sign, the rest, problems)``: a view's plain ``set`` of ``mid``'s</span>
+<span class="sd">    ``scale_x`` is a sign (its sign; ``-1`` mirrors, ``1`` un-mirrors), and the</span>
+<span class="sd">    last one wins. Any other form of it (inside a composition, a tween), or a</span>
+<span class="sd">    value that is not ``±1``, is not one: the action is dropped and ``problems``</span>
+<span class="sd">    says why.</span>
+
+<span class="sd">    &gt;&gt;&gt; _view_mirror([set_("a", "scale_x", -1), set_("a", "view", "side")], "a")[0]</span>
+<span class="sd">    -1.0</span>
+<span class="sd">    &gt;&gt;&gt; _view_mirror([set_("a", "view", "side")], "a")[0] is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; _view_mirror([tween("a", "scale_x", to=-1, duration=0)], "a")[::2]</span>
+<span class="sd">    (None, ['a tween of `scale_x` is not a sign: give a plain `set` of -1 or 1'])</span>
+<span class="sd">    """</span>
+    <span class="n">sign</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">problems</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">got</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">mid</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"scale_x"</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"a `scale_x` of </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> is not a sign: give -1 or 1"</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">mid</span>
+            <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"scale_x"</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">kind</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="s2">"action"</span><span class="p">)</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> of `scale_x` is not a sign: give a plain `set` of -1 or 1"</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rest</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sign</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">problems</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_moves_scale_x</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the lowering made ``mid``'s ``scale_x`` move (a pass keys it)."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="p">(</span><span class="n">SetAction</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">mid</span> <span class="ow">and</span> <span class="n">action</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"scale_x"</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">_moves_scale_x</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mid</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_mirrored_scale_x</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``action`` with every value of ``mid``'s ``scale_x`` negated (a view's</span>
+<span class="sd">    mirror over the lowering's keys of it); other actions as they are."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">mid</span> <span class="ow">and</span> <span class="n">action</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"scale_x"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">value</span><span class="p">)})</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">mid</span> <span class="ow">and</span> <span class="n">action</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"scale_x"</span><span class="p">:</span>
+            <span class="n">frm</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">from_value</span>
+            <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
+                <span class="n">update</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">"to_value"</span><span class="p">:</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">to_value</span><span class="p">),</span>
+                    <span class="s2">"from_value"</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">frm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">frm</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
+            <span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"children"</span><span class="p">:</span> <span class="p">[</span><span class="n">_mirrored_scale_x</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mid</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">]}</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">action</span>
 
 
 <span class="c1">#: ``(member, relative_yaw) -&gt; actions | None``: what shows ``member`` from the</span>

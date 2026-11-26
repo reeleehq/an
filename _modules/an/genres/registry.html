@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=56750752"></script>
+    <script src="../../../_static/documentation_options.js?v=be6fa490"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.437" />
+  <meta name="docsearch:version" content="0.1.438" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -962,9 +962,17 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: that raises or gives anything but actions is reported as a ``view`` note on the</span>
     <span class="c1">#: shot and adds nothing; a camera straight above the member gives no call (a</span>
     <span class="c1">#: note). A member's ``facing`` is a yaw in the frame it starts the shot in.</span>
-    <span class="c1">#: Not covered yet: a mirroring ``set`` of ``scale_x`` replaces the world's</span>
-    <span class="c1">#: scale (a ``set`` wins over placement), so a kind that mirrors needs a core</span>
-    <span class="c1">#: channel for it first (filed as a follow-up of an#734).</span>
+    <span class="c1">#: **Mirroring (an#868, level 21):** a ``set`` of the member's own ``scale_x``</span>
+    <span class="c1">#: among the actions is a SIGN, not a scale: ``-1`` mirrors it (a profile that</span>
+    <span class="c1">#: faces the other way), ``1`` does not. The lowering composes it with the</span>
+    <span class="c1">#: world's scale, at rest and over the keys it gives a member the camera sees</span>
+    <span class="c1">#: move, and takes it out of the actions (a native ``set`` would have replaced</span>
+    <span class="c1">#: the world's scale). The last such ``set`` wins. Only a plain ``set`` of ``-1`` or</span>
+    <span class="c1">#: ``1`` is one (any other form is a ``view`` note and dropped). A kind that</span>
+    <span class="c1">#: mirrors should give a sign every time (``1`` too), since a ``continue:``</span>
+    <span class="c1">#: carries the last. An author's own ``scale_x`` is absolute and drops the</span>
+    <span class="c1">#: mirror; an attached member is not mirrored with its host; the builder's root</span>
+    <span class="c1">#: ``scale_x`` is taken to be 1.</span>
     <span class="c1">#: Since ``an.genres.API_LEVEL`` 20.</span>
     <span class="n">view_for</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
