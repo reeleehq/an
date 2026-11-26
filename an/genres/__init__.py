@@ -166,7 +166,10 @@ class GenreError(RegistryError):
 #: 19 = a shot size's own columns (an#769): ``EntityKind.shot_sizes`` may give a band as
 #:     ``(top, bottom, left, right)``, framed at its true width under the partial-size
 #:     crop policy (``an.ir.world.resolve_viewpoint``).
-API_LEVEL: int = 19
+#: 20 = a member's facing and the view it calls for (an#734): ``WorldMember.facing`` and
+#:     ``EntityKind.view_for(entity, mall, relative_yaw)``, which the world's lowering
+#:     calls per framed shot with the camera's yaw relative to the member's facing.
+API_LEVEL: int = 20
 
 
 class GenreAPILevelError(GenreError, ImportError):

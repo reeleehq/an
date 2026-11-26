@@ -20,7 +20,7 @@ import dataclasses
 from pathlib import Path
 
 import warnings
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence
 
 from an.ir.schema import AssetRef, SceneIR, World, stage_specimen
 from an.ir.world import Box, Lowered, WorldError, has_world, lower_world
@@ -401,6 +401,26 @@ def lower_scene_world(
     return _lower_world(scene, mall, fps=fps, film_starts=None).scene
 
 
+def member_views(
+    mall: Mapping[str, Mapping] | None,
+) -> Callable[[Any, float], Sequence[Any] | None]:
+    """The ``view_for`` of :func:`an.ir.world.lower_world`: each member's kind's
+    :attr:`an.genres.EntityKind.view_for`, handed ``mall`` (an#734). A kind with
+    no hook, or none registered, gives nothing.
+
+    >>> member_views({})(object(), 0.0) is None
+    True
+    """
+    from an.genres.registry import entity_kind
+
+    def view_for(member: Any, relative_yaw: float) -> Sequence[Any] | None:
+        kind = entity_kind(getattr(member, "kind", None))
+        hook = getattr(kind, "view_for", None) if kind is not None else None
+        return None if hook is None else hook(member, mall, relative_yaw)
+
+    return view_for
+
+
 def _lower_world(
     scene: SceneIR,
     mall: Mapping[str, Mapping] | None,
@@ -431,6 +451,7 @@ def _lower_world(
             scene.world, mall, extents=extents, problems=band_problems
         ),
         band_problems=band_problems,
+        view_for=member_views(mall),
     )
 
 
