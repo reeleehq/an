@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=c5f50921"></script>
+    <script src="../../../_static/documentation_options.js?v=f20d834b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.435" />
+  <meta name="docsearch:version" content="0.1.436" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1044,10 +1044,30 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">bpp</span><span class="p">)</span>
 
 
+<span class="n">DECODERS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"auto"</span><span class="p">,</span> <span class="s2">"pillow"</span><span class="p">,</span> <span class="s2">"pure"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pillow_decode</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Decode through Pillow (libpng-speed unfilter); bit-exact with :func:`_unfilter`."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+
+    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="k">as</span> <span class="n">im</span><span class="p">:</span>
+        <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>  <span class="c1"># a writable copy: callers mutate decoded frames</span>
+
+
 <div class="viewcode-block" id="decode_png">
 <a class="viewcode-back" href="../../../_autosummary/an.bench.png.html#an.bench.decode_png">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">decode_png</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decode_png</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">decoder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Decode an 8-bit truecolour PNG to ``(H, W, C)`` uint8, ``C`` in ``{3, 4}``.</span>
+
+<span class="sd">    ``decoder``: ``"auto"`` uses Pillow when importable (24-50x faster on</span>
+<span class="sd">    filtered PNGs, bit-exact) and the pure-Python unfilter otherwise;</span>
+<span class="sd">    ``"pillow"`` requires Pillow; ``"pure"`` forces the numpy + stdlib path,</span>
+<span class="sd">    which is also the test oracle. The format guards below run first either way.</span>
 
 <span class="sd">    Refuses — rather than approximates — 16-bit, palette, greyscale and</span>
 <span class="sd">    interlaced images, naming what it found.</span>
@@ -1082,6 +1102,15 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"this module decodes </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_CHANNELS_BY_COLOUR_TYPE</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
     <span class="n">bpp</span> <span class="o">=</span> <span class="n">_CHANNELS_BY_COLOUR_TYPE</span><span class="p">[</span><span class="n">colour_type</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">decoder</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">DECODERS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"decoder must be one of </span><span class="si">{</span><span class="n">DECODERS</span><span class="si">}</span><span class="s2">; got </span><span class="si">{</span><span class="n">decoder</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="c1"># Pillow pads a short IDAT silently; the pure path owns that refusal.</span>
+    <span class="k">if</span> <span class="n">decoder</span> <span class="o">!=</span> <span class="s2">"pure"</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="o">==</span> <span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">bpp</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_pillow_decode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">decoder</span> <span class="o">==</span> <span class="s2">"pillow"</span><span class="p">:</span>
+                <span class="k">raise</span>
     <span class="k">return</span> <span class="n">_unfilter</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">bpp</span><span class="o">=</span><span class="n">bpp</span><span class="p">)</span></div>
 
 
@@ -1124,11 +1153,11 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="read_png">
 <a class="viewcode-back" href="../../../_autosummary/an.bench.png.html#an.bench.read_png">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">read_png</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_png</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">decoder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``(H, W, 3)`` uint8 for a PNG on disk, alpha dropped only if opaque."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-    <span class="k">return</span> <span class="n">to_rgb</span><span class="p">(</span><span class="n">decode_png</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()))</span></div>
+    <span class="k">return</span> <span class="n">to_rgb</span><span class="p">(</span><span class="n">decode_png</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span> <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">))</span></div>
 
 
 

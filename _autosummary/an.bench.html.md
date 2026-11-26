@@ -30,12 +30,12 @@ Entry points: [`an.bench.run.run_bench()`](an.bench.run.html.md#an.bench.run.run
 | [`bless_scene`](#an.bench.bless_scene)(capture, \*, times, ...[, ...])       | Write one scene's golden frames and its bless record.                         |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`compare_scene`](#an.bench.compare_scene)(capture, \*, times, chromium_build) | Compare today's render against the committed goldens for one scene.           |
-| [`decode_png`](#an.bench.decode_png)(data)                                  | Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.         |
+| [`decode_png`](#an.bench.decode_png)(data, \*[, decoder])                   | Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.         |
 | [`encode_png`](#an.bench.encode_png)(rgb, \*[, level])                      | Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.      |
 | [`frame_key`](#an.bench.frame_key)(index)                                  | The filename stem for a frame, zero-padded so a directory listing sorts.      |
 | [`pixels_sha256`](#an.bench.pixels_sha256)(rgb)                                | `sha256` over the decoded pixels — **shape and dtype included**.              |
 | [`png_dimensions`](#an.bench.png_dimensions)(data)                              | `(width, height)` from a PNG's IHDR, without decoding a single pixel.         |
-| [`read_png`](#an.bench.read_png)(path)                                    | `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.            |
+| [`read_png`](#an.bench.read_png)(path, \*[, decoder])                     | `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.            |
 | [`read_png_dimensions`](#an.bench.read_png_dimensions)(path)                         | `(width, height)` for a PNG on disk, reading only its header.                 |
 | [`write_png`](#an.bench.write_png)(path, rgb, \*[, level])                 | Write `rgb` as a filter-0 PNG and **verify the round trip** before returning. |
 | [`build_ledger`](#an.bench.build_ledger)(\*, provenance, scenes)              | The whole row.                                                                |
@@ -183,9 +183,14 @@ mean lets one clean frame hide a broken one, and this metric’s own name is
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### an.bench.decode_png(data)
+### an.bench.decode_png(data, , decoder='auto')
 
 Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.
+
+`decoder`: `"auto"` uses Pillow when importable (24-50x faster on
+filtered PNGs, bit-exact) and the pure-Python unfilter otherwise;
+`"pillow"` requires Pillow; `"pure"` forces the numpy + stdlib path,
+which is also the test oracle. The format guards below run first either way.
 
 Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
@@ -278,7 +283,7 @@ frame size changed partway through — is exactly the one sampling misses.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
-### an.bench.read_png(path)
+### an.bench.read_png(path, , decoder='auto')
 
 `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.
 

@@ -44,11 +44,11 @@ writes.
 
 ### Functions
 
-| [`decode_png`](#an.bench.png.decode_png)(data)                  | Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.         |
+| [`decode_png`](#an.bench.png.decode_png)(data, \*[, decoder])   | Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.         |
 |------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`encode_png`](#an.bench.png.encode_png)(rgb, \*[, level])      | Encode `(H, W, 3)` uint8 as an 8-bit truecolour PNG, every row filter 0.      |
 | [`png_dimensions`](#an.bench.png.png_dimensions)(data)              | `(width, height)` from a PNG's IHDR, without decoding a single pixel.         |
-| [`read_png`](#an.bench.png.read_png)(path)                    | `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.            |
+| [`read_png`](#an.bench.png.read_png)(path, \*[, decoder])     | `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.            |
 | [`read_png_dimensions`](#an.bench.png.read_png_dimensions)(path)         | `(width, height)` for a PNG on disk, reading only its header.                 |
 | [`to_rgb`](#an.bench.png.to_rgb)(arr)                       | Drop a **fully opaque** alpha channel, refusing to drop a meaningful one.     |
 | [`write_png`](#an.bench.png.write_png)(path, rgb, \*[, level]) | Write `rgb` as a filter-0 PNG and **verify the round trip** before returning. |
@@ -96,9 +96,14 @@ compares. Alpha is dropped at the boundary (see [`to_rgb()`](#an.bench.png.to_rg
 Bit depth. 16-bit PNGs are refused rather than truncated — a silently
 halved code value is exactly the class of bug this corpus exists to catch.
 
-### an.bench.png.decode_png(data)
+### an.bench.png.decode_png(data, , decoder='auto')
 
 Decode an 8-bit truecolour PNG to `(H, W, C)` uint8, `C` in `{3, 4}`.
+
+`decoder`: `"auto"` uses Pillow when importable (24-50x faster on
+filtered PNGs, bit-exact) and the pure-Python unfilter otherwise;
+`"pillow"` requires Pillow; `"pure"` forces the numpy + stdlib path,
+which is also the test oracle. The format guards below run first either way.
 
 Refuses — rather than approximates — 16-bit, palette, greyscale and
 interlaced images, naming what it found.
@@ -151,7 +156,7 @@ frame size changed partway through — is exactly the one sampling misses.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
 
-### an.bench.png.read_png(path)
+### an.bench.png.read_png(path, , decoder='auto')
 
 `(H, W, 3)` uint8 for a PNG on disk, alpha dropped only if opaque.
 
